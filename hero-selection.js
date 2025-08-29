@@ -1,4 +1,4 @@
-import { heroes } from '../data/heroes.js';
+import { heroes } from './heroes.js';
 
 export class HeroSelection {
   constructor(container) {
