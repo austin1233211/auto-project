@@ -1,0 +1,19 @@
+{
+  "name": "auto-project",
+  "version": "1.0.0",
+  "description": "A standalone auto-battler game inspired by Dota 2's Auto Gladiators arcade mode. Built incrementally with modular components for easy development and maintenance.",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint *.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "eslint": "^9.34.0",
+    "globals": "^16.3.0"
+  }
+}
