@@ -176,6 +176,46 @@ export class AbilitySystem {
     }
   }
 
+  selectSmartAbility(caster, target) {
+    const abilities = caster.abilities;
+    const casterHealthPercent = caster.currentHealth / caster.stats.health;
+    const targetAttackThreat = target.effectiveStats.attack / caster.effectiveStats.armor;
+    
+    const healingAbilities = ['Heal', 'Life Drain', 'Death Coil'];
+    const defensiveAbilities = ['Shield Block', 'Magic Shield', 'Teleport', 'Evasion', 'Stealth', 'Divine Shield'];
+    const offensiveAbilities = ['Charge', 'Fireball', 'Multi-Shot', 'Backstab', 'Holy Strike', 'Summon Skeleton', 'Berserker', 'Poison Arrow', 'Poison Blade'];
+    
+    if (casterHealthPercent < 0.3) {
+      for (const ability of abilities) {
+        if (healingAbilities.includes(ability.name)) {
+          return ability;
+        }
+      }
+    }
+    
+    if (targetAttackThreat > 3) {
+      for (const ability of abilities) {
+        if (defensiveAbilities.includes(ability.name)) {
+          return ability;
+        }
+      }
+    }
+    
+    for (const ability of abilities) {
+      if (ability.name === 'Death Coil') {
+        return ability; // Death Coil has built-in smart logic
+      }
+    }
+    
+    for (const ability of abilities) {
+      if (offensiveAbilities.includes(ability.name)) {
+        return ability;
+      }
+    }
+    
+    return abilities[0];
+  }
+
   executeFireball(caster, target) {
     const config = ABILITY_CONFIG.FIREBALL;
     const baseDamage = caster.effectiveStats.attack * config.damageMultiplier;

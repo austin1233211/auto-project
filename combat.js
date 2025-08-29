@@ -140,7 +140,7 @@ export class Combat {
     let manaGain = 25;
 
     if (currentHero.currentMana >= currentHero.maxMana) {
-      const ability = currentHero.abilities[0];
+      const ability = this.abilitySystem.selectSmartAbility(currentHero, targetHero);
       const abilityResult = this.abilitySystem.executeAbility(currentHero, targetHero, ability.name);
       damage = abilityResult.damage;
       currentHero.currentMana = 0;
