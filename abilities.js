@@ -27,7 +27,7 @@ const ABILITY_CONFIG = {
     message: 'launches a burning Fireball'
   },
   MAGIC_SHIELD: {
-    absorptionCount: 3,
+    absorptionCount: 2,
     emoji: '🔮',
     message: 'conjures a magical shield'
   },
@@ -90,7 +90,7 @@ const ABILITY_CONFIG = {
     message: 'channels divine healing energy'
   },
   DIVINE_SHIELD: {
-    immunityDuration: 2,
+    immunityDuration: 1,
     emoji: '🛡️',
     message: 'becomes blessed with divine protection'
   },
