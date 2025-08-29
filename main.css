@@ -631,7 +631,7 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid transparent;
   border-radius: var(--border-radius);
-  padding: 0.75rem;
+  padding: 0.5rem;
   transition: var(--transition);
 }
 
@@ -666,10 +666,10 @@ body {
 .player-health .health-bar {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-  height: 16px;
+  height: 14px;
   position: relative;
   overflow: hidden;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .player-health .health-fill {
@@ -732,8 +732,9 @@ body {
   }
   
   .players-list {
-    max-height: 70vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 
