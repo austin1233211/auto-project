@@ -183,3 +183,6 @@ This project is open source and available under the MIT License.
 **Current Status**: Hero Selection Component Complete
 **Next Component**: Combat System
 **Live Demo**: https://dota-gladius-app-l00kly3e.devinapps.com
+
+---
+*Last updated: August 29, 2025*
