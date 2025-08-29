@@ -1,5 +1,6 @@
 import { heroes } from './heroes.js';
 import { StatsCalculator } from './stats-calculator.js';
+import { AbilitySystem } from './abilities.js';
 
 export class Combat {
   constructor(container) {
@@ -10,6 +11,7 @@ export class Combat {
     this.battleLog = [];
     this.isGameOver = false;
     this.onBattleEnd = null;
+    this.abilitySystem = new AbilitySystem(this);
   }
 
   init(playerHero) {
@@ -138,9 +140,9 @@ export class Combat {
     let manaGain = 25;
 
     if (currentHero.currentMana >= currentHero.maxMana) {
-      const ability = currentHero.abilities[0];
-      damage = this.calculateDamage(currentHero.effectiveStats.attack * 1.5, targetHero.effectiveStats.armor);
-      this.addToLog(`${currentHero.name} uses ${ability.name} for ${damage} damage!`);
+      const ability = this.abilitySystem.selectSmartAbility(currentHero, targetHero);
+      const abilityResult = this.abilitySystem.executeAbility(currentHero, targetHero, ability.name);
+      damage = abilityResult.damage;
       currentHero.currentMana = 0;
     } else {
       damage = this.calculateDamage(currentHero.effectiveStats.attack, targetHero.effectiveStats.armor);
@@ -148,7 +150,13 @@ export class Combat {
       currentHero.currentMana = Math.min(currentHero.maxMana, currentHero.currentMana + manaGain);
     }
 
-    targetHero.currentHealth = Math.max(0, targetHero.currentHealth - damage);
+    if (currentHero.currentMana < currentHero.maxMana) {
+      targetHero.currentHealth = Math.max(0, targetHero.currentHealth - damage);
+    }
+    
+    this.abilitySystem.processStatusEffects(this.playerHero);
+    this.abilitySystem.processStatusEffects(this.enemyHero);
+    
     this.updateHealthAndManaBars();
 
     if (targetHero.currentHealth <= 0) {
