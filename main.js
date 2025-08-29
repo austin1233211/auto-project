@@ -1,6 +1,7 @@
 import { HeroSelection } from './hero-selection.js';
 import { Combat } from './combat.js';
 import { PlayerHealth } from './player-health.js';
+import { RoundsManager } from './rounds-manager.js';
 
 class AutoGladiators {
   constructor() {
@@ -14,6 +15,7 @@ class AutoGladiators {
     this.initHeroSelection();
     this.initCombat();
     this.initPlayerHealth();
+    this.initRounds();
   }
 
   initHeroSelection() {
@@ -24,6 +26,10 @@ class AutoGladiators {
       this.selectedHero = hero;
       console.log('Selected hero:', hero);
       this.startCombat(hero);
+    });
+
+    heroSelection.setOnTournamentStart(() => {
+      this.startTournament();
     });
   }
 
@@ -79,6 +85,27 @@ class AutoGladiators {
     alert('Game Over! Your player health reached 0. Starting a new game...');
     this.playerHealth.reset();
     this.switchScreen('hero-selection');
+  }
+
+  initRounds() {
+    const roundsContainer = document.getElementById('rounds-screen');
+    this.rounds = new RoundsManager(roundsContainer);
+    
+    this.rounds.setOnTournamentEnd((result) => {
+      if (result === 'back') {
+        this.switchScreen('hero-selection');
+      } else if (result && result.name) {
+        alert(`Tournament Winner: ${result.name} with ${result.hero.name}!`);
+        setTimeout(() => {
+          this.switchScreen('hero-selection');
+        }, 3000);
+      }
+    });
+  }
+
+  startTournament() {
+    this.switchScreen('rounds-screen');
+    this.rounds.init();
   }
 
   switchScreen(screenId) {

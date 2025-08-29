@@ -563,3 +563,187 @@ body {
     max-width: min(80vw, 800px);
   }
 }
+
+/* Rounds System Styles */
+.rounds-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 1rem;
+  gap: 1rem;
+  align-items: center;
+}
+
+.tournament-main {
+  flex: 1;
+  width: 100%;
+  max-width: min(90vw, 400px);
+  margin: 0 auto;
+}
+
+.rounds-title {
+  text-align: center;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+}
+
+.round-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.round-info h2 {
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.battle-area {
+  margin-bottom: 2rem;
+}
+
+.tournament-controls {
+  text-align: center;
+}
+
+.players-sidebar {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.players-sidebar h3 {
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  transition: var(--transition);
+}
+
+.player-card.active {
+  border-color: var(--accent-color);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.player-card.eliminated {
+  opacity: 0.5;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.player-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.player-hero {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.player-health .health-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  height: 14px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.2rem;
+}
+
+.player-health .health-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.player-health .health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.player-stats {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.tournament-btn {
+  margin-top: 0.5rem;
+  background: #059669;
+}
+
+.tournament-btn:hover.enabled {
+  background: #047857;
+}
+
+.tournament-btn.enabled {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Desktop enhancements for rounds */
+@media (min-width: 768px) {
+  .rounds-container {
+    flex-direction: row;
+    padding: 2rem;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  
+  .tournament-main {
+    flex: 2;
+    max-width: none;
+    margin-right: 2rem;
+  }
+  
+  .players-sidebar {
+    flex: 1;
+    max-width: 300px;
+    height: fit-content;
+  }
+  
+  .players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tournament-main {
+    max-width: 800px;
+  }
+  
+  .players-sidebar {
+    max-width: 350px;
+  }
+}
