@@ -1,4 +1,5 @@
 import { heroes } from './heroes.js';
+import { StatsCalculator } from './stats-calculator.js';
 
 export class Combat {
   constructor(container) {
@@ -12,13 +13,14 @@ export class Combat {
   }
 
   init(playerHero) {
-    this.playerHero = { 
+    this.playerHero = StatsCalculator.processHeroStats({ 
       ...playerHero, 
       currentHealth: playerHero.stats.health,
       currentMana: 0,
       maxMana: 100
-    };
+    });
     this.enemyHero = this.selectRandomEnemy();
+    this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
     this.enemyHero.currentHealth = this.enemyHero.stats.health;
     this.enemyHero.currentMana = 0;
     this.enemyHero.maxMana = 100;
@@ -54,7 +56,7 @@ export class Combat {
               <span class="mana-text">${this.playerHero.currentMana}/${this.playerHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
-              ATK: ${this.playerHero.stats.attack} | ARM: ${this.playerHero.stats.armor} | SPD: ${this.playerHero.stats.speed}
+              ATK: ${Math.round(this.playerHero.effectiveStats.attack)} | ARM: ${Math.round(this.playerHero.effectiveStats.armor)} | SPD: ${Math.round(this.playerHero.effectiveStats.speed)}
             </div>
           </div>
 
@@ -72,7 +74,7 @@ export class Combat {
               <span class="mana-text">${this.enemyHero.currentMana}/${this.enemyHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
-              ATK: ${this.enemyHero.stats.attack} | ARM: ${this.enemyHero.stats.armor} | SPD: ${this.enemyHero.stats.speed}
+              ATK: ${Math.round(this.enemyHero.effectiveStats.attack)} | ARM: ${Math.round(this.enemyHero.effectiveStats.armor)} | SPD: ${Math.round(this.enemyHero.effectiveStats.speed)}
             </div>
           </div>
         </div>
@@ -104,17 +106,25 @@ export class Combat {
     });
   }
 
+  calculateAttackInterval(speed) {
+    const baseInterval = 3000;
+    const speedMultiplier = speed / 10;
+    return Math.max(1000, baseInterval / speedMultiplier);
+  }
+
   startBattle() {
-    this.addToLog(`${this.playerHero.name} (${this.playerHero.stats.speed} SPD) vs ${this.enemyHero.name} (${this.enemyHero.stats.speed} SPD)`);
+    this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
     
-    if (this.enemyHero.stats.speed > this.playerHero.stats.speed) {
+    if (this.enemyHero.effectiveStats.speed > this.playerHero.effectiveStats.speed) {
       this.addToLog(`${this.enemyHero.name} is faster and goes first!`);
       this.currentTurn = 'enemy';
-      setTimeout(() => this.autoTurn(), 1500);
+      const initialDelay = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
+      setTimeout(() => this.autoTurn(), initialDelay);
     } else {
       this.addToLog(`${this.playerHero.name} goes first!`);
       this.currentTurn = 'player';
-      setTimeout(() => this.autoTurn(), 1500);
+      const initialDelay = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
+      setTimeout(() => this.autoTurn(), initialDelay);
     }
   }
 
@@ -129,11 +139,11 @@ export class Combat {
 
     if (currentHero.currentMana >= currentHero.maxMana) {
       const ability = currentHero.abilities[0];
-      damage = this.calculateDamage(currentHero.stats.attack * 1.5, targetHero.stats.armor);
+      damage = this.calculateDamage(currentHero.effectiveStats.attack * 1.5, targetHero.effectiveStats.armor);
       this.addToLog(`${currentHero.name} uses ${ability.name} for ${damage} damage!`);
       currentHero.currentMana = 0;
     } else {
-      damage = this.calculateDamage(currentHero.stats.attack, targetHero.stats.armor);
+      damage = this.calculateDamage(currentHero.effectiveStats.attack, targetHero.effectiveStats.armor);
       this.addToLog(`${currentHero.name} attacks for ${damage} damage!`);
       currentHero.currentMana = Math.min(currentHero.maxMana, currentHero.currentMana + manaGain);
     }
@@ -148,7 +158,9 @@ export class Combat {
     }
 
     this.currentTurn = this.currentTurn === 'player' ? 'enemy' : 'player';
-    setTimeout(() => this.autoTurn(), 2000);
+    const nextHero = this.currentTurn === 'player' ? this.playerHero : this.enemyHero;
+    const attackInterval = this.calculateAttackInterval(nextHero.effectiveStats.speed);
+    setTimeout(() => this.autoTurn(), attackInterval);
   }
 
   calculateDamage(attack, armor) {
