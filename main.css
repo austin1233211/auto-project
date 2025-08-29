@@ -720,7 +720,7 @@ body {
 }
 
 /* Hide player health on game mode selection screen */
-#game-mode-selection .player-health-container {
+#game-mode-selection.active ~ #player-health-display {
   display: none;
 }
 
