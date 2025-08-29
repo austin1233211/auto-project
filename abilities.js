@@ -1,4 +1,24 @@
 const ABILITY_CONFIG = {
+  CHARGE: {
+    damageMultiplier: 1.4,
+    stunDuration: 1,
+    emoji: '⚡',
+    message: 'charges forward with devastating force'
+  },
+  SHIELD_BLOCK: {
+    damageReduction: 0.5,
+    duration: 3,
+    emoji: '🛡️',
+    message: 'raises shield to block incoming attacks'
+  },
+  BERSERKER: {
+    healthThreshold: 0.3,
+    attackSpeedBonus: 0.5,
+    duration: 5,
+    emoji: '🔴',
+    message: 'enters berserker rage'
+  },
+  
   FIREBALL: {
     damageMultiplier: 1.6,
     burnDamagePercent: 0.3,
@@ -6,11 +26,62 @@ const ABILITY_CONFIG = {
     emoji: '🔥',
     message: 'launches a burning Fireball'
   },
-  CHARGE: {
-    damageMultiplier: 1.4,
-    stunDuration: 1,
+  MAGIC_SHIELD: {
+    absorptionCount: 3,
+    emoji: '🔮',
+    message: 'conjures a magical shield'
+  },
+  TELEPORT: {
+    dodgeChance: 0.5,
+    duration: 2,
+    emoji: '✨',
+    message: 'teleports to avoid attacks'
+  },
+  
+  MULTI_SHOT: {
+    arrowCount: 3,
+    damagePerArrow: 0.7,
+    emoji: '🏹',
+    message: 'fires multiple arrows'
+  },
+  EVASION: {
+    dodgeChance: 0.75,
+    duration: 2,
+    emoji: '💨',
+    message: 'enters evasive stance'
+  },
+  POISON_ARROW: {
+    damageMultiplier: 1.0,
+    poisonDamagePercent: 0.25,
+    poisonDuration: 4,
+    emoji: '🏹',
+    message: 'shoots a poison-tipped arrow'
+  },
+  
+  BACKSTAB: {
+    damageMultiplier: 2.5,
+    emoji: '🗡️',
+    message: 'strikes with deadly precision'
+  },
+  STEALTH: {
+    nextAttackMultiplier: 2.0,
+    untargetableDuration: 1,
+    emoji: '👤',
+    message: 'vanishes into the shadows'
+  },
+  POISON_BLADE: {
+    poisonDamagePercent: 0.2,
+    poisonDuration: 3,
+    buffDuration: 3,
+    emoji: '🗡️',
+    message: 'coats blade with deadly poison'
+  },
+  
+  HOLY_STRIKE: {
+    damageMultiplier: 1.8,
+    ignoreArmor: true,
     emoji: '⚡',
-    message: 'charges forward with devastating force'
+    message: 'strikes with divine power'
   },
   HEAL: {
     healPercent: 0.3,
@@ -18,12 +89,32 @@ const ABILITY_CONFIG = {
     emoji: '✨',
     message: 'channels divine healing energy'
   },
+  DIVINE_SHIELD: {
+    immunityDuration: 2,
+    emoji: '🛡️',
+    message: 'becomes blessed with divine protection'
+  },
+  
   LIFE_DRAIN: {
     damageMultiplier: 1.2,
     healPercent: 0.5,
     emoji: '💀',
     message: 'drains life force'
   },
+  SUMMON_SKELETON: {
+    skeletonAttackPercent: 0.5,
+    skeletonDuration: 3,
+    emoji: '💀',
+    message: 'summons an undead skeleton'
+  },
+  DEATH_COIL: {
+    damageMultiplier: 1.3,
+    healPercent: 0.4,
+    healthThreshold: 0.5,
+    emoji: '💀',
+    message: 'channels dark energy'
+  },
+  
   GENERIC: {
     damageMultiplier: 1.5,
     emoji: '✨',
@@ -38,14 +129,48 @@ export class AbilitySystem {
 
   executeAbility(caster, target, abilityName) {
     switch (abilityName) {
-      case 'Fireball':
-        return this.executeFireball(caster, target);
       case 'Charge':
         return this.executeCharge(caster, target);
+      case 'Shield Block':
+        return this.executeShieldBlock(caster, target);
+      case 'Berserker':
+        return this.executeBerserker(caster, target);
+      
+      case 'Fireball':
+        return this.executeFireball(caster, target);
+      case 'Magic Shield':
+        return this.executeMagicShield(caster, target);
+      case 'Teleport':
+        return this.executeTeleport(caster, target);
+      
+      case 'Multi-Shot':
+        return this.executeMultiShot(caster, target);
+      case 'Evasion':
+        return this.executeEvasion(caster, target);
+      case 'Poison Arrow':
+        return this.executePoisonArrow(caster, target);
+      
+      case 'Backstab':
+        return this.executeBackstab(caster, target);
+      case 'Stealth':
+        return this.executeStealth(caster, target);
+      case 'Poison Blade':
+        return this.executePoisonBlade(caster, target);
+      
+      case 'Holy Strike':
+        return this.executeHolyStrike(caster, target);
       case 'Heal':
         return this.executeHeal(caster, target);
+      case 'Divine Shield':
+        return this.executeDivineShield(caster, target);
+      
       case 'Life Drain':
         return this.executeLifeDrain(caster, target);
+      case 'Summon Skeleton':
+        return this.executeSummonSkeleton(caster, target);
+      case 'Death Coil':
+        return this.executeDeathCoil(caster, target);
+      
       default:
         return this.executeGenericAbility(caster, target, abilityName);
     }
@@ -85,6 +210,162 @@ export class AbilitySystem {
     };
   }
 
+  executeShieldBlock(caster, target) {
+    const config = ABILITY_CONFIG.SHIELD_BLOCK;
+    this.applyDamageReductionEffect(caster, config.damageReduction, config.duration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} reducing damage by ${Math.round(config.damageReduction * 100)}% for ${config.duration} turns!`);
+    
+    return {
+      damage: 0,
+      effects: [`damage_reduction:${config.damageReduction}:${config.duration}`]
+    };
+  }
+
+  executeBerserker(caster, target) {
+    const config = ABILITY_CONFIG.BERSERKER;
+    const healthPercent = caster.currentHealth / caster.stats.health;
+    
+    if (healthPercent <= config.healthThreshold) {
+      this.applyAttackSpeedEffect(caster, config.attackSpeedBonus, config.duration);
+      this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} gaining ${Math.round(config.attackSpeedBonus * 100)}% attack speed for ${config.duration} turns!`);
+      
+      return {
+        damage: 0,
+        effects: [`attack_speed:${config.attackSpeedBonus}:${config.duration}`]
+      };
+    } else {
+      this.combat.addToLog(`${caster.name} is not wounded enough to enter berserker rage!`);
+      return this.executeGenericAbility(caster, target, 'Berserker');
+    }
+  }
+
+  executeMagicShield(caster, target) {
+    const config = ABILITY_CONFIG.MAGIC_SHIELD;
+    this.applyAbsorptionEffect(caster, config.absorptionCount);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} that will absorb the next ${config.absorptionCount} attacks!`);
+    
+    return {
+      damage: 0,
+      effects: [`absorption:${config.absorptionCount}`]
+    };
+  }
+
+  executeTeleport(caster, target) {
+    const config = ABILITY_CONFIG.TELEPORT;
+    this.applyDodgeEffect(caster, config.dodgeChance, config.duration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} gaining ${Math.round(config.dodgeChance * 100)}% dodge chance for ${config.duration} turns!`);
+    
+    return {
+      damage: 0,
+      effects: [`dodge:${config.dodgeChance}:${config.duration}`]
+    };
+  }
+
+  executeMultiShot(caster, target) {
+    const config = ABILITY_CONFIG.MULTI_SHOT;
+    let totalDamage = 0;
+    
+    for (let i = 0; i < config.arrowCount; i++) {
+      const baseDamage = caster.effectiveStats.attack * config.damagePerArrow;
+      const damage = this.combat.calculateDamage(baseDamage, target.effectiveStats.armor);
+      totalDamage += damage;
+      target.currentHealth = Math.max(0, target.currentHealth - damage);
+    }
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} dealing ${totalDamage} total damage in ${config.arrowCount} hits!`);
+    
+    return {
+      damage: totalDamage,
+      effects: [`multishot:${config.arrowCount}`]
+    };
+  }
+
+  executeEvasion(caster, target) {
+    const config = ABILITY_CONFIG.EVASION;
+    this.applyDodgeEffect(caster, config.dodgeChance, config.duration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} gaining ${Math.round(config.dodgeChance * 100)}% dodge chance for ${config.duration} turns!`);
+    
+    return {
+      damage: 0,
+      effects: [`dodge:${config.dodgeChance}:${config.duration}`]
+    };
+  }
+
+  executePoisonArrow(caster, target) {
+    const config = ABILITY_CONFIG.POISON_ARROW;
+    const baseDamage = caster.effectiveStats.attack * config.damageMultiplier;
+    const damage = this.combat.calculateDamage(baseDamage, target.effectiveStats.armor);
+    const poisonDamage = Math.round(damage * config.poisonDamagePercent);
+    
+    target.currentHealth = Math.max(0, target.currentHealth - damage);
+    this.applyPoisonEffect(target, poisonDamage, config.poisonDuration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} for ${damage} damage! Target is poisoned for ${poisonDamage} damage over ${config.poisonDuration} turns.`);
+    
+    return {
+      damage: damage,
+      effects: [`poison:${poisonDamage}:${config.poisonDuration}`]
+    };
+  }
+
+  executeBackstab(caster, target) {
+    const config = ABILITY_CONFIG.BACKSTAB;
+    const baseDamage = caster.effectiveStats.attack * config.damageMultiplier;
+    const damage = this.combat.calculateDamage(baseDamage, target.effectiveStats.armor);
+    
+    target.currentHealth = Math.max(0, target.currentHealth - damage);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} for ${damage} critical damage!`);
+    
+    return {
+      damage: damage,
+      effects: [`critical`]
+    };
+  }
+
+  executeStealth(caster, target) {
+    const config = ABILITY_CONFIG.STEALTH;
+    this.applyStealthEffect(caster, config.nextAttackMultiplier, config.untargetableDuration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} - next attack will deal ${Math.round(config.nextAttackMultiplier * 100)}% damage!`);
+    
+    return {
+      damage: 0,
+      effects: [`stealth:${config.nextAttackMultiplier}:${config.untargetableDuration}`]
+    };
+  }
+
+  executePoisonBlade(caster, target) {
+    const config = ABILITY_CONFIG.POISON_BLADE;
+    this.applyPoisonBladeEffect(caster, config.poisonDamagePercent, config.poisonDuration, config.buffDuration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} - attacks will apply poison for ${config.buffDuration} turns!`);
+    
+    return {
+      damage: 0,
+      effects: [`poison_blade:${config.poisonDamagePercent}:${config.poisonDuration}:${config.buffDuration}`]
+    };
+  }
+
+  executeHolyStrike(caster, target) {
+    const config = ABILITY_CONFIG.HOLY_STRIKE;
+    const baseDamage = caster.effectiveStats.attack * config.damageMultiplier;
+    const damage = config.ignoreArmor ? baseDamage : this.combat.calculateDamage(baseDamage, target.effectiveStats.armor);
+    
+    target.currentHealth = Math.max(0, target.currentHealth - damage);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} for ${damage} divine damage${config.ignoreArmor ? ' (ignoring armor)' : ''}!`);
+    
+    return {
+      damage: damage,
+      effects: [`holy_damage`]
+    };
+  }
+
   executeHeal(caster, target) {
     const config = ABILITY_CONFIG.HEAL;
     const healAmount = Math.round(caster.stats.health * config.healPercent);
@@ -96,6 +377,18 @@ export class AbilitySystem {
     return {
       damage: 0,
       effects: [`heal:${healAmount}`]
+    };
+  }
+
+  executeDivineShield(caster, target) {
+    const config = ABILITY_CONFIG.DIVINE_SHIELD;
+    this.applyImmunityEffect(caster, config.immunityDuration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} for ${config.immunityDuration} turns!`);
+    
+    return {
+      damage: 0,
+      effects: [`immunity:${config.immunityDuration}`]
     };
   }
 
@@ -114,6 +407,47 @@ export class AbilitySystem {
       damage: damage,
       effects: [`lifedrain:${healAmount}`]
     };
+  }
+
+  executeSummonSkeleton(caster, target) {
+    const config = ABILITY_CONFIG.SUMMON_SKELETON;
+    this.applySkeletonEffect(caster, target, config.skeletonAttackPercent, config.skeletonDuration);
+    
+    this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} that will attack for ${config.skeletonDuration} turns!`);
+    
+    return {
+      damage: 0,
+      effects: [`skeleton:${config.skeletonAttackPercent}:${config.skeletonDuration}`]
+    };
+  }
+
+  executeDeathCoil(caster, target) {
+    const config = ABILITY_CONFIG.DEATH_COIL;
+    const healthPercent = caster.currentHealth / caster.stats.health;
+    
+    if (healthPercent < config.healthThreshold) {
+      const healAmount = Math.round(caster.stats.health * config.healPercent);
+      caster.currentHealth = Math.min(caster.stats.health, caster.currentHealth + healAmount);
+      
+      this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} to heal for ${healAmount} health!`);
+      
+      return {
+        damage: 0,
+        effects: [`heal:${healAmount}`]
+      };
+    } else {
+      const baseDamage = caster.effectiveStats.attack * config.damageMultiplier;
+      const damage = this.combat.calculateDamage(baseDamage, target.effectiveStats.armor);
+      
+      target.currentHealth = Math.max(0, target.currentHealth - damage);
+      
+      this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} to damage enemy for ${damage}!`);
+      
+      return {
+        damage: damage,
+        effects: [`death_coil_damage`]
+      };
+    }
   }
 
   executeGenericAbility(caster, target, abilityName) {
@@ -153,6 +487,123 @@ export class AbilitySystem {
     });
   }
 
+  applyPoisonEffect(target, poisonDamage, duration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'poison',
+      damage: poisonDamage,
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
+  applyDamageReductionEffect(target, reduction, duration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'damage_reduction',
+      reduction: reduction,
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
+  applyAttackSpeedEffect(target, bonus, duration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'attack_speed',
+      bonus: bonus,
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
+  applyAbsorptionEffect(target, count) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'absorption',
+      count: count,
+      ticksRemaining: count
+    });
+  }
+
+  applyDodgeEffect(target, chance, duration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'dodge',
+      chance: chance,
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
+  applyStealthEffect(target, attackMultiplier, duration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'stealth',
+      attackMultiplier: attackMultiplier,
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
+  applyPoisonBladeEffect(target, poisonPercent, poisonDuration, buffDuration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'poison_blade',
+      poisonPercent: poisonPercent,
+      poisonDuration: poisonDuration,
+      duration: buffDuration,
+      ticksRemaining: buffDuration
+    });
+  }
+
+  applyImmunityEffect(target, duration) {
+    if (!target.statusEffects) {
+      target.statusEffects = [];
+    }
+    
+    target.statusEffects.push({
+      type: 'immunity',
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
+  applySkeletonEffect(caster, target, attackPercent, duration) {
+    if (!caster.statusEffects) {
+      caster.statusEffects = [];
+    }
+    
+    caster.statusEffects.push({
+      type: 'skeleton',
+      target: target,
+      attackPercent: attackPercent,
+      duration: duration,
+      ticksRemaining: duration
+    });
+  }
+
   processStatusEffects(hero) {
     if (!hero.statusEffects) return;
     
@@ -163,6 +614,14 @@ export class AbilitySystem {
         if (effect.type === 'burn') {
           hero.currentHealth = Math.max(0, hero.currentHealth - effect.damage);
           this.combat.addToLog(`🔥 ${hero.name} takes ${effect.damage} burn damage!`);
+        } else if (effect.type === 'poison') {
+          hero.currentHealth = Math.max(0, hero.currentHealth - effect.damage);
+          this.combat.addToLog(`☠️ ${hero.name} takes ${effect.damage} poison damage!`);
+        } else if (effect.type === 'skeleton' && effect.target) {
+          const skeletonDamage = Math.round(hero.effectiveStats.attack * effect.attackPercent);
+          const damage = this.combat.calculateDamage(skeletonDamage, effect.target.effectiveStats.armor);
+          effect.target.currentHealth = Math.max(0, effect.target.currentHealth - damage);
+          this.combat.addToLog(`💀 ${hero.name}'s skeleton attacks for ${damage} damage!`);
         }
         
         effect.ticksRemaining--;
