@@ -26,9 +26,6 @@ export class HeroSelection {
           <p>Select a hero to view details</p>
         </div>
         
-        <button class="start-button" id="start-game-btn">
-          Start Battle
-        </button>
         <button class="start-button tournament-btn" id="start-tournament-btn">
           Start Tournament (8 Players)
         </button>
@@ -88,13 +85,6 @@ export class HeroSelection {
       }
     });
 
-    const startBtn = this.container.querySelector('#start-game-btn');
-    startBtn.addEventListener('click', () => {
-      if (this.selectedHero && this.onHeroSelected) {
-        this.onHeroSelected(this.selectedHero);
-      }
-    });
-
     const tournamentBtn = this.container.querySelector('#start-tournament-btn');
     tournamentBtn.addEventListener('click', () => {
       if (this.onTournamentStart) {
@@ -118,19 +108,12 @@ export class HeroSelection {
     detailsContainer.classList.remove('empty');
     detailsContainer.innerHTML = this.renderHeroDetails(this.selectedHero);
 
-    const startBtn = this.container.querySelector('#start-game-btn');
-    startBtn.classList.add('enabled');
-    
     const tournamentBtn = this.container.querySelector('#start-tournament-btn');
     tournamentBtn.classList.add('enabled');
   }
 
   getSelectedHero() {
     return this.selectedHero;
-  }
-
-  setOnHeroSelected(callback) {
-    this.onHeroSelected = callback;
   }
 
   setOnTournamentStart(callback) {
