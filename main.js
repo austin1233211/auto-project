@@ -1,5 +1,4 @@
 import { HeroSelection } from './hero-selection.js';
-import { Combat } from './combat.js';
 import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
 
@@ -13,7 +12,6 @@ class AutoGladiators {
 
   init() {
     this.initHeroSelection();
-    this.initCombat();
     this.initPlayerHealth();
     this.initRounds();
   }
@@ -21,31 +19,9 @@ class AutoGladiators {
   initHeroSelection() {
     const heroSelectionContainer = document.getElementById('hero-selection');
     const heroSelection = new HeroSelection(heroSelectionContainer);
-    
-    heroSelection.setOnHeroSelected((hero) => {
-      this.selectedHero = hero;
-      console.log('Selected hero:', hero);
-      this.startCombat(hero);
-    });
 
     heroSelection.setOnTournamentStart(() => {
       this.startTournament();
-    });
-  }
-
-  initCombat() {
-    const combatContainer = document.getElementById('combat-screen');
-    this.combat = new Combat(combatContainer);
-    
-    this.combat.setOnBattleEnd((result) => {
-      if (result === 'back') {
-        this.switchScreen('hero-selection');
-      } else {
-        this.playerHealth.processRoundResult(result);
-        setTimeout(() => {
-          this.switchScreen('hero-selection');
-        }, 2000);
-      }
     });
   }
 
@@ -61,11 +37,6 @@ class AutoGladiators {
     this.playerHealth.init();
     
     this.updatePlayerHealthDisplay(this.playerHealth.getHealthStatus());
-  }
-
-  startCombat(hero) {
-    this.switchScreen('combat-screen');
-    this.combat.init(hero);
   }
 
   updatePlayerHealthDisplay(status) {
