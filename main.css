@@ -571,10 +571,12 @@ body {
   min-height: 100vh;
   padding: 1rem;
   gap: 1rem;
+  align-items: center;
 }
 
 .tournament-main {
   flex: 1;
+  width: 100%;
   max-width: min(90vw, 400px);
   margin: 0 auto;
 }
@@ -713,6 +715,8 @@ body {
   .rounds-container {
     flex-direction: row;
     padding: 2rem;
+    align-items: flex-start;
+    justify-content: center;
   }
   
   .tournament-main {
