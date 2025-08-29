@@ -719,6 +719,11 @@ body {
   margin: 0 auto 1rem auto;
 }
 
+/* Hide player health on game mode selection screen */
+#game-mode-selection .player-health-container {
+  display: none;
+}
+
 .player-health-bar {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
