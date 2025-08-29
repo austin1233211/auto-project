@@ -12,9 +12,16 @@ export class Combat {
   }
 
   init(playerHero) {
-    this.playerHero = { ...playerHero, currentHealth: playerHero.stats.health };
+    this.playerHero = { 
+      ...playerHero, 
+      currentHealth: playerHero.stats.health,
+      currentMana: 0,
+      maxMana: 100
+    };
     this.enemyHero = this.selectRandomEnemy();
     this.enemyHero.currentHealth = this.enemyHero.stats.health;
+    this.enemyHero.currentMana = 0;
+    this.enemyHero.maxMana = 100;
     this.battleLog = [];
     this.isGameOver = false;
     this.currentTurn = 'player';
@@ -42,6 +49,10 @@ export class Combat {
               <div class="health-fill player-health" style="width: 100%"></div>
               <span class="health-text">${this.playerHero.currentHealth}/${this.playerHero.stats.health}</span>
             </div>
+            <div class="mana-bar">
+              <div class="mana-fill player-mana" style="width: 0%"></div>
+              <span class="mana-text">${this.playerHero.currentMana}/${this.playerHero.maxMana}</span>
+            </div>
             <div class="hero-stats-mini">
               ATK: ${this.playerHero.stats.attack} | ARM: ${this.playerHero.stats.armor} | SPD: ${this.playerHero.stats.speed}
             </div>
@@ -55,6 +66,10 @@ export class Combat {
             <div class="health-bar">
               <div class="health-fill enemy-health" style="width: 100%"></div>
               <span class="health-text">${this.enemyHero.currentHealth}/${this.enemyHero.stats.health}</span>
+            </div>
+            <div class="mana-bar">
+              <div class="mana-fill enemy-mana" style="width: 0%"></div>
+              <span class="mana-text">${this.enemyHero.currentMana}/${this.enemyHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
               ATK: ${this.enemyHero.stats.attack} | ARM: ${this.enemyHero.stats.armor} | SPD: ${this.enemyHero.stats.speed}
@@ -70,8 +85,7 @@ export class Combat {
         </div>
 
         <div class="battle-controls">
-          <button class="action-button" id="attack-btn">Attack</button>
-          <button class="action-button" id="ability-btn">Use Ability</button>
+          <div class="auto-battle-status" id="battle-status">Auto-battle in progress...</div>
           <button class="action-button secondary" id="back-to-selection">Back to Hero Selection</button>
         </div>
       </div>
@@ -81,21 +95,7 @@ export class Combat {
   }
 
   attachEventListeners() {
-    const attackBtn = this.container.querySelector('#attack-btn');
-    const abilityBtn = this.container.querySelector('#ability-btn');
     const backBtn = this.container.querySelector('#back-to-selection');
-
-    attackBtn.addEventListener('click', () => {
-      if (this.currentTurn === 'player' && !this.isGameOver) {
-        this.playerAttack();
-      }
-    });
-
-    abilityBtn.addEventListener('click', () => {
-      if (this.currentTurn === 'player' && !this.isGameOver) {
-        this.playerUseAbility();
-      }
-    });
 
     backBtn.addEventListener('click', () => {
       if (this.onBattleEnd) {
@@ -110,70 +110,45 @@ export class Combat {
     if (this.enemyHero.stats.speed > this.playerHero.stats.speed) {
       this.addToLog(`${this.enemyHero.name} is faster and goes first!`);
       this.currentTurn = 'enemy';
-      setTimeout(() => this.enemyTurn(), 1000);
+      setTimeout(() => this.autoTurn(), 1500);
     } else {
       this.addToLog(`${this.playerHero.name} goes first!`);
       this.currentTurn = 'player';
+      setTimeout(() => this.autoTurn(), 1500);
     }
   }
 
-  playerAttack() {
-    const damage = this.calculateDamage(this.playerHero.stats.attack, this.enemyHero.stats.armor);
-    this.enemyHero.currentHealth = Math.max(0, this.enemyHero.currentHealth - damage);
-    
-    this.addToLog(`${this.playerHero.name} attacks for ${damage} damage!`);
-    this.updateHealthBars();
-
-    if (this.enemyHero.currentHealth <= 0) {
-      this.endBattle('victory');
-      return;
-    }
-
-    this.currentTurn = 'enemy';
-    setTimeout(() => this.enemyTurn(), 1500);
-  }
-
-  playerUseAbility() {
-    const ability = this.playerHero.abilities[0];
-    const damage = this.calculateDamage(this.playerHero.stats.attack * 1.5, this.enemyHero.stats.armor);
-    this.enemyHero.currentHealth = Math.max(0, this.enemyHero.currentHealth - damage);
-    
-    this.addToLog(`${this.playerHero.name} uses ${ability.name} for ${damage} damage!`);
-    this.updateHealthBars();
-
-    if (this.enemyHero.currentHealth <= 0) {
-      this.endBattle('victory');
-      return;
-    }
-
-    this.currentTurn = 'enemy';
-    setTimeout(() => this.enemyTurn(), 1500);
-  }
-
-  enemyTurn() {
+  autoTurn() {
     if (this.isGameOver) return;
 
-    const useAbility = Math.random() < 0.3;
+    const currentHero = this.currentTurn === 'player' ? this.playerHero : this.enemyHero;
+    const targetHero = this.currentTurn === 'player' ? this.enemyHero : this.playerHero;
+    
     let damage;
+    let manaGain = 25;
 
-    if (useAbility) {
-      const ability = this.enemyHero.abilities[0];
-      damage = this.calculateDamage(this.enemyHero.stats.attack * 1.5, this.playerHero.stats.armor);
-      this.addToLog(`${this.enemyHero.name} uses ${ability.name} for ${damage} damage!`);
+    if (currentHero.currentMana >= currentHero.maxMana) {
+      const ability = currentHero.abilities[0];
+      damage = this.calculateDamage(currentHero.stats.attack * 1.5, targetHero.stats.armor);
+      this.addToLog(`${currentHero.name} uses ${ability.name} for ${damage} damage!`);
+      currentHero.currentMana = 0;
     } else {
-      damage = this.calculateDamage(this.enemyHero.stats.attack, this.playerHero.stats.armor);
-      this.addToLog(`${this.enemyHero.name} attacks for ${damage} damage!`);
+      damage = this.calculateDamage(currentHero.stats.attack, targetHero.stats.armor);
+      this.addToLog(`${currentHero.name} attacks for ${damage} damage!`);
+      currentHero.currentMana = Math.min(currentHero.maxMana, currentHero.currentMana + manaGain);
     }
 
-    this.playerHero.currentHealth = Math.max(0, this.playerHero.currentHealth - damage);
-    this.updateHealthBars();
+    targetHero.currentHealth = Math.max(0, targetHero.currentHealth - damage);
+    this.updateHealthAndManaBars();
 
-    if (this.playerHero.currentHealth <= 0) {
-      this.endBattle('defeat');
+    if (targetHero.currentHealth <= 0) {
+      const result = this.currentTurn === 'player' ? 'victory' : 'defeat';
+      this.endBattle(result);
       return;
     }
 
-    this.currentTurn = 'player';
+    this.currentTurn = this.currentTurn === 'player' ? 'enemy' : 'player';
+    setTimeout(() => this.autoTurn(), 2000);
   }
 
   calculateDamage(attack, armor) {
@@ -183,19 +158,30 @@ export class Combat {
     return finalDamage;
   }
 
-  updateHealthBars() {
+  updateHealthAndManaBars() {
     const playerHealthPercent = (this.playerHero.currentHealth / this.playerHero.stats.health) * 100;
     const enemyHealthPercent = (this.enemyHero.currentHealth / this.enemyHero.stats.health) * 100;
+    const playerManaPercent = (this.playerHero.currentMana / this.playerHero.maxMana) * 100;
+    const enemyManaPercent = (this.enemyHero.currentMana / this.enemyHero.maxMana) * 100;
 
     const playerHealthBar = this.container.querySelector('.player-health');
     const enemyHealthBar = this.container.querySelector('.enemy-health');
+    const playerManaBar = this.container.querySelector('.player-mana');
+    const enemyManaBar = this.container.querySelector('.enemy-mana');
     const playerHealthText = this.container.querySelector('.player .health-text');
     const enemyHealthText = this.container.querySelector('.enemy .health-text');
+    const playerManaText = this.container.querySelector('.player .mana-text');
+    const enemyManaText = this.container.querySelector('.enemy .mana-text');
 
     playerHealthBar.style.width = `${playerHealthPercent}%`;
     enemyHealthBar.style.width = `${enemyHealthPercent}%`;
+    playerManaBar.style.width = `${playerManaPercent}%`;
+    enemyManaBar.style.width = `${enemyManaPercent}%`;
+    
     playerHealthText.textContent = `${this.playerHero.currentHealth}/${this.playerHero.stats.health}`;
     enemyHealthText.textContent = `${this.enemyHero.currentHealth}/${this.enemyHero.stats.health}`;
+    playerManaText.textContent = `${this.playerHero.currentMana}/${this.playerHero.maxMana}`;
+    enemyManaText.textContent = `${this.enemyHero.currentMana}/${this.enemyHero.maxMana}`;
   }
 
   addToLog(message) {
@@ -216,12 +202,9 @@ export class Combat {
       this.addToLog(`💀 Defeat! ${this.enemyHero.name} wins the battle!`);
     }
 
-    const attackBtn = this.container.querySelector('#attack-btn');
-    const abilityBtn = this.container.querySelector('#ability-btn');
-    attackBtn.disabled = true;
-    abilityBtn.disabled = true;
-    attackBtn.textContent = result === 'victory' ? 'Victory!' : 'Defeated';
-    abilityBtn.style.display = 'none';
+    const battleStatus = this.container.querySelector('#battle-status');
+    battleStatus.textContent = result === 'victory' ? 'Victory!' : 'Defeated!';
+    battleStatus.className = `auto-battle-status ${result}`;
 
     setTimeout(() => {
       if (this.onBattleEnd) {

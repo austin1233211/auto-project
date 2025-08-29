@@ -333,6 +333,40 @@ body {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
+.mana-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  height: 16px;
+  margin: 0.25rem 0 0.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.mana-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 4px;
+}
+
+.player-mana {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.enemy-mana {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.mana-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
 .hero-stats-mini {
   font-size: 0.7rem;
   color: var(--text-secondary);
@@ -368,6 +402,29 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.auto-battle-status {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--accent-color);
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.auto-battle-status.victory {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.auto-battle-status.defeat {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .action-button {
