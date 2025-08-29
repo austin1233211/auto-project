@@ -44,8 +44,6 @@ class AutoGladiators {
   }
 
   initPlayerHealth() {
-    this.playerHealth.init();
-    
     this.playerHealth.setOnHealthChanged((status) => {
       this.updatePlayerHealthDisplay(status);
     });
@@ -53,6 +51,10 @@ class AutoGladiators {
     this.playerHealth.setOnGameOver(() => {
       this.handleGameOver();
     });
+    
+    this.playerHealth.init();
+    
+    this.updatePlayerHealthDisplay(this.playerHealth.getHealthStatus());
   }
 
   startCombat(hero) {
