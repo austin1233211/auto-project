@@ -104,17 +104,25 @@ export class Combat {
     });
   }
 
+  calculateAttackInterval(speed) {
+    const baseInterval = 3000;
+    const speedMultiplier = speed / 10;
+    return Math.max(1000, baseInterval / speedMultiplier);
+  }
+
   startBattle() {
     this.addToLog(`${this.playerHero.name} (${this.playerHero.stats.speed} SPD) vs ${this.enemyHero.name} (${this.enemyHero.stats.speed} SPD)`);
     
     if (this.enemyHero.stats.speed > this.playerHero.stats.speed) {
       this.addToLog(`${this.enemyHero.name} is faster and goes first!`);
       this.currentTurn = 'enemy';
-      setTimeout(() => this.autoTurn(), 1500);
+      const initialDelay = this.calculateAttackInterval(this.enemyHero.stats.speed);
+      setTimeout(() => this.autoTurn(), initialDelay);
     } else {
       this.addToLog(`${this.playerHero.name} goes first!`);
       this.currentTurn = 'player';
-      setTimeout(() => this.autoTurn(), 1500);
+      const initialDelay = this.calculateAttackInterval(this.playerHero.stats.speed);
+      setTimeout(() => this.autoTurn(), initialDelay);
     }
   }
 
@@ -148,7 +156,9 @@ export class Combat {
     }
 
     this.currentTurn = this.currentTurn === 'player' ? 'enemy' : 'player';
-    setTimeout(() => this.autoTurn(), 2000);
+    const nextHero = this.currentTurn === 'player' ? this.playerHero : this.enemyHero;
+    const attackInterval = this.calculateAttackInterval(nextHero.stats.speed);
+    setTimeout(() => this.autoTurn(), attackInterval);
   }
 
   calculateDamage(attack, armor) {
