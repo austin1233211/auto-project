@@ -506,3 +506,60 @@ body {
     max-height: 250px;
   }
 }
+
+/* Player Health System Styles */
+.player-health-container {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: min(90vw, 400px);
+  margin: 0 auto 1rem auto;
+}
+
+.player-health-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.player-health-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.player-health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.loss-streak {
+  font-size: 0.8rem;
+  color: #ef4444;
+  text-align: center;
+  font-weight: bold;
+}
+
+@media (min-width: 768px) {
+  .player-health-container {
+    max-width: min(85vw, 600px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .player-health-container {
+    max-width: min(80vw, 800px);
+  }
+}
