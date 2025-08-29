@@ -154,6 +154,9 @@ export class Combat {
       targetHero.currentHealth = Math.max(0, targetHero.currentHealth - damage);
     }
     
+    this.abilitySystem.processStatusEffects(this.playerHero);
+    this.abilitySystem.processStatusEffects(this.enemyHero);
+    
     this.updateHealthAndManaBars();
 
     if (targetHero.currentHealth <= 0) {
