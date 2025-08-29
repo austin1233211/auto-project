@@ -719,8 +719,9 @@ body {
   margin: 0 auto 1rem auto;
 }
 
-/* Hide player health on game mode selection screen */
-body:has(#game-mode-selection.active) #player-health-display {
+/* Hide player health on game mode selection and hero selection screens */
+body:has(#game-mode-selection.active) #player-health-display,
+body:has(#hero-selection.active) #player-health-display {
   display: none !important;
 }
 
