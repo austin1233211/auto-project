@@ -1,19 +1,32 @@
+import { GameModeSelection } from './game-mode-selection.js';
 import { HeroSelection } from './hero-selection.js';
 import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
 
 class AutoGladiators {
   constructor() {
-    this.currentScreen = 'hero-selection';
+    this.currentScreen = 'game-mode-selection';
     this.selectedHero = null;
+    this.selectedMode = null;
     this.playerHealth = new PlayerHealth();
     this.init();
   }
 
   init() {
+    this.initGameModeSelection();
     this.initHeroSelection();
     this.initPlayerHealth();
     this.initRounds();
+  }
+
+  initGameModeSelection() {
+    const gameModeContainer = document.getElementById('game-mode-selection');
+    const gameModeSelection = new GameModeSelection(gameModeContainer);
+
+    gameModeSelection.setOnModeSelected((mode) => {
+      this.selectedMode = mode;
+      this.switchScreen('hero-selection');
+    });
   }
 
   initHeroSelection() {
