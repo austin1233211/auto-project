@@ -7,11 +7,12 @@ export class Combat {
     this.container = container;
     this.playerHero = null;
     this.enemyHero = null;
-    this.currentTurn = 'player';
     this.battleLog = [];
     this.isGameOver = false;
     this.onBattleEnd = null;
     this.abilitySystem = new AbilitySystem(this);
+    this.playerAttackTimer = null;
+    this.enemyAttackTimer = null;
   }
 
   init(playerHero) {
@@ -28,7 +29,7 @@ export class Combat {
     this.enemyHero.maxMana = 100;
     this.battleLog = [];
     this.isGameOver = false;
-    this.currentTurn = 'player';
+    this.clearTimers();
     
     this.render();
     this.startBattle();
@@ -114,61 +115,75 @@ export class Combat {
     return Math.max(1000, baseInterval / speedMultiplier);
   }
 
-  startBattle() {
-    this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
-    
-    if (this.enemyHero.effectiveStats.speed > this.playerHero.effectiveStats.speed) {
-      this.addToLog(`${this.enemyHero.name} is faster and goes first!`);
-      this.currentTurn = 'enemy';
-      const initialDelay = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
-      setTimeout(() => this.autoTurn(), initialDelay);
-    } else {
-      this.addToLog(`${this.playerHero.name} goes first!`);
-      this.currentTurn = 'player';
-      const initialDelay = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
-      setTimeout(() => this.autoTurn(), initialDelay);
+  clearTimers() {
+    if (this.playerAttackTimer) {
+      clearInterval(this.playerAttackTimer);
+      this.playerAttackTimer = null;
+    }
+    if (this.enemyAttackTimer) {
+      clearInterval(this.enemyAttackTimer);
+      this.enemyAttackTimer = null;
     }
   }
 
-  autoTurn() {
+  startBattle() {
+    this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
+    this.addToLog(`Battle begins! Both heroes attack simultaneously based on their speed.`);
+    
+    const playerAttackInterval = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
+    const enemyAttackInterval = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
+    
+    this.addToLog(`${this.playerHero.name} attacks every ${(playerAttackInterval/1000).toFixed(1)}s | ${this.enemyHero.name} attacks every ${(enemyAttackInterval/1000).toFixed(1)}s`);
+    
+    this.playerAttackTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.executeAttack(this.playerHero, this.enemyHero);
+      }
+    }, playerAttackInterval);
+    
+    this.enemyAttackTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.executeAttack(this.enemyHero, this.playerHero);
+      }
+    }, enemyAttackInterval);
+  }
+
+  executeAttack(attacker, target) {
     if (this.isGameOver) return;
 
-    const currentHero = this.currentTurn === 'player' ? this.playerHero : this.enemyHero;
-    const targetHero = this.currentTurn === 'player' ? this.enemyHero : this.playerHero;
-    
     let damage;
     let manaGain = 25;
 
-    if (currentHero.currentMana >= currentHero.maxMana) {
-      const ability = this.abilitySystem.selectSmartAbility(currentHero, targetHero);
-      const abilityResult = this.abilitySystem.executeAbility(currentHero, targetHero, ability.name);
+    const passiveResult = this.abilitySystem.processPassiveAbility(attacker, target);
+    
+    if (attacker.currentMana >= attacker.maxMana) {
+      const ultimateAbility = attacker.abilities.ultimate;
+      const abilityResult = this.abilitySystem.executeAbility(attacker, target, ultimateAbility.name);
       damage = abilityResult.damage;
-      currentHero.currentMana = 0;
+      attacker.currentMana = 0;
     } else {
-      damage = this.calculateDamage(currentHero.effectiveStats.attack, targetHero.effectiveStats.armor);
-      this.addToLog(`${currentHero.name} attacks for ${damage} damage!`);
-      currentHero.currentMana = Math.min(currentHero.maxMana, currentHero.currentMana + manaGain);
+      damage = this.calculateDamage(attacker.effectiveStats.attack, target.effectiveStats.armor);
+      if (passiveResult && passiveResult.criticalHit) {
+        damage = Math.round(damage * 1.5);
+        this.addToLog(`${attacker.name} attacks with a critical hit for ${damage} damage!`);
+      } else {
+        this.addToLog(`${attacker.name} attacks for ${damage} damage!`);
+      }
+      attacker.currentMana = Math.min(attacker.maxMana, attacker.currentMana + manaGain);
     }
 
-    if (currentHero.currentMana < currentHero.maxMana) {
-      targetHero.currentHealth = Math.max(0, targetHero.currentHealth - damage);
-    }
+    target.currentHealth = Math.max(0, target.currentHealth - damage);
     
     this.abilitySystem.processStatusEffects(this.playerHero);
     this.abilitySystem.processStatusEffects(this.enemyHero);
     
     this.updateHealthAndManaBars();
 
-    if (targetHero.currentHealth <= 0) {
-      const result = this.currentTurn === 'player' ? 'victory' : 'defeat';
+    if (target.currentHealth <= 0) {
+      const result = target === this.enemyHero ? 'victory' : 'defeat';
       this.endBattle(result);
       return;
     }
-
-    this.currentTurn = this.currentTurn === 'player' ? 'enemy' : 'player';
-    const nextHero = this.currentTurn === 'player' ? this.playerHero : this.enemyHero;
-    const attackInterval = this.calculateAttackInterval(nextHero.effectiveStats.speed);
-    setTimeout(() => this.autoTurn(), attackInterval);
   }
 
   calculateDamage(attack, armor) {
@@ -215,6 +230,7 @@ export class Combat {
 
   endBattle(result) {
     this.isGameOver = true;
+    this.clearTimers();
     
     if (result === 'victory') {
       this.addToLog(`🎉 Victory! ${this.playerHero.name} wins the battle!`);
