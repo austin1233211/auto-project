@@ -11,11 +11,10 @@ export const heroes = [
       armor: 8,
       speed: 6
     },
-    abilities: [
-      { name: 'Charge', description: 'Rush forward dealing damage' },
-      { name: 'Shield Block', description: 'Reduce incoming damage' },
-      { name: 'Berserker', description: 'Increase attack speed when low HP' }
-    ]
+    abilities: {
+      passive: { name: 'Warrior Training', description: 'Gains damage reduction when health is low' },
+      ultimate: { name: 'Berserker', description: 'Increase attack speed when low HP' }
+    }
   },
   {
     id: 'mage',
@@ -29,11 +28,10 @@ export const heroes = [
       armor: 3,
       speed: 7
     },
-    abilities: [
-      { name: 'Fireball', description: 'Launch a burning projectile' },
-      { name: 'Magic Shield', description: 'Absorb magical damage' },
-      { name: 'Teleport', description: 'Instantly move to avoid attacks' }
-    ]
+    abilities: {
+      passive: { name: 'Arcane Mastery', description: 'Generates mana faster during combat' },
+      ultimate: { name: 'Fireball', description: 'Launch a burning projectile' }
+    }
   },
   {
     id: 'archer',
@@ -47,11 +45,10 @@ export const heroes = [
       armor: 5,
       speed: 9
     },
-    abilities: [
-      { name: 'Multi-Shot', description: 'Fire multiple arrows' },
-      { name: 'Evasion', description: 'Chance to dodge attacks' },
-      { name: 'Poison Arrow', description: 'Deal damage over time' }
-    ]
+    abilities: {
+      passive: { name: 'Eagle Eye', description: 'Chance for critical strikes with precision' },
+      ultimate: { name: 'Multi-Shot', description: 'Fire multiple arrows' }
+    }
   },
   {
     id: 'assassin',
@@ -65,11 +62,10 @@ export const heroes = [
       armor: 4,
       speed: 10
     },
-    abilities: [
-      { name: 'Backstab', description: 'Critical hit from behind' },
-      { name: 'Stealth', description: 'Become invisible briefly' },
-      { name: 'Poison Blade', description: 'Attacks apply poison' }
-    ]
+    abilities: {
+      passive: { name: 'Shadow Step', description: 'Chance to dodge attacks with shadow movement' },
+      ultimate: { name: 'Backstab', description: 'Critical hit from behind' }
+    }
   },
   {
     id: 'paladin',
@@ -83,11 +79,10 @@ export const heroes = [
       armor: 7,
       speed: 5
     },
-    abilities: [
-      { name: 'Holy Strike', description: 'Divine damage attack' },
-      { name: 'Heal', description: 'Restore health over time' },
-      { name: 'Divine Shield', description: 'Immunity to damage briefly' }
-    ]
+    abilities: {
+      passive: { name: 'Divine Blessing', description: 'Slowly regenerates health when wounded' },
+      ultimate: { name: 'Divine Shield', description: 'Immunity to damage briefly' }
+    }
   },
   {
     id: 'necromancer',
@@ -101,11 +96,10 @@ export const heroes = [
       armor: 4,
       speed: 6
     },
-    abilities: [
-      { name: 'Life Drain', description: 'Steal enemy health' },
-      { name: 'Summon Skeleton', description: 'Create undead ally' },
-      { name: 'Death Coil', description: 'Heal self or damage enemy' }
-    ]
+    abilities: {
+      passive: { name: 'Dark Aura', description: 'Drains small amounts of enemy health over time' },
+      ultimate: { name: 'Death Coil', description: 'Heal self or damage enemy' }
+    }
   },
   {
     id: 'alchemist',
@@ -119,11 +113,10 @@ export const heroes = [
       armor: 4,
       speed: 7
     },
-    abilities: [
-      { name: 'Acid Spray', description: 'Spray corrosive acid in an area' },
-      { name: 'Unstable Concoction', description: 'Throw explosive potion' },
-      { name: 'Chemical Rage', description: 'Enhance abilities with chemicals' }
-    ]
+    abilities: {
+      passive: { name: 'Chemical Mastery', description: 'Attacks have chance to reduce enemy armor' },
+      ultimate: { name: 'Chemical Rage', description: 'Enhance abilities with chemicals' }
+    }
   },
   {
     id: 'anti-mage',
@@ -137,11 +130,10 @@ export const heroes = [
       armor: 5,
       speed: 9
     },
-    abilities: [
-      { name: 'Mana Break', description: 'Attacks burn enemy mana' },
-      { name: 'Blink', description: 'Short distance teleportation' },
-      { name: 'Mana Void', description: 'Damage based on missing mana' }
-    ]
+    abilities: {
+      passive: { name: 'Mana Break', description: 'Attacks burn enemy mana' },
+      ultimate: { name: 'Mana Void', description: 'Damage based on missing mana' }
+    }
   },
   {
     id: 'axe',
@@ -155,11 +147,10 @@ export const heroes = [
       armor: 6,
       speed: 5
     },
-    abilities: [
-      { name: 'Berserkers Call', description: 'Force enemies to attack you' },
-      { name: 'Battle Hunger', description: 'Damage over time effect' },
-      { name: 'Culling Blade', description: 'Execute low health enemies' }
-    ]
+    abilities: {
+      passive: { name: 'Battle Hunger', description: 'Damage over time effect' },
+      ultimate: { name: 'Culling Blade', description: 'Execute low health enemies' }
+    }
   },
   {
     id: 'bristleback',
@@ -173,11 +164,10 @@ export const heroes = [
       armor: 7,
       speed: 6
     },
-    abilities: [
-      { name: 'Viscous Nasal Goo', description: 'Slow and weaken enemies' },
-      { name: 'Quill Spray', description: 'Shoot damaging quills' },
-      { name: 'Bristleback', description: 'Reduce damage from behind' }
-    ]
+    abilities: {
+      passive: { name: 'Bristleback', description: 'Reduce damage from behind' },
+      ultimate: { name: 'Quill Spray', description: 'Shoot damaging quills' }
+    }
   },
   {
     id: 'chaos-knight',
@@ -191,11 +181,10 @@ export const heroes = [
       armor: 6,
       speed: 6
     },
-    abilities: [
-      { name: 'Chaos Bolt', description: 'Random damage and stun' },
-      { name: 'Reality Rift', description: 'Pull enemy through dimensions' },
-      { name: 'Phantasm', description: 'Create powerful illusions' }
-    ]
+    abilities: {
+      passive: { name: 'Chaos Strike', description: 'Attacks have random critical chance' },
+      ultimate: { name: 'Phantasm', description: 'Create powerful illusions' }
+    }
   },
   {
     id: 'clinkz',
@@ -209,11 +198,10 @@ export const heroes = [
       armor: 3,
       speed: 10
     },
-    abilities: [
-      { name: 'Strafe', description: 'Rapid fire arrows' },
-      { name: 'Skeleton Walk', description: 'Become invisible and fast' },
-      { name: 'Death Pact', description: 'Consume ally for power' }
-    ]
+    abilities: {
+      passive: { name: 'Searing Arrows', description: 'Arrows deal fire damage over time' },
+      ultimate: { name: 'Strafe', description: 'Rapid fire arrows' }
+    }
   },
   {
     id: 'dragon-knight',
@@ -227,11 +215,10 @@ export const heroes = [
       armor: 8,
       speed: 5
     },
-    abilities: [
-      { name: 'Dragon Tail', description: 'Stunning melee attack' },
-      { name: 'Dragon Blood', description: 'Regeneration and armor' },
-      { name: 'Elder Dragon Form', description: 'Transform into dragon' }
-    ]
+    abilities: {
+      passive: { name: 'Dragon Blood', description: 'Regeneration and armor' },
+      ultimate: { name: 'Elder Dragon Form', description: 'Transform into dragon' }
+    }
   },
   {
     id: 'earthshaker',
@@ -245,11 +232,10 @@ export const heroes = [
       armor: 5,
       speed: 6
     },
-    abilities: [
-      { name: 'Fissure', description: 'Create blocking earth wall' },
-      { name: 'Enchant Totem', description: 'Empower next attack' },
-      { name: 'Echo Slam', description: 'Damage based on enemy count' }
-    ]
+    abilities: {
+      passive: { name: 'Aftershock', description: 'Abilities stun nearby enemies' },
+      ultimate: { name: 'Echo Slam', description: 'Damage based on enemy count' }
+    }
   },
   {
     id: 'faceless-void',
@@ -263,11 +249,10 @@ export const heroes = [
       armor: 4,
       speed: 8
     },
-    abilities: [
-      { name: 'Time Walk', description: 'Leap through time' },
-      { name: 'Time Lock', description: 'Chance to bash and slow' },
-      { name: 'Chronosphere', description: 'Stop time in an area' }
-    ]
+    abilities: {
+      passive: { name: 'Time Lock', description: 'Chance to bash and slow' },
+      ultimate: { name: 'Chronosphere', description: 'Stop time in an area' }
+    }
   },
   {
     id: 'hoodwink',
@@ -281,11 +266,10 @@ export const heroes = [
       armor: 4,
       speed: 9
     },
-    abilities: [
-      { name: 'Acorn Shot', description: 'Bouncing projectile attack' },
-      { name: 'Bushwhack', description: 'Tree trap that stuns' },
-      { name: 'Decoy', description: 'Create misleading illusion' }
-    ]
+    abilities: {
+      passive: { name: 'Scurry', description: 'Gains movement speed when taking damage' },
+      ultimate: { name: 'Bushwhack', description: 'Tree trap that stuns' }
+    }
   },
   {
     id: 'huskar',
@@ -299,11 +283,10 @@ export const heroes = [
       armor: 4,
       speed: 7
     },
-    abilities: [
-      { name: 'Inner Fire', description: 'Disarm and damage nearby foes' },
-      { name: 'Burning Spear', description: 'Flaming projectile attack' },
-      { name: 'Berserkers Blood', description: 'Power increases when wounded' }
-    ]
+    abilities: {
+      passive: { name: 'Berserkers Blood', description: 'Power increases when wounded' },
+      ultimate: { name: 'Inner Fire', description: 'Disarm and damage nearby foes' }
+    }
   },
   {
     id: 'juggernaut',
@@ -317,11 +300,10 @@ export const heroes = [
       armor: 5,
       speed: 8
     },
-    abilities: [
-      { name: 'Blade Fury', description: 'Spinning blade attack' },
-      { name: 'Healing Ward', description: 'Summon regenerating totem' },
-      { name: 'Omnislash', description: 'Multiple target sword strikes' }
-    ]
+    abilities: {
+      passive: { name: 'Blade Dance', description: 'Chance for critical strikes' },
+      ultimate: { name: 'Omnislash', description: 'Multiple target sword strikes' }
+    }
   },
   {
     id: 'legion-commander',
@@ -335,11 +317,10 @@ export const heroes = [
       armor: 7,
       speed: 6
     },
-    abilities: [
-      { name: 'Overwhelming Odds', description: 'Damage based on enemy count' },
-      { name: 'Press the Attack', description: 'Heal and boost ally' },
-      { name: 'Duel', description: 'Force one-on-one combat' }
-    ]
+    abilities: {
+      passive: { name: 'Moment of Courage', description: 'Chance to counter-attack with lifesteal' },
+      ultimate: { name: 'Duel', description: 'Force one-on-one combat' }
+    }
   },
   {
     id: 'lina',
@@ -353,11 +334,10 @@ export const heroes = [
       armor: 2,
       speed: 8
     },
-    abilities: [
-      { name: 'Dragon Slave', description: 'Linear fire wave' },
-      { name: 'Light Strike Array', description: 'Delayed area stun' },
-      { name: 'Laguna Blade', description: 'Massive lightning bolt' }
-    ]
+    abilities: {
+      passive: { name: 'Fiery Soul', description: 'Spells increase attack and movement speed' },
+      ultimate: { name: 'Laguna Blade', description: 'Massive lightning bolt' }
+    }
   },
   {
     id: 'lion',
@@ -371,11 +351,10 @@ export const heroes = [
       armor: 3,
       speed: 7
     },
-    abilities: [
-      { name: 'Earth Spike', description: 'Ground piercing spikes' },
-      { name: 'Hex', description: 'Transform enemy into harmless creature' },
-      { name: 'Finger of Death', description: 'Instant death magic' }
-    ]
+    abilities: {
+      passive: { name: 'Mana Drain', description: 'Attacks steal enemy mana' },
+      ultimate: { name: 'Finger of Death', description: 'Instant death magic' }
+    }
   },
   {
     id: 'magnus',
@@ -389,11 +368,10 @@ export const heroes = [
       armor: 6,
       speed: 7
     },
-    abilities: [
-      { name: 'Shockwave', description: 'Damaging energy wave' },
-      { name: 'Empower', description: 'Enhance ally damage' },
-      { name: 'Reverse Polarity', description: 'Pull and stun enemies' }
-    ]
+    abilities: {
+      passive: { name: 'Empower', description: 'Enhanced damage and cleave attacks' },
+      ultimate: { name: 'Reverse Polarity', description: 'Pull and stun enemies' }
+    }
   },
   {
     id: 'mirana',
@@ -407,11 +385,10 @@ export const heroes = [
       armor: 4,
       speed: 9
     },
-    abilities: [
-      { name: 'Sacred Arrow', description: 'Long range stunning projectile' },
-      { name: 'Starstorm', description: 'Falling stars damage enemies' },
-      { name: 'Moonlight Shadow', description: 'Grant invisibility to allies' }
-    ]
+    abilities: {
+      passive: { name: 'Leap', description: 'Enhanced mobility and evasion' },
+      ultimate: { name: 'Sacred Arrow', description: 'Long range stunning projectile' }
+    }
   },
   {
     id: 'omniknight',
@@ -425,11 +402,10 @@ export const heroes = [
       armor: 8,
       speed: 5
     },
-    abilities: [
-      { name: 'Purification', description: 'Heal ally and damage enemies' },
-      { name: 'Heavenly Grace', description: 'Grant magic immunity' },
-      { name: 'Guardian Angel', description: 'Make allies immune to physical damage' }
-    ]
+    abilities: {
+      passive: { name: 'Degen Aura', description: 'Slows nearby enemies' },
+      ultimate: { name: 'Guardian Angel', description: 'Make allies immune to physical damage' }
+    }
   },
   {
     id: 'pudge',
@@ -443,11 +419,10 @@ export const heroes = [
       armor: 5,
       speed: 4
     },
-    abilities: [
-      { name: 'Meat Hook', description: 'Pull enemy to you' },
-      { name: 'Rot', description: 'Toxic aura damages nearby enemies' },
-      { name: 'Dismember', description: 'Channel to deal massive damage' }
-    ]
+    abilities: {
+      passive: { name: 'Flesh Heap', description: 'Gains health and magic resistance from kills' },
+      ultimate: { name: 'Dismember', description: 'Channel to deal massive damage' }
+    }
   },
   {
     id: 'riki',
@@ -461,11 +436,10 @@ export const heroes = [
       armor: 3,
       speed: 10
     },
-    abilities: [
-      { name: 'Smoke Screen', description: 'Blind and silence enemies' },
-      { name: 'Blink Strike', description: 'Teleport behind enemy' },
-      { name: 'Permanent Invisibility', description: 'Always invisible when not attacking' }
-    ]
+    abilities: {
+      passive: { name: 'Permanent Invisibility', description: 'Always invisible when not attacking' },
+      ultimate: { name: 'Smoke Screen', description: 'Blind and silence enemies' }
+    }
   },
   {
     id: 'shadow-fiend',
@@ -479,11 +453,10 @@ export const heroes = [
       armor: 3,
       speed: 8
     },
-    abilities: [
-      { name: 'Shadowraze', description: 'Shadow damage at range' },
-      { name: 'Necromastery', description: 'Gain damage from kills' },
-      { name: 'Requiem of Souls', description: 'Release collected souls' }
-    ]
+    abilities: {
+      passive: { name: 'Necromastery', description: 'Gain damage from kills' },
+      ultimate: { name: 'Requiem of Souls', description: 'Release collected souls' }
+    }
   },
   {
     id: 'skywrath-mage',
@@ -497,11 +470,10 @@ export const heroes = [
       armor: 2,
       speed: 8
     },
-    abilities: [
-      { name: 'Arcane Bolt', description: 'Seeking magical projectile' },
-      { name: 'Concussive Shot', description: 'Slow and damage enemy' },
-      { name: 'Mystic Flare', description: 'Concentrated magical damage' }
-    ]
+    abilities: {
+      passive: { name: 'Ancient Seal', description: 'Spells amplify damage on enemies' },
+      ultimate: { name: 'Mystic Flare', description: 'Concentrated magical damage' }
+    }
   },
   {
     id: 'slark',
@@ -515,11 +487,10 @@ export const heroes = [
       armor: 4,
       speed: 9
     },
-    abilities: [
-      { name: 'Dark Pact', description: 'Purge debuffs and damage self' },
-      { name: 'Pounce', description: 'Leap and tether enemy' },
-      { name: 'Shadow Dance', description: 'Become untargetable' }
-    ]
+    abilities: {
+      passive: { name: 'Essence Shift', description: 'Steals enemy attributes on attack' },
+      ultimate: { name: 'Shadow Dance', description: 'Become untargetable' }
+    }
   },
   {
     id: 'sniper',
@@ -533,11 +504,10 @@ export const heroes = [
       armor: 3,
       speed: 7
     },
-    abilities: [
-      { name: 'Shrapnel', description: 'Area damage over time' },
-      { name: 'Headshot', description: 'Chance for bonus damage' },
-      { name: 'Assassinate', description: 'Long range high damage shot' }
-    ]
+    abilities: {
+      passive: { name: 'Headshot', description: 'Chance for bonus damage' },
+      ultimate: { name: 'Assassinate', description: 'Long range high damage shot' }
+    }
   },
   {
     id: 'sven',
@@ -551,11 +521,10 @@ export const heroes = [
       armor: 6,
       speed: 6
     },
-    abilities: [
-      { name: 'Storm Hammer', description: 'Stunning projectile' },
-      { name: 'Warcry', description: 'Boost allies speed and armor' },
-      { name: 'Gods Strength', description: 'Massive damage increase' }
-    ]
+    abilities: {
+      passive: { name: 'Great Cleave', description: 'Attacks hit multiple enemies' },
+      ultimate: { name: 'Gods Strength', description: 'Massive damage increase' }
+    }
   },
   {
     id: 'tidehunter',
@@ -569,11 +538,10 @@ export const heroes = [
       armor: 7,
       speed: 5
     },
-    abilities: [
-      { name: 'Gush', description: 'Water blast that slows' },
-      { name: 'Kraken Shell', description: 'Damage reduction and purge' },
-      { name: 'Ravage', description: 'Massive area tentacle slam' }
-    ]
+    abilities: {
+      passive: { name: 'Kraken Shell', description: 'Damage reduction and purge' },
+      ultimate: { name: 'Ravage', description: 'Massive area tentacle slam' }
+    }
   },
   {
     id: 'tiny',
@@ -587,11 +555,10 @@ export const heroes = [
       armor: 8,
       speed: 4
     },
-    abilities: [
-      { name: 'Avalanche', description: 'Falling rocks stun and damage' },
-      { name: 'Toss', description: 'Throw unit at enemies' },
-      { name: 'Grow', description: 'Increase size and power' }
-    ]
+    abilities: {
+      passive: { name: 'Craggy Exterior', description: 'Chance to stun attackers' },
+      ultimate: { name: 'Grow', description: 'Increase size and power' }
+    }
   },
   {
     id: 'undying',
@@ -605,11 +572,10 @@ export const heroes = [
       armor: 6,
       speed: 6
     },
-    abilities: [
-      { name: 'Decay', description: 'Steal enemy strength' },
-      { name: 'Soul Rip', description: 'Heal or damage based on units' },
-      { name: 'Tombstone', description: 'Summon zombie spawner' }
-    ]
+    abilities: {
+      passive: { name: 'Undying Will', description: 'Gains strength when enemies die nearby' },
+      ultimate: { name: 'Tombstone', description: 'Summon zombie spawner' }
+    }
   },
   {
     id: 'viper',
@@ -623,11 +589,10 @@ export const heroes = [
       armor: 5,
       speed: 7
     },
-    abilities: [
-      { name: 'Poison Attack', description: 'Toxic damage over time' },
-      { name: 'Nethertoxin', description: 'Area poison cloud' },
-      { name: 'Viper Strike', description: 'Slowing poison projectile' }
-    ]
+    abilities: {
+      passive: { name: 'Poison Attack', description: 'Toxic damage over time' },
+      ultimate: { name: 'Viper Strike', description: 'Slowing poison projectile' }
+    }
   },
   {
     id: 'yamashita',
@@ -641,11 +606,10 @@ export const heroes = [
       armor: 4,
       speed: 7
     },
-    abilities: [
-      { name: 'Elemental Strike', description: 'Attacks cycle through elements' },
-      { name: 'Spirit Form', description: 'Become ethereal briefly' },
-      { name: 'Ancient Technique', description: 'Powerful combo attack' }
-    ]
+    abilities: {
+      passive: { name: 'Elemental Strike', description: 'Attacks cycle through elements' },
+      ultimate: { name: 'Ancient Technique', description: 'Powerful combo attack' }
+    }
   },
   {
     id: 'zombie-guitarist',
@@ -659,10 +623,9 @@ export const heroes = [
       armor: 3,
       speed: 6
     },
-    abilities: [
-      { name: 'Power Chord', description: 'Stunning sonic blast' },
-      { name: 'Death Metal', description: 'Area fear effect' },
-      { name: 'Resurrection Riff', description: 'Revive fallen allies' }
-    ]
+    abilities: {
+      passive: { name: 'Undead Resilience', description: 'Immune to certain status effects' },
+      ultimate: { name: 'Resurrection Riff', description: 'Revive fallen allies' }
+    }
   }
 ];

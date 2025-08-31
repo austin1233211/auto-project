@@ -176,44 +176,51 @@ export class AbilitySystem {
     }
   }
 
-  selectSmartAbility(caster, target) {
-    const abilities = caster.abilities;
-    const casterHealthPercent = caster.currentHealth / caster.stats.health;
-    const targetAttackThreat = target.effectiveStats.attack / caster.effectiveStats.armor;
+  processPassiveAbility(hero, target) {
+    if (!hero.abilities || !hero.abilities.passive) return;
     
-    const healingAbilities = ['Heal', 'Life Drain', 'Death Coil'];
-    const defensiveAbilities = ['Shield Block', 'Magic Shield', 'Teleport', 'Evasion', 'Stealth', 'Divine Shield'];
-    const offensiveAbilities = ['Charge', 'Fireball', 'Multi-Shot', 'Backstab', 'Holy Strike', 'Summon Skeleton', 'Berserker', 'Poison Arrow', 'Poison Blade'];
+    const passiveName = hero.abilities.passive.name;
     
-    if (casterHealthPercent < 0.3) {
-      for (const ability of abilities) {
-        if (healingAbilities.includes(ability.name)) {
-          return ability;
+    switch (passiveName) {
+      case 'Warrior Training':
+        if (hero.currentHealth / hero.stats.health < 0.5) {
+          if (!hero.statusEffects) hero.statusEffects = [];
+          const hasEffect = hero.statusEffects.some(effect => effect.type === 'damage_reduction');
+          if (!hasEffect) {
+            this.applyDamageReductionEffect(hero, 0.2, 1);
+          }
         }
-      }
-    }
-    
-    if (targetAttackThreat > 3) {
-      for (const ability of abilities) {
-        if (defensiveAbilities.includes(ability.name)) {
-          return ability;
+        break;
+      case 'Arcane Mastery':
+        hero.currentMana = Math.min(hero.maxMana, hero.currentMana + 5);
+        break;
+      case 'Eagle Eye':
+        if (Math.random() < 0.15) {
+          this.combat.addToLog(`🎯 ${hero.name}'s Eagle Eye grants a precision strike!`);
+          return { criticalHit: true };
         }
-      }
+        break;
+      case 'Shadow Step':
+        if (Math.random() < 0.1) {
+          this.applyDodgeEffect(hero, 1.0, 1);
+        }
+        break;
+      case 'Divine Blessing':
+        if (hero.currentHealth / hero.stats.health < 0.3) {
+          const healAmount = Math.round(hero.stats.health * 0.05);
+          hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + healAmount);
+        }
+        break;
+      case 'Dark Aura':
+        if (target && Math.random() < 0.1) {
+          const drainAmount = Math.round(target.stats.health * 0.02);
+          target.currentHealth = Math.max(0, target.currentHealth - drainAmount);
+          hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + drainAmount);
+        }
+        break;
     }
     
-    for (const ability of abilities) {
-      if (ability.name === 'Death Coil') {
-        return ability; // Death Coil has built-in smart logic
-      }
-    }
-    
-    for (const ability of abilities) {
-      if (offensiveAbilities.includes(ability.name)) {
-        return ability;
-      }
-    }
-    
-    return abilities[0];
+    return null;
   }
 
   executeFireball(caster, target) {

@@ -66,12 +66,14 @@ export class HeroSelection {
       <div class="selected-hero-name">${hero.name}</div>
       <div class="selected-hero-description">${hero.description}</div>
       <div class="selected-hero-abilities">
-        ${hero.abilities.map(ability => `
-          <div class="ability">
-            <div class="ability-name">${ability.name}</div>
-            <div class="ability-description">${ability.description}</div>
-          </div>
-        `).join('')}
+        <div class="ability">
+          <div class="ability-name">Passive: ${hero.abilities.passive.name}</div>
+          <div class="ability-description">${hero.abilities.passive.description}</div>
+        </div>
+        <div class="ability">
+          <div class="ability-name">Ultimate: ${hero.abilities.ultimate.name}</div>
+          <div class="ability-description">${hero.abilities.ultimate.description}</div>
+        </div>
       </div>
     `;
   }

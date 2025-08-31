@@ -139,14 +139,21 @@ export class Combat {
     let damage;
     let manaGain = 25;
 
+    const passiveResult = this.abilitySystem.processPassiveAbility(currentHero, targetHero);
+    
     if (currentHero.currentMana >= currentHero.maxMana) {
-      const ability = this.abilitySystem.selectSmartAbility(currentHero, targetHero);
-      const abilityResult = this.abilitySystem.executeAbility(currentHero, targetHero, ability.name);
+      const ultimateAbility = currentHero.abilities.ultimate;
+      const abilityResult = this.abilitySystem.executeAbility(currentHero, targetHero, ultimateAbility.name);
       damage = abilityResult.damage;
       currentHero.currentMana = 0;
     } else {
       damage = this.calculateDamage(currentHero.effectiveStats.attack, targetHero.effectiveStats.armor);
-      this.addToLog(`${currentHero.name} attacks for ${damage} damage!`);
+      if (passiveResult && passiveResult.criticalHit) {
+        damage = Math.round(damage * 1.5);
+        this.addToLog(`${currentHero.name} attacks with a critical hit for ${damage} damage!`);
+      } else {
+        this.addToLog(`${currentHero.name} attacks for ${damage} damage!`);
+      }
       currentHero.currentMana = Math.min(currentHero.maxMana, currentHero.currentMana + manaGain);
     }
 
