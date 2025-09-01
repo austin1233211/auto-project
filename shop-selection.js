@@ -24,7 +24,7 @@ export class ShopSelection {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/players/me', {
+      const response = await fetch('http://localhost:8000/api/players/me/stats', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
