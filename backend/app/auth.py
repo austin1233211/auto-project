@@ -82,3 +82,19 @@ async def get_current_active_user(current_user: Player = Depends(get_current_use
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+async def get_current_user_from_token(token: str, db: Session) -> Optional[Player]:
+    """Get current user from JWT token (for WebSocket authentication)"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+    except JWTError:
+        return None
+    
+    user = db.query(Player).filter(Player.username == username).first()
+    if user is None or not user.is_active:
+        return None
+    
+    return user

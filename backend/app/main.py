@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 from app.database import engine, Base
-from app.routers import auth, tournaments, players, matches
+from app.routers import auth, tournaments, players, matches, websocket
 
 load_dotenv()
 
@@ -37,6 +37,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(tournaments.router, prefix="/api/tournaments", tags=["tournaments"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
+app.include_router(websocket.router, prefix="/ws", tags=["websocket"])
 
 @app.get("/")
 async def root():
