@@ -11,102 +11,166 @@ A standalone auto-battler game inspired by Dota 2's Auto Gladiators arcade mode.
 Auto Gladiators is being built piece by piece with the following planned components:
 
 ### ✅ Completed Components
-- **Hero Selection** - Choose from 6 unique heroes with different stats and abilities
+- **Hero Selection** - Choose from 37 unique heroes with different stats and abilities
+- **Combat System** - Simultaneous combat with independent attack timers
+- **Multiplayer Backend** - Scalable FastAPI backend with PostgreSQL database
 
 ### 🚧 Planned Components
-- **Combat System** - Automated 1v1 battles between heroes
+- **Real-time Tournament System** - WebSocket-based live tournament updates
 - **Shop/Upgrade System** - Purchase abilities, items, and relics between rounds
 - **Economy System** - Point wagering and rewards
 - **Sects System** - Hero factions with unique bonuses
-- **Tournament Mode** - Multiple rounds with progression
 
 ## 🏗️ Architecture
 
-The project uses a modular file structure with separate components:
+The project uses a modular full-stack architecture with separate frontend and backend components:
 
+### Frontend Structure
 ```
-auto-gladiators/
+frontend/
 ├── index.html              # Main HTML entry point
-├── js/
-│   ├── main.js             # Game initialization and screen management
-│   ├── hero-selection.js   # Hero selection component
-│   └── [future components] # Combat, shop, etc.
-├── styles/
-│   └── main.css            # Responsive CSS with mobile-first design
-├── data/
-│   └── heroes.js           # Hero definitions and stats
+├── main.js                 # Game initialization and screen management
+├── hero-selection.js       # Hero selection component
+├── combat.js               # Simultaneous combat system
+├── rounds-manager.js       # Tournament progression logic
+├── abilities.js            # Hero ability system
+├── heroes.js               # Hero definitions and stats (37 heroes)
+├── main.css                # Responsive CSS with mobile-first design
 └── build/                  # Deployment build directory
+```
+
+### Backend Structure
+```
+backend/
+├── app/
+│   ├── main.py             # FastAPI application entry point
+│   ├── database.py         # Database connection and session management
+│   ├── models.py           # SQLAlchemy database models
+│   ├── schemas.py          # Pydantic request/response schemas
+│   ├── auth.py             # JWT authentication system
+│   ├── combat_engine.py    # Headless combat simulation engine
+│   ├── tournament_manager.py # Tournament coordination logic
+│   ├── heroes.py           # Hero data for backend processing
+│   └── routers/
+│       ├── auth.py         # Authentication endpoints
+│       ├── tournaments.py  # Tournament management API
+│       ├── players.py      # Player profile and stats API
+│       └── matches.py      # Match coordination API
+├── database/
+│   └── schema.sql          # PostgreSQL database schema
+├── scripts/
+│   └── setup_db.py         # Database initialization script
+├── pyproject.toml          # Poetry dependencies and configuration
+└── .env                    # Environment configuration
 ```
 
 ## 🦸 Heroes
 
-The game features 6 unique heroes across 3 attribute types:
+The game features 37 unique heroes across 3 attribute types:
 
-### Strength Heroes
-- **Warrior** ⚔️ - High health and armor, melee fighter
-- **Paladin** 🛡️ - Balanced offense/defense with healing
+### Strength Heroes (12 heroes)
+- **Warrior** ⚔️, **Paladin** 🛡️, **Axe** 🪓, **Bristleback** 🦔, **Dragon Knight** 🐉, **Earthshaker** 🌍, **Huskar** 🔥, **Legion Commander** ⚔️, **Magnus** 🐘, **Pudge** 🪝, **Sven** ⚡, **Tidehunter** 🌊, **Tiny** 🗿, **Undying** 💀
 
-### Intelligence Heroes  
-- **Mage** 🔮 - High damage spellcaster, fragile
-- **Necromancer** 💀 - Life drain and undead summoning
+### Intelligence Heroes (12 heroes)  
+- **Mage** 🔮, **Necromancer** 💀, **Alchemist** ⚗️, **Lina** 🔥, **Lion** 🦁, **Skywrath Mage** ⚡, **Anti-Mage** 🚫, **Faceless Void** ⏰, **Invoker** 🌟, **Shadow Fiend** 👹, **Yamashita** 🗾, **Zombie Guitarist** 🎸
 
-### Agility Heroes
-- **Archer** 🏹 - Ranged attacker with high mobility
-- **Assassin** 🗡️ - Stealth and critical strikes
+### Agility Heroes (13 heroes)
+- **Archer** 🏹, **Assassin** 🗡️, **Chaos Knight** 🐴, **Clinkz** 💀, **Hoodwink** 🐿️, **Juggernaut** ⚔️, **Mirana** 🌙, **Omniknight** 🛡️, **Riki** 👤, **Slark** 🐟, **Sniper** 🎯, **Viper** 🐍, **Phantom Assassin** 🗡️
 
 Each hero has unique:
 - Base stats (Health, Attack, Armor, Speed)
-- 3 special abilities
+- 1 passive ability (always active)
+- 1 ultimate ability (triggers when mana reaches 100%)
 - Attribute type bonuses
 
-## 🎯 Game Mechanics (Planned)
+## 🎯 Game Mechanics
 
-### Combat System
-- Automated 1v1 battles
-- Turn-based with real-time animations
-- Ability cooldowns and timing
+### Combat System ✅
+- Automated 1v1 battles with simultaneous combat
+- Independent attack timers based on hero speed
+- Passive abilities active throughout combat
+- Ultimate abilities trigger when mana reaches 100%
 - Damage calculations with armor/resistance
+- Real-time battle progression
 
-### Progression System
-- Earn points from victories
-- Spend points on upgrades between rounds
+### Multiplayer Architecture ✅
+- FastAPI backend with PostgreSQL database
+- JWT-based player authentication
+- RESTful API for tournament and match management
+- Extensible database schema for future features
+- Scalable tournament coordination system
+
+### Progression System (Planned)
+- Earn gold from victories
+- Spend gold on upgrades between rounds
 - Ability upgrades (damage, cooldown, effects)
 - Item purchases (stat bonuses, special effects)
-- Relic system (permanent upgrades)
+- Achievement system tracking
 
-### Economy
-- Point wagering system
-- Risk/reward mechanics
-- Tournament entry fees
-- Prize distribution
+### Tournament System (Partial)
+- Elimination-style tournaments
+- User's selected hero fights first
+- Simultaneous match processing for multiplayer
+- Tournament bracket progression
+- Prize distribution system
 
 ## 🛠️ Development Setup
 
 ### Prerequisites
 - Modern web browser with ES6 module support
-- Local web server (Python, Node.js, or any HTTP server)
+- Python 3.12+ with Poetry for backend development
+- PostgreSQL (for production) or SQLite (for development)
+- Local web server for frontend
 
-### Running Locally
+### Running Frontend Locally
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd auto-gladiators
+cd auto-project
 
-# Start a local web server
+# Start a local web server for frontend
 python3 -m http.server 8080
 # OR
 npx serve .
-# OR
-php -S localhost:8080
 
 # Open browser to http://localhost:8080
 ```
 
+### Running Backend Locally
+```bash
+# Navigate to backend directory
+cd backend
+
+# Install dependencies with Poetry
+poetry install
+
+# Copy environment configuration
+cp .env.example .env
+
+# Start the FastAPI development server
+poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# API will be available at http://localhost:8000
+# API documentation at http://localhost:8000/docs
+```
+
+### Database Setup
+```bash
+# The backend uses SQLite by default for development
+# Database file: backend/auto_gladiators.db
+# Schema is automatically created on first run
+
+# For PostgreSQL production setup:
+# 1. Update DATABASE_URL in .env
+# 2. Run: poetry run python scripts/setup_db.py
+```
+
 ### File Structure Guidelines
 - Keep components modular and separate
-- Use ES6 modules for imports/exports
+- Use ES6 modules for frontend imports/exports
+- Follow FastAPI patterns for backend structure
 - Mobile-first responsive design
-- Maintain consistent code style
+- Maintain consistent code style across frontend and backend
 
 ## 📱 Responsive Design
 
@@ -132,29 +196,43 @@ cp -r js styles data build/
 ## 🔄 Development Roadmap
 
 ### Phase 1: Foundation ✅
-- [x] Hero selection interface
+- [x] Hero selection interface (37 heroes)
 - [x] Responsive design system
 - [x] Modular architecture
+- [x] Combat system with simultaneous attacks
+- [x] Passive and ultimate ability system
 
-### Phase 2: Core Gameplay 🚧
-- [ ] Combat system implementation
-- [ ] Basic AI opponent
-- [ ] Victory/defeat conditions
+### Phase 2: Multiplayer Backend ✅
+- [x] FastAPI backend architecture
+- [x] PostgreSQL database schema
+- [x] JWT authentication system
+- [x] Tournament and match management APIs
+- [x] Combat engine ported to Python
+- [x] Extensible database design
 
-### Phase 3: Progression 🚧
+### Phase 3: Real-time Features 🚧
+- [ ] WebSocket server for live updates
+- [ ] Redis caching for match states
+- [ ] Real-time tournament bracket updates
+- [ ] Player-specific combat streaming
+
+### Phase 4: Economy & Progression 🚧
+- [ ] Gold and reward system
 - [ ] Shop/upgrade interface
-- [ ] Ability upgrade system
-- [ ] Item system
+- [ ] Item system with stat bonuses
+- [ ] Achievement tracking
 
-### Phase 4: Advanced Features 🚧
+### Phase 5: Advanced Features 🚧
 - [ ] Relic system
 - [ ] Sects/faction bonuses
-- [ ] Tournament mode
+- [ ] Leaderboards and rankings
+- [ ] Tournament history
 
-### Phase 5: Polish 🚧
+### Phase 6: Polish 🚧
 - [ ] Sound effects and music
 - [ ] Animations and visual effects
 - [ ] Balancing and optimization
+- [ ] Mobile app deployment
 
 ## 🎨 Design Philosophy
 
@@ -178,11 +256,47 @@ This project is built incrementally. When adding new components:
 
 This project is open source and available under the MIT License.
 
+## 🔌 API Endpoints
+
+The backend provides RESTful APIs for multiplayer functionality:
+
+### Authentication
+- `POST /api/auth/register` - Register new player
+- `POST /api/auth/login` - Login and get JWT token
+- `GET /api/auth/me` - Get current player profile
+
+### Tournaments
+- `GET /api/tournaments` - List available tournaments
+- `POST /api/tournaments` - Create new tournament
+- `POST /api/tournaments/{id}/join` - Join tournament with hero selection
+- `GET /api/tournaments/{id}` - Get tournament details and bracket
+
+### Players
+- `GET /api/players/me` - Get player stats and profile
+- `PUT /api/players/me` - Update player profile
+- `GET /api/players/me/stats` - Get detailed player statistics
+
+### Matches
+- `GET /api/matches/{id}` - Get match details and battle log
+- `GET /api/tournaments/{id}/matches` - Get all matches for tournament
+
+Full API documentation available at `/docs` when running the backend server.
+
+## 🗄️ Database Schema
+
+The PostgreSQL database uses an extensible design with JSONB columns for future features:
+
+- **players** - User accounts and authentication
+- **player_stats** - Extensible stats with JSONB for gold, abilities, items, achievements
+- **tournaments** - Tournament metadata and configuration
+- **tournament_participants** - Player participation with hero selection
+- **matches** - Individual battles with complete battle logs
+
 ---
 
-**Current Status**: Hero Selection Component Complete
-**Next Component**: Combat System
+**Current Status**: Multiplayer Backend Architecture Complete
+**Next Phase**: Real-time Features (WebSocket + Redis)
 **Live Demo**: https://dota-gladius-app-l00kly3e.devinapps.com
 
 ---
-*Last updated: August 29, 2025*
+*Last updated: September 1, 2025*
