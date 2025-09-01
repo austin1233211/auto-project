@@ -1,161 +1,26 @@
 import { heroes } from './heroes.js';
-import { IsolatedCombat } from './isolated-combat.js';
-import { TournamentClient } from './tournament-client.js';
-import { WebSocketClient } from './websocket-client.js';
-import { MatchmakingManager } from './matchmaking-manager.js';
+import { Combat } from './combat.js';
 
 export class RoundsManager {
   constructor(container) {
     this.container = container;
-    this.tournamentClient = new TournamentClient();
-    this.websocketClient = new WebSocketClient();
-    this.matchmakingManager = new MatchmakingManager(this.container);
     this.currentTournament = null;
-    this.playerParticipant = null;
     this.tournamentState = null;
     this.onTournamentEnd = null;
-    this.isolatedCombat = new IsolatedCombat(this.container);
+    this.combat = new Combat(this.container);
     this.userHero = null;
     this.playerId = null;
     this.isInBattle = false;
-    this.currentState = 'idle';
+    this.currentState = 'tournament';
   }
 
   async init(userHero = null) {
     this.userHero = userHero;
     this.playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.currentState = 'matchmaking';
-    
-    this.setupMatchmakingCallbacks();
-    this.matchmakingManager.startMatchmaking();
-    this.matchmakingManager.updateStatus('🔍 Looking for tournament...');
-    
-    try {
-      const tournaments = await this.tournamentClient.listTournaments('waiting');
-      
-      if (tournaments.length > 0) {
-        this.currentTournament = tournaments[0];
-        await this.joinTournament();
-      } else {
-        await this.createTournament();
-      }
-      
-      await this.connectWebSocket();
-      
-    } catch (error) {
-      console.error('Failed to initialize tournament:', error);
-      this.matchmakingManager.showError('Failed to join tournament. Using local mode.');
-      setTimeout(() => {
-        this.fallbackToLocalMode();
-      }, 2000);
-    }
+    this.startLocalTournament();
   }
 
-  async createTournament() {
-    const tournamentData = {
-      name: `Tournament ${Date.now()}`,
-      max_players: 8,
-      entry_fee: 0,
-      tournament_type: 'elimination'
-    };
-    
-    this.currentTournament = await this.tournamentClient.createTournament(tournamentData);
-    await this.joinTournament();
-  }
-
-  async joinTournament() {
-    this.playerParticipant = await this.tournamentClient.joinTournament(
-      this.currentTournament.id, 
-      this.userHero.id,
-      this.playerId
-    );
-    
-    this.playerId = this.playerParticipant.player_id;
-  }
-
-  async connectWebSocket() {
-    this.websocketClient.setOnConnect(() => {
-      console.log('Connected to tournament WebSocket');
-      this.websocketClient.requestBracket();
-    });
-
-    this.websocketClient.setOnTournamentUpdate((data) => {
-      this.tournamentState = data;
-      this.updateTournamentDisplay();
-    });
-
-    this.websocketClient.setOnMatchUpdate((data) => {
-      if (this.isPlayerInMatch(data)) {
-        this.startPlayerBattle(data);
-      }
-    });
-
-    this.websocketClient.setOnReadyCheck((data) => {
-      this.matchmakingManager.startReadyCheck(data.timeLimit || 10);
-    });
-
-    this.websocketClient.setOnReadyCheckComplete((data) => {
-      this.matchmakingManager.endReadyCheck();
-      if (data.success) {
-        this.currentState = 'tournament';
-        this.matchmakingManager.stopMatchmaking();
-        this.render();
-        this.showMessage('🎉 All players ready! Tournament starting...');
-      } else {
-        this.matchmakingManager.showError('❌ Some players were not ready. Returning to matchmaking...');
-        this.matchmakingManager.updateStatus('🔍 Looking for new players...');
-      }
-    });
-
-    this.websocketClient.setOnError((error) => {
-      console.error('WebSocket error:', error);
-      this.showError('Connection lost. Using local mode.');
-      this.fallbackToLocalMode();
-    });
-
-    await this.websocketClient.connect(this.currentTournament.id, this.playerId);
-  }
-
-  isPlayerInMatch(matchData) {
-    return matchData.player1_id === this.playerId || 
-           matchData.player2_id === this.playerId;
-  }
-
-  async startPlayerBattle(matchData) {
-    if (this.isInBattle) return;
-    
-    this.isInBattle = true;
-    const isPlayer1 = matchData.player1_id === this.playerId;
-    const enemyHeroId = isPlayer1 ? matchData.player2_hero_id : matchData.player1_hero_id;
-    const enemyHero = heroes.find(h => h.id === enemyHeroId);
-
-    this.isolatedCombat.init(
-      this.userHero,
-      enemyHero,
-      matchData.match_id,
-      this.websocketClient
-    );
-
-    this.isolatedCombat.setOnBattleEnd((result) => {
-      this.isInBattle = false;
-      this.render();
-      
-      if (result === 'victory') {
-        this.showMessage('🎉 You won your match! Waiting for other matches to complete...');
-      } else if (result === 'defeat') {
-        this.showMessage('💀 You were eliminated from the tournament.');
-        setTimeout(() => {
-          if (this.onTournamentEnd) {
-            this.onTournamentEnd('eliminated');
-          }
-        }, 3000);
-      }
-    });
-  }
-
-  fallbackToLocalMode() {
-    this.currentState = 'tournament';
-    this.matchmakingManager.stopMatchmaking();
+  startLocalTournament() {
     
     this.currentTournament = {
       id: 'local',
@@ -190,14 +55,9 @@ export class RoundsManager {
   startLocalBattle(enemyHero) {
     this.isInBattle = true;
     
-    this.isolatedCombat.init(
-      this.userHero,
-      enemyHero,
-      'local_match',
-      null
-    );
+    this.combat.init(this.userHero, enemyHero);
 
-    this.isolatedCombat.setOnBattleEnd((result) => {
+    this.combat.setOnBattleEnd((result) => {
       this.isInBattle = false;
       
       if (result === 'victory') {
@@ -219,11 +79,6 @@ export class RoundsManager {
 
   render() {
     if (this.isInBattle) {
-      return;
-    }
-
-    if (this.currentState === 'matchmaking') {
-      this.matchmakingManager.render();
       return;
     }
 
@@ -262,7 +117,6 @@ export class RoundsManager {
         
         <div class="tournament-controls">
           <button class="action-button secondary" id="back-to-selection">Back to Hero Selection</button>
-          <button class="action-button secondary" id="leave-tournament">Leave Tournament</button>
         </div>
       </div>
     `;
@@ -336,30 +190,11 @@ export class RoundsManager {
 
   attachEventListeners() {
     const backBtn = this.container.querySelector('#back-to-selection');
-    const leaveBtn = this.container.querySelector('#leave-tournament');
 
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        this.disconnect();
         if (this.onTournamentEnd) {
           this.onTournamentEnd('back');
-        }
-      });
-    }
-
-    if (leaveBtn) {
-      leaveBtn.addEventListener('click', async () => {
-        try {
-          if (this.currentTournament.id !== 'local') {
-            await this.tournamentClient.leaveTournament(this.currentTournament.id);
-          }
-          this.disconnect();
-          if (this.onTournamentEnd) {
-            this.onTournamentEnd('left');
-          }
-        } catch (error) {
-          console.error('Failed to leave tournament:', error);
-          this.showError('Failed to leave tournament');
         }
       });
     }
@@ -367,17 +202,7 @@ export class RoundsManager {
 
   updateTournamentDisplay() {
     if (!this.isInBattle) {
-      if (this.currentState === 'matchmaking') {
-        const currentPlayers = this.tournamentState?.participants?.length || 0;
-        const maxPlayers = this.currentTournament?.max_players || 8;
-        this.matchmakingManager.updateStatus(`🔍 Matchmaking... (${currentPlayers}/${maxPlayers} players)`);
-        
-        if (currentPlayers >= maxPlayers) {
-          this.matchmakingManager.updateStatus('✅ Tournament is full! Ready check starting...');
-        }
-      } else {
-        this.render();
-      }
+      this.render();
     }
   }
 
@@ -401,24 +226,6 @@ export class RoundsManager {
     }
   }
 
-  disconnect() {
-    if (this.websocketClient) {
-      this.websocketClient.disconnect();
-    }
-  }
-
-  setupMatchmakingCallbacks() {
-    this.matchmakingManager.setOnMatchmakingCancelled((reason) => {
-      this.disconnect();
-      if (this.onTournamentEnd) {
-        this.onTournamentEnd(reason);
-      }
-    });
-
-    this.matchmakingManager.setOnPlayerReady(() => {
-      this.websocketClient.sendPlayerReady();
-    });
-  }
 
   setOnTournamentEnd(callback) {
     this.onTournamentEnd = callback;
