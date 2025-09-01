@@ -251,23 +251,38 @@ export class RoundsManager {
   }
 
   renderPlayersList() {
-    return this.players.map(player => `
-      <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
-        <div class="player-info">
-          <div class="player-name">${player.name}</div>
-          <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
-        </div>
-        <div class="player-health">
-          <div class="health-bar">
-            <div class="health-fill" style="width: ${player.health}%"></div>
-            <span class="health-text">${player.health}/100</span>
+    return this.players.map(player => {
+      let currentHealth, maxHealth, healthPercentage;
+      
+      if (player.name === "You" && this.playerHealth) {
+        currentHealth = this.playerHealth.currentHealth;
+        maxHealth = 50;
+        healthPercentage = (currentHealth / maxHealth) * 100;
+      } else {
+        const scaledHealth = Math.round((player.health / 100) * 50);
+        currentHealth = scaledHealth;
+        maxHealth = 50;
+        healthPercentage = (scaledHealth / 50) * 100;
+      }
+      
+      return `
+        <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
+          <div class="player-info">
+            <div class="player-name">${player.name}</div>
+            <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
+          </div>
+          <div class="player-health">
+            <div class="health-bar">
+              <div class="health-fill" style="width: ${healthPercentage}%"></div>
+              <span class="health-text">${currentHealth}/${maxHealth}</span>
+            </div>
+          </div>
+          <div class="player-stats">
+            <span class="wins">Wins: ${player.wins}</span>
           </div>
         </div>
-        <div class="player-stats">
-          <span class="wins">Wins: ${player.wins}</span>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   updateRoundDisplay() {
