@@ -47,6 +47,12 @@ export class RoundsManager {
 
   generateMatches() {
     const shuffled = [...this.activePlayers].sort(() => Math.random() - 0.5);
+    
+    const userPlayerIndex = shuffled.findIndex(player => player.name === "You");
+    if (userPlayerIndex > 0) {
+      [shuffled[0], shuffled[userPlayerIndex]] = [shuffled[userPlayerIndex], shuffled[0]];
+    }
+    
     const matches = [];
     for (let i = 0; i < shuffled.length; i += 2) {
       matches.push({
