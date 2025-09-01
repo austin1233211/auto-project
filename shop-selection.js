@@ -17,48 +17,12 @@ export class ShopSelection {
   }
 
   async loadPlayerData() {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        this.playerGold = 1000;
-        return;
-      }
-
-      const response = await fetch('http://localhost:8000/api/players/me/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const playerData = await response.json();
-        this.playerGold = playerData.gold || 1000;
-        this.playerInventory = playerData.items || [];
-      } else {
-        this.playerGold = 1000;
-      }
-    } catch (error) {
-      console.error('Failed to load player data:', error);
-      this.playerGold = 1000;
-    }
+    this.playerGold = 1000;
+    this.playerInventory = [];
   }
 
   async loadShopItems() {
-    try {
-      const token = localStorage.getItem('auth_token');
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-      const response = await fetch('http://localhost:8000/api/shop/items', { headers });
-
-      if (response.ok) {
-        this.shopItems = await response.json();
-      } else {
-        this.shopItems = this.getMockShopItems();
-      }
-    } catch (error) {
-      console.error('Failed to load shop items:', error);
-      this.shopItems = this.getMockShopItems();
-    }
+    this.shopItems = this.getMockShopItems();
   }
 
   getMockShopItems() {
@@ -199,39 +163,20 @@ export class ShopSelection {
   }
 
   async purchaseItem(itemId) {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        alert('Please log in to purchase items');
-        return;
-      }
+    const item = this.shopItems.find(i => i.id === itemId);
+    if (!item || !item.available) {
+      alert('Cannot purchase this item');
+      return;
+    }
 
-      const response = await fetch('http://localhost:8000/api/shop/purchase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          item_id: itemId,
-          quantity: 1
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        this.playerGold = result.new_gold_balance;
-        alert(`Successfully purchased ${result.item_purchased.name}!`);
-        await this.loadShopItems();
-        this.render();
-        this.attachEventListeners();
-      } else {
-        alert(`Purchase failed: ${result.message}`);
-      }
-    } catch (error) {
-      console.error('Purchase failed:', error);
-      alert('Purchase failed. Please try again.');
+    if (this.playerGold >= item.price) {
+      this.playerGold -= item.price;
+      item.owned_quantity = (item.owned_quantity || 0) + 1;
+      alert(`Successfully purchased ${item.name}!`);
+      this.render();
+      this.attachEventListeners();
+    } else {
+      alert('Not enough gold!');
     }
   }
 
