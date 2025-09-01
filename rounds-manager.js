@@ -3,7 +3,7 @@ import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
 
 export class RoundsManager {
-  constructor(container) {
+  constructor(container, playerHealth = null) {
     this.container = container;
     this.players = [];
     this.currentRound = 1;
@@ -12,6 +12,7 @@ export class RoundsManager {
     this.onTournamentEnd = null;
     this.combat = null;
     this.currentMatchIndex = 0;
+    this.playerHealth = playerHealth;
   }
 
   init(userHero = null) {
@@ -74,7 +75,49 @@ export class RoundsManager {
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.updateRoundDisplay();
-    this.startNextMatch();
+    this.startSimultaneousMatches();
+  }
+
+  startSimultaneousMatches() {
+    const userMatch = this.currentMatches.find(match => 
+      match.player1.name === "You" || match.player2.name === "You"
+    );
+    
+    const backgroundMatches = this.currentMatches.filter(match => 
+      match.player1.name !== "You" && match.player2.name !== "You"
+    );
+
+    this.simulateBackgroundMatches(backgroundMatches);
+    
+    if (userMatch) {
+      this.startBattle(userMatch.player1, userMatch.player2);
+    } else {
+      setTimeout(() => {
+        this.processRoundResults();
+      }, 3000);
+    }
+  }
+
+  simulateBackgroundMatches(matches) {
+    matches.forEach(match => {
+      setTimeout(() => {
+        const result = this.simulateBattle(match.player1, match.player2);
+        this.processBattleResult(match.player1, match.player2, result, false);
+      }, Math.random() * 2000 + 1000);
+    });
+  }
+
+  simulateBattle(player1, player2) {
+    const hero1Stats = StatsCalculator.processHeroStats(player1.hero);
+    const hero2Stats = StatsCalculator.processHeroStats(player2.hero);
+    
+    const hero1Power = hero1Stats.effectiveStats.attack + hero1Stats.effectiveStats.speed + (hero1Stats.stats.health / 10);
+    const hero2Power = hero2Stats.effectiveStats.attack + hero2Stats.effectiveStats.speed + (hero2Stats.stats.health / 10);
+    
+    const randomFactor = 0.8 + Math.random() * 0.4;
+    const hero1Chance = (hero1Power * randomFactor) / (hero1Power + hero2Power);
+    
+    return Math.random() < hero1Chance ? 'victory' : 'defeat';
   }
 
   startNextMatch() {
@@ -99,8 +142,18 @@ export class RoundsManager {
     this.combat.init(player1.hero);
   }
 
-  processBattleResult(player1, player2, result) {
-    const match = this.currentMatches[this.currentMatchIndex];
+  processBattleResult(player1, player2, result, isUserMatch = true) {
+    let match;
+    if (isUserMatch) {
+      match = this.currentMatches[this.currentMatchIndex];
+    } else {
+      match = this.currentMatches.find(m => 
+        (m.player1 === player1 && m.player2 === player2) || 
+        (m.player1 === player2 && m.player2 === player1)
+      );
+    }
+    
+    if (!match) return;
     
     if (result === 'victory') {
       match.winner = player1;
@@ -112,12 +165,34 @@ export class RoundsManager {
       player1.health -= 25;
     }
     
-    match.completed = true;
-    this.currentMatchIndex++;
+    if (isUserMatch && this.playerHealth) {
+      if (player1.name === "You") {
+        this.playerHealth.processRoundResult(result);
+      } else if (player2.name === "You") {
+        this.playerHealth.processRoundResult(result === 'victory' ? 'defeat' : 'victory');
+      }
+    }
     
-    setTimeout(() => {
-      this.startNextMatch();
-    }, 2000);
+    match.completed = true;
+    this.updatePlayersList();
+    
+    if (isUserMatch) {
+      this.currentMatchIndex++;
+      setTimeout(() => {
+        this.checkRoundCompletion();
+      }, 2000);
+    } else {
+      this.checkRoundCompletion();
+    }
+  }
+
+  checkRoundCompletion() {
+    const allMatchesCompleted = this.currentMatches.every(match => match.completed);
+    if (allMatchesCompleted) {
+      setTimeout(() => {
+        this.processRoundResults();
+      }, 1000);
+    }
   }
 
   processRoundResults() {
@@ -176,23 +251,38 @@ export class RoundsManager {
   }
 
   renderPlayersList() {
-    return this.players.map(player => `
-      <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
-        <div class="player-info">
-          <div class="player-name">${player.name}</div>
-          <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
-        </div>
-        <div class="player-health">
-          <div class="health-bar">
-            <div class="health-fill" style="width: ${player.health}%"></div>
-            <span class="health-text">${player.health}/100</span>
+    return this.players.map(player => {
+      let currentHealth, maxHealth, healthPercentage;
+      
+      if (player.name === "You" && this.playerHealth) {
+        currentHealth = this.playerHealth.currentHealth;
+        maxHealth = 50;
+        healthPercentage = (currentHealth / maxHealth) * 100;
+      } else {
+        const scaledHealth = Math.round((player.health / 100) * 50);
+        currentHealth = scaledHealth;
+        maxHealth = 50;
+        healthPercentage = (scaledHealth / 50) * 100;
+      }
+      
+      return `
+        <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
+          <div class="player-info">
+            <div class="player-name">${player.name}</div>
+            <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
+          </div>
+          <div class="player-health">
+            <div class="health-bar">
+              <div class="health-fill" style="width: ${healthPercentage}%"></div>
+              <span class="health-text">${currentHealth}/${maxHealth}</span>
+            </div>
+          </div>
+          <div class="player-stats">
+            <span class="wins">Wins: ${player.wins}</span>
           </div>
         </div>
-        <div class="player-stats">
-          <span class="wins">Wins: ${player.wins}</span>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   updateRoundDisplay() {

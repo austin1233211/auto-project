@@ -74,7 +74,7 @@ class AutoGladiators {
 
   initRounds() {
     const roundsContainer = document.getElementById('rounds-screen');
-    this.rounds = new RoundsManager(roundsContainer);
+    this.rounds = new RoundsManager(roundsContainer, this.playerHealth);
     
     this.rounds.setOnTournamentEnd((result) => {
       if (result === 'back') {
