@@ -3,7 +3,7 @@ import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
 
 export class RoundsManager {
-  constructor(container) {
+  constructor(container, playerHealth = null) {
     this.container = container;
     this.players = [];
     this.currentRound = 1;
@@ -12,6 +12,7 @@ export class RoundsManager {
     this.onTournamentEnd = null;
     this.combat = null;
     this.currentMatchIndex = 0;
+    this.playerHealth = playerHealth;
   }
 
   init(userHero = null) {
@@ -162,6 +163,14 @@ export class RoundsManager {
       match.winner = player2;
       player2.wins++;
       player1.health -= 25;
+    }
+    
+    if (isUserMatch && this.playerHealth) {
+      if (player1.name === "You") {
+        this.playerHealth.processRoundResult(result);
+      } else if (player2.name === "You") {
+        this.playerHealth.processRoundResult(result === 'victory' ? 'defeat' : 'victory');
+      }
     }
     
     match.completed = true;
