@@ -14,6 +14,7 @@ from app.schemas import (
 )
 from app.auth import get_current_active_user
 from app.heroes import get_hero_by_id
+from app.realtime_tournament import realtime_tournament_manager
 
 router = APIRouter()
 
@@ -129,6 +130,9 @@ async def join_tournament(
     
     if tournament.current_players >= tournament.max_players:
         tournament.status = "active"
+        
+        import asyncio
+        asyncio.create_task(realtime_tournament_manager.start_tournament(str(tournament_id)))
     
     db.commit()
     db.refresh(participant)
