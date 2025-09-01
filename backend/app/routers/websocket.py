@@ -6,7 +6,6 @@ import asyncio
 
 from app.database import get_db
 from app.models import Player, Tournament, TournamentParticipant
-from app.auth import get_current_user_from_token
 from app.websocket_manager import connection_manager
 from app.redis_client import redis_client
 
@@ -16,18 +15,16 @@ router = APIRouter()
 async def tournament_websocket(
     websocket: WebSocket,
     tournament_id: str,
-    token: str = Query(...),
+    player_id: str = Query(...),
     db: Session = Depends(get_db)
 ):
     """WebSocket endpoint for tournament real-time updates"""
     
+    import uuid
     try:
-        current_user = await get_current_user_from_token(token, db)
-        if not current_user:
-            await websocket.close(code=4001, reason="Authentication failed")
-            return
-    except Exception as e:
-        await websocket.close(code=4001, reason="Invalid token")
+        player_uuid = uuid.UUID(player_id)
+    except ValueError:
+        await websocket.close(code=4001, reason="Invalid player_id format")
         return
     
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
@@ -37,7 +34,7 @@ async def tournament_websocket(
     
     participant = db.query(TournamentParticipant).filter(
         TournamentParticipant.tournament_id == tournament_id,
-        TournamentParticipant.player_id == current_user.id
+        TournamentParticipant.player_id == player_uuid
     ).first()
     
     if not participant:
@@ -46,7 +43,7 @@ async def tournament_websocket(
     
     connection_id = await connection_manager.connect(
         websocket, 
-        str(current_user.id), 
+        str(player_uuid), 
         tournament_id
     )
     
@@ -61,7 +58,7 @@ async def tournament_websocket(
                 await handle_websocket_message(
                     connection_id, 
                     message, 
-                    current_user.id, 
+                    str(player_uuid), 
                     tournament_id, 
                     db
                 )
@@ -88,27 +85,25 @@ async def tournament_websocket(
 @router.websocket("/player")
 async def player_websocket(
     websocket: WebSocket,
-    token: str = Query(...),
+    player_id: str = Query(...),
     db: Session = Depends(get_db)
 ):
     """WebSocket endpoint for player-specific updates"""
     
+    import uuid
     try:
-        current_user = await get_current_user_from_token(token, db)
-        if not current_user:
-            await websocket.close(code=4001, reason="Authentication failed")
-            return
-    except Exception as e:
-        await websocket.close(code=4001, reason="Invalid token")
+        player_uuid = uuid.UUID(player_id)
+    except ValueError:
+        await websocket.close(code=4001, reason="Invalid player_id format")
         return
     
     connection_id = await connection_manager.connect(
         websocket,
-        str(current_user.id)
+        str(player_uuid)
     )
     
     try:
-        await send_player_state(websocket, current_user.id, db)
+        await send_player_state(websocket, str(player_uuid), db)
         
         while True:
             try:
@@ -118,7 +113,7 @@ async def player_websocket(
                 await handle_player_message(
                     connection_id,
                     message,
-                    current_user.id,
+                    str(player_uuid),
                     db
                 )
                 
