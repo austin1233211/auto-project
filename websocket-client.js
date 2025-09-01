@@ -161,8 +161,8 @@ export class WebSocketClient {
     console.log(`🔄 Attempting WebSocket reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
     
     setTimeout(() => {
-      if (this.tournamentId) {
-        this.connect(this.tournamentId);
+      if (this.tournamentId && this.playerId) {
+        this.connect(this.tournamentId, this.playerId);
       }
     }, delay);
   }

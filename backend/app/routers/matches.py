@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/tournament/{tournament_id}", response_model=List[MatchResponse])
 async def get_tournament_matches(
-    tournament_id: uuid.UUID,
+    tournament_id: str,
     round_number: int = None,
     db: Session = Depends(get_db)
 ):
@@ -33,7 +33,7 @@ async def get_tournament_matches(
 
 @router.get("/{match_id}", response_model=MatchResponse)
 async def get_match(
-    match_id: uuid.UUID,
+    match_id: str,
     db: Session = Depends(get_db)
 ):
     """Get match details"""
@@ -47,8 +47,8 @@ async def get_match(
 
 @router.get("/player/{player_id}", response_model=List[MatchResponse])
 async def get_player_matches(
-    player_id: uuid.UUID,
-    tournament_id: uuid.UUID = None,
+    player_id: str,
+    tournament_id: str = None,
     db: Session = Depends(get_db)
 ):
     """Get all matches for a specific player"""
@@ -64,13 +64,11 @@ async def get_player_matches(
 
 @router.get("/me/matches", response_model=List[MatchResponse])
 async def get_my_matches(
-    tournament_id: uuid.UUID = None,
+    tournament_id: str = None,
     db: Session = Depends(get_db)
 ):
     """Get all matches for the current player"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     query = db.query(Match).filter(
         (Match.player1_id == temp_player_id) | (Match.player2_id == temp_player_id)
     )

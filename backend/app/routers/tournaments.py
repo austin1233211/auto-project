@@ -53,7 +53,7 @@ async def list_tournaments(
 
 @router.get("/{tournament_id}", response_model=TournamentResponse)
 async def get_tournament(
-    tournament_id: uuid.UUID,
+    tournament_id: str,
     db: Session = Depends(get_db)
 ):
     """Get tournament details"""
@@ -67,7 +67,7 @@ async def get_tournament(
 
 @router.post("/{tournament_id}/join", response_model=TournamentParticipantResponse)
 async def join_tournament(
-    tournament_id: uuid.UUID,
+    tournament_id: str,
     join_data: TournamentJoin,
     db: Session = Depends(get_db)
 ):
@@ -91,7 +91,7 @@ async def join_tournament(
             detail="Tournament is full"
         )
     
-    temp_player_id = uuid.uuid4()
+    temp_player_id = str(uuid.uuid4())
     
     existing_participant = db.query(TournamentParticipant).filter(
         and_(
@@ -123,7 +123,7 @@ async def join_tournament(
         tournament.status = "active"
         
         import asyncio
-        asyncio.create_task(realtime_tournament_manager.start_tournament(str(tournament_id)))
+        asyncio.create_task(realtime_tournament_manager.start_tournament(tournament_id))
     
     db.commit()
     db.refresh(participant)
@@ -132,7 +132,7 @@ async def join_tournament(
 
 @router.get("/{tournament_id}/participants", response_model=List[TournamentParticipantResponse])
 async def get_tournament_participants(
-    tournament_id: uuid.UUID,
+    tournament_id: str,
     db: Session = Depends(get_db)
 ):
     """Get all participants in a tournament"""
@@ -151,8 +151,8 @@ async def get_tournament_participants(
 
 @router.delete("/{tournament_id}/leave")
 async def leave_tournament(
-    tournament_id: uuid.UUID,
-    player_id: uuid.UUID,
+    tournament_id: str,
+    player_id: str,
     db: Session = Depends(get_db)
 ):
     """Leave a tournament (only if not started)"""

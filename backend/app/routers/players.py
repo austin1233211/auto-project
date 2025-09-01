@@ -12,15 +12,14 @@ router = APIRouter()
 @router.get("/me", response_model=UserResponse)
 async def get_current_player(db: Session = Depends(get_db)):
     """Get current player information"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     player = db.query(Player).filter(Player.id == temp_player_id).first()
     if not player:
         player = Player(
             id=temp_player_id,
             username="Anonymous Player",
             email="anonymous@example.com",
+            hashed_password="dummy",
             is_active=True
         )
         db.add(player)
@@ -33,9 +32,7 @@ async def get_current_player_stats(
     db: Session = Depends(get_db)
 ):
     """Get current player's stats"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     stats = db.query(PlayerStats).filter(PlayerStats.player_id == temp_player_id).first()
     if not stats:
         stats = PlayerStats(
@@ -53,7 +50,7 @@ async def get_current_player_stats(
 
 @router.get("/{player_id}", response_model=UserResponse)
 async def get_player(
-    player_id: uuid.UUID,
+    player_id: str,
     db: Session = Depends(get_db)
 ):
     """Get player information by ID"""
@@ -67,7 +64,7 @@ async def get_player(
 
 @router.get("/{player_id}/stats", response_model=PlayerStatsResponse)
 async def get_player_stats(
-    player_id: uuid.UUID,
+    player_id: str,
     db: Session = Depends(get_db)
 ):
     """Get player stats by ID"""
@@ -89,9 +86,7 @@ async def update_player_stats(
     db: Session = Depends(get_db)
 ):
     """Update current player's stats"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     stats = db.query(PlayerStats).filter(PlayerStats.player_id == temp_player_id).first()
     if not stats:
         raise HTTPException(

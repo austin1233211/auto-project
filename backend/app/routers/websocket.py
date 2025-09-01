@@ -20,12 +20,7 @@ async def tournament_websocket(
 ):
     """WebSocket endpoint for tournament real-time updates"""
     
-    import uuid
-    try:
-        player_uuid = uuid.UUID(player_id)
-    except ValueError:
-        await websocket.close(code=4001, reason="Invalid player_id format")
-        return
+    player_uuid = player_id
     
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
     if not tournament:
@@ -90,12 +85,7 @@ async def player_websocket(
 ):
     """WebSocket endpoint for player-specific updates"""
     
-    import uuid
-    try:
-        player_uuid = uuid.UUID(player_id)
-    except ValueError:
-        await websocket.close(code=4001, reason="Invalid player_id format")
-        return
+    player_uuid = player_id
     
     connection_id = await connection_manager.connect(
         websocket,

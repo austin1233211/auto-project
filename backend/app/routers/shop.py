@@ -26,9 +26,7 @@ async def get_shop_items(
     db: Session = Depends(get_db)
 ):
     """Get all available shop items with player-specific availability"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     player_stats = db.query(PlayerStats).filter(PlayerStats.player_id == temp_player_id).first()
     if not player_stats:
         player_stats = PlayerStats(
@@ -77,9 +75,7 @@ async def purchase_item(
     db: Session = Depends(get_db)
 ):
     """Purchase an item from the shop"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     player_stats = db.query(PlayerStats).filter(PlayerStats.player_id == temp_player_id).first()
     if not player_stats:
         raise HTTPException(
@@ -155,9 +151,7 @@ async def get_player_inventory(
     db: Session = Depends(get_db)
 ):
     """Get player's inventory and abilities"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     player_stats = db.query(PlayerStats).filter(PlayerStats.player_id == temp_player_id).first()
     if not player_stats:
         raise HTTPException(
@@ -183,9 +177,7 @@ async def upgrade_ability(
     db: Session = Depends(get_db)
 ):
     """Upgrade a player's ability"""
-    import uuid
-    
-    temp_player_id = uuid.UUID('00000000-0000-0000-0000-000000000001')
+    temp_player_id = '00000000-0000-0000-0000-000000000001'
     player_stats = db.query(PlayerStats).filter(PlayerStats.player_id == temp_player_id).first()
     if not player_stats:
         raise HTTPException(

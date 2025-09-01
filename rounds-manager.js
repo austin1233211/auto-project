@@ -69,6 +69,8 @@ export class RoundsManager {
       this.userHero.id,
       this.playerId
     );
+    
+    this.playerId = this.playerParticipant.player_id;
   }
 
   async connectWebSocket() {
