@@ -120,3 +120,56 @@ class Hero(BaseModel):
     description: str
     stats: HeroStats
     abilities: HeroAbilities
+
+class ShopItem(BaseModel):
+    id: str
+    name: str
+    description: str
+    category: str
+    price: int
+    rarity: str
+    effects: Dict[str, Any]
+    requirements: Optional[Dict[str, Any]] = None
+    max_quantity: Optional[int] = None
+
+class ShopItemResponse(ShopItem):
+    available: bool
+    owned_quantity: int = 0
+
+class PurchaseRequest(BaseModel):
+    item_id: str
+    quantity: int = Field(default=1, ge=1)
+
+class PurchaseResponse(BaseModel):
+    success: bool
+    message: str
+    new_gold_balance: int
+    item_purchased: ShopItem
+    quantity_purchased: int
+
+class PlayerInventoryResponse(BaseModel):
+    items: List[Dict[str, Any]]
+    abilities: List[Dict[str, Any]]
+    total_value: int
+
+class AbilityUpgradeRequest(BaseModel):
+    ability_id: str
+    upgrade_type: str
+
+class AbilityUpgradeResponse(BaseModel):
+    success: bool
+    message: str
+    new_gold_balance: int
+    upgraded_ability: Dict[str, Any]
+
+class TournamentReward(BaseModel):
+    placement: int
+    gold_reward: int
+    bonus_items: List[Dict[str, Any]] = []
+    achievements: List[str] = []
+
+class RewardResponse(BaseModel):
+    gold_earned: int
+    items_earned: List[Dict[str, Any]]
+    achievements_earned: List[str]
+    new_gold_balance: int

@@ -1,5 +1,6 @@
 import { GameModeSelection } from './game-mode-selection.js';
 import { HeroSelection } from './hero-selection.js';
+import { ShopSelection } from './shop-selection.js';
 import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
 
@@ -15,6 +16,7 @@ class AutoGladiators {
   init() {
     this.initGameModeSelection();
     this.initHeroSelection();
+    this.initShop();
     this.initPlayerHealth();
     this.initRounds();
   }
@@ -36,6 +38,19 @@ class AutoGladiators {
     heroSelection.setOnTournamentStart(() => {
       this.selectedHero = heroSelection.getSelectedHero();
       this.startTournament();
+    });
+
+    heroSelection.setOnShopRequested(() => {
+      this.switchScreen('shop-screen');
+    });
+  }
+
+  initShop() {
+    const shopContainer = document.getElementById('shop-screen');
+    const shopSelection = new ShopSelection(shopContainer);
+    
+    shopSelection.setOnBackToHeroSelection(() => {
+      this.switchScreen('hero-selection');
     });
   }
 
