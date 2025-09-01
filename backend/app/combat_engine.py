@@ -34,19 +34,34 @@ class CombatEngine:
         self.combat_active = False
         self.start_time = None
         
-    def initialize_participant(self, player_id: str, hero_id: str) -> CombatParticipant:
-        """Initialize a combat participant from hero data"""
+    def initialize_participant(self, player_id: str, hero_id: str, player_stats=None) -> CombatParticipant:
+        """Initialize a combat participant from hero data with player bonuses"""
         hero = get_hero_by_id(hero_id)
         if not hero:
             raise ValueError(f"Hero {hero_id} not found")
         
-        stats = CombatStats(
-            health=hero["stats"]["health"],
-            max_health=hero["stats"]["health"],
-            attack=hero["stats"]["attack"],
-            armor=hero["stats"]["armor"],
-            speed=hero["stats"]["speed"]
-        )
+        base_stats = hero["stats"]
+        
+        if player_stats:
+            from app.economy import EconomyManager
+            economy_manager = EconomyManager()
+            stat_bonuses = economy_manager.calculate_stat_bonuses(player_stats)
+            
+            stats = CombatStats(
+                health=base_stats["health"] + stat_bonuses["health"],
+                max_health=base_stats["health"] + stat_bonuses["health"],
+                attack=base_stats["attack"] + stat_bonuses["attack"],
+                armor=base_stats["armor"] + stat_bonuses["armor"],
+                speed=base_stats["speed"] + stat_bonuses["speed"]
+            )
+        else:
+            stats = CombatStats(
+                health=base_stats["health"],
+                max_health=base_stats["health"],
+                attack=base_stats["attack"],
+                armor=base_stats["armor"],
+                speed=base_stats["speed"]
+            )
         
         return CombatParticipant(
             player_id=player_id,
@@ -193,14 +208,39 @@ class CombatEngine:
             "defender_health": defender.stats.health
         }
     
-    async def simulate_battle(self, player1_id: str, hero1_id: str, player2_id: str, hero2_id: str) -> Dict[str, Any]:
+    async def simulate_battle(self, hero1_data: Dict[str, Any], hero2_data: Dict[str, Any]) -> Dict[str, Any]:
         """Simulate a complete battle between two heroes"""
         self.battle_log = []
         self.combat_active = True
         self.start_time = time.time()
         
-        participant1 = self.initialize_participant(player1_id, hero1_id)
-        participant2 = self.initialize_participant(player2_id, hero2_id)
+        participant1 = CombatParticipant(
+            player_id=hero1_data["id"],
+            hero_id=hero1_data["id"],
+            hero_name=hero1_data["name"],
+            stats=CombatStats(
+                health=hero1_data["stats"]["health"],
+                max_health=hero1_data["stats"]["health"],
+                attack=hero1_data["stats"]["attack"],
+                armor=hero1_data["stats"]["armor"],
+                speed=hero1_data["stats"]["speed"]
+            ),
+            abilities=hero1_data["abilities"]
+        )
+        
+        participant2 = CombatParticipant(
+            player_id=hero2_data["id"],
+            hero_id=hero2_data["id"],
+            hero_name=hero2_data["name"],
+            stats=CombatStats(
+                health=hero2_data["stats"]["health"],
+                max_health=hero2_data["stats"]["health"],
+                attack=hero2_data["stats"]["attack"],
+                armor=hero2_data["stats"]["armor"],
+                speed=hero2_data["stats"]["speed"]
+            ),
+            abilities=hero2_data["abilities"]
+        )
         
         self.battle_log.append({
             "type": "battle_start",
@@ -286,21 +326,21 @@ class CombatEngine:
             await asyncio.sleep(0.001)
         
         if participant1.is_alive and not participant2.is_alive:
-            winner_id = player1_id
+            winner = "player1"
             winner_name = participant1.hero_name
         elif participant2.is_alive and not participant1.is_alive:
-            winner_id = player2_id
+            winner = "player2"
             winner_name = participant2.hero_name
         else:
             if participant1.stats.health > participant2.stats.health:
-                winner_id = player1_id
+                winner = "player1"
                 winner_name = participant1.hero_name
             elif participant2.stats.health > participant1.stats.health:
-                winner_id = player2_id
+                winner = "player2"
                 winner_name = participant2.hero_name
             else:
-                winner_id = random.choice([player1_id, player2_id])
-                winner_name = participant1.hero_name if winner_id == player1_id else participant2.hero_name
+                winner = random.choice(["player1", "player2"])
+                winner_name = participant1.hero_name if winner == "player1" else participant2.hero_name
         
         battle_duration = time.time() - self.start_time
         
@@ -314,18 +354,136 @@ class CombatEngine:
         self.combat_active = False
         
         return {
-            "winner_id": winner_id,
+            "winner": winner,
             "winner_name": winner_name,
             "duration": int(battle_duration),
             "battle_log": self.battle_log,
-            "final_stats": {
-                player1_id: {
-                    "health": participant1.stats.health,
-                    "max_health": participant1.stats.max_health
-                },
-                player2_id: {
-                    "health": participant2.stats.health,
-                    "max_health": participant2.stats.max_health
-                }
-            }
+            "player1_final_health": participant1.stats.health,
+            "player2_final_health": participant2.stats.health
+        }
+    
+    async def simulate_battle_with_participants(self, participant1: CombatParticipant, participant2: CombatParticipant) -> Dict[str, Any]:
+        """Simulate battle with pre-initialized participants"""
+        self.battle_log = []
+        self.combat_active = True
+        self.start_time = time.time()
+        
+        self.battle_log.append({
+            "type": "battle_start",
+            "message": f"Battle begins! {participant1.hero_name} vs {participant2.hero_name}",
+            "timestamp": time.time()
+        })
+        
+        p1_interval = self.calculate_attack_interval(participant1.stats.speed)
+        p2_interval = self.calculate_attack_interval(participant2.stats.speed)
+        
+        self.battle_log.append({
+            "type": "combat_info",
+            "message": f"{participant1.hero_name} attacks every {p1_interval:.1f}s | {participant2.hero_name} attacks every {p2_interval:.1f}s",
+            "timestamp": time.time()
+        })
+        
+        p1_next_attack = p1_interval
+        p2_next_attack = p2_interval
+        combat_time = 0.0
+        time_step = 0.1
+        max_combat_time = 60.0
+        
+        while (participant1.is_alive and participant2.is_alive and 
+               combat_time < max_combat_time):
+            
+            combat_time += time_step
+            
+            if combat_time % 1.0 < time_step:
+                p1_passive = self.process_passive_ability(participant1)
+                if p1_passive["effect"]:
+                    self.battle_log.append({
+                        "type": "passive",
+                        "participant": participant1.hero_name,
+                        "effect": p1_passive,
+                        "timestamp": time.time()
+                    })
+                
+                p2_passive = self.process_passive_ability(participant2)
+                if p2_passive["effect"]:
+                    self.battle_log.append({
+                        "type": "passive",
+                        "participant": participant2.hero_name,
+                        "effect": p2_passive,
+                        "timestamp": time.time()
+                    })
+            
+            if combat_time >= p1_next_attack and participant1.is_alive:
+                if participant1.stats.mana >= participant1.stats.max_mana:
+                    ultimate_effect = self.execute_ultimate_ability(participant1, participant2)
+                    self.battle_log.append({
+                        "type": "ultimate",
+                        "effect": ultimate_effect,
+                        "timestamp": time.time()
+                    })
+                else:
+                    attack_result = self.perform_attack(participant1, participant2)
+                    self.battle_log.append({
+                        "type": "attack",
+                        "result": attack_result,
+                        "timestamp": time.time()
+                    })
+                
+                p1_next_attack = combat_time + p1_interval
+            
+            if combat_time >= p2_next_attack and participant2.is_alive:
+                if participant2.stats.mana >= participant2.stats.max_mana:
+                    ultimate_effect = self.execute_ultimate_ability(participant2, participant1)
+                    self.battle_log.append({
+                        "type": "ultimate",
+                        "effect": ultimate_effect,
+                        "timestamp": time.time()
+                    })
+                else:
+                    attack_result = self.perform_attack(participant2, participant1)
+                    self.battle_log.append({
+                        "type": "attack",
+                        "result": attack_result,
+                        "timestamp": time.time()
+                    })
+                
+                p2_next_attack = combat_time + p2_interval
+            
+            await asyncio.sleep(0.001)
+        
+        if participant1.is_alive and not participant2.is_alive:
+            winner = "player1"
+            winner_name = participant1.hero_name
+        elif participant2.is_alive and not participant1.is_alive:
+            winner = "player2"
+            winner_name = participant2.hero_name
+        else:
+            if participant1.stats.health > participant2.stats.health:
+                winner = "player1"
+                winner_name = participant1.hero_name
+            elif participant2.stats.health > participant1.stats.health:
+                winner = "player2"
+                winner_name = participant2.hero_name
+            else:
+                winner = random.choice(["player1", "player2"])
+                winner_name = participant1.hero_name if winner == "player1" else participant2.hero_name
+        
+        battle_duration = time.time() - self.start_time
+        
+        self.battle_log.append({
+            "type": "battle_end",
+            "winner": winner_name,
+            "duration": battle_duration,
+            "timestamp": time.time()
+        })
+        
+        self.combat_active = False
+        
+        return {
+            "winner": winner,
+            "winner_name": winner_name,
+            "duration": int(battle_duration),
+            "battle_log": self.battle_log,
+            "player1_final_health": participant1.stats.health,
+            "player2_final_health": participant2.stats.health
         }

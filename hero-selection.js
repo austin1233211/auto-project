@@ -4,7 +4,8 @@ export class HeroSelection {
   constructor(container) {
     this.container = container;
     this.selectedHero = null;
-    this.onHeroSelected = null;
+    this.onTournamentStart = null;
+    this.onShopRequested = null;
     this.init();
   }
 
@@ -26,9 +27,14 @@ export class HeroSelection {
           <p>Select a hero to view details</p>
         </div>
         
-        <button class="start-button tournament-btn" id="start-tournament-btn">
-          Start Tournament (8 Players)
-        </button>
+        <div class="hero-selection-controls">
+          <button class="action-button secondary" id="shop-button">
+            🛒 Shop
+          </button>
+          <button class="start-button tournament-btn" id="start-tournament-btn">
+            Start Tournament (8 Players)
+          </button>
+        </div>
       </div>
     `;
   }
@@ -93,6 +99,13 @@ export class HeroSelection {
         this.onTournamentStart();
       }
     });
+
+    const shopBtn = this.container.querySelector('#shop-button');
+    shopBtn.addEventListener('click', () => {
+      if (this.onShopRequested) {
+        this.onShopRequested();
+      }
+    });
   }
 
   selectHero(heroId) {
@@ -120,5 +133,9 @@ export class HeroSelection {
 
   setOnTournamentStart(callback) {
     this.onTournamentStart = callback;
+  }
+
+  setOnShopRequested(callback) {
+    this.onShopRequested = callback;
   }
 }

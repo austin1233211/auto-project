@@ -250,17 +250,47 @@ class RealtimeTournamentManager:
         hero1: Dict[str, Any],
         hero2: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Simulate battle with real-time updates to players"""
+        """Simulate battle with real-time updates and player stat bonuses"""
+        from app.models import PlayerStats
         
-        player1_stats = hero1["stats"].copy()
-        player1_stats["health"] = participant1.current_health
-        player1_stats["mana"] = participant1.current_mana
+        db_session = SessionLocal()
+        try:
+            player1_stats_record = db_session.query(PlayerStats).filter(
+                PlayerStats.player_id == participant1.player_id
+            ).first()
+            player2_stats_record = db_session.query(PlayerStats).filter(
+                PlayerStats.player_id == participant2.player_id
+            ).first()
+        finally:
+            db_session.close()
         
-        player2_stats = hero2["stats"].copy()
-        player2_stats["health"] = participant2.current_health
-        player2_stats["mana"] = participant2.current_mana
+        combat_participant1 = self.combat_engine.initialize_participant(
+            str(participant1.player_id), hero1["id"], player1_stats_record
+        )
+        combat_participant2 = self.combat_engine.initialize_participant(
+            str(participant2.player_id), hero2["id"], player2_stats_record
+        )
         
-        battle_result = self.combat_engine.simulate_battle(
+        combat_participant1.stats.health = participant1.current_health
+        combat_participant1.stats.mana = participant1.current_mana
+        combat_participant2.stats.health = participant2.current_health
+        combat_participant2.stats.mana = participant2.current_mana
+        
+        player1_stats = {
+            "health": combat_participant1.stats.health,
+            "attack": combat_participant1.stats.attack,
+            "armor": combat_participant1.stats.armor,
+            "speed": combat_participant1.stats.speed
+        }
+        
+        player2_stats = {
+            "health": combat_participant2.stats.health,
+            "attack": combat_participant2.stats.attack,
+            "armor": combat_participant2.stats.armor,
+            "speed": combat_participant2.stats.speed
+        }
+        
+        battle_result = await self.combat_engine.simulate_battle(
             hero1_data={
                 "id": hero1["id"],
                 "name": hero1["name"],
@@ -276,9 +306,7 @@ class RealtimeTournamentManager:
         )
         
         battle_result.update({
-            "winner_id": match.player1_id if battle_result["winner"] == "player1" else match.player2_id,
-            "player1_final_health": battle_result["player1_final_health"],
-            "player2_final_health": battle_result["player2_final_health"]
+            "winner_id": match.player1_id if battle_result["winner"] == "player1" else match.player2_id
         })
         
         return battle_result
@@ -312,22 +340,38 @@ class RealtimeTournamentManager:
         await self.start_round(tournament_id, round_number + 1, db)
     
     async def end_tournament(self, tournament_id: str, db: Session):
-        """End tournament and determine winner"""
+        """End tournament and determine winner with gold rewards"""
+        from app.economy import EconomyManager
+        from app.models import PlayerStats
         
-        winner = db.query(TournamentParticipant).filter(
-            TournamentParticipant.tournament_id == tournament_id,
-            TournamentParticipant.status == "active"
-        ).first()
+        participants = db.query(TournamentParticipant).filter(
+            TournamentParticipant.tournament_id == tournament_id
+        ).order_by(TournamentParticipant.placement.asc()).all()
         
         tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
         if tournament:
             tournament.status = "completed"
             tournament.completed_at = datetime.utcnow()
         
-        if winner:
-            winner.placement = 1
+        economy_manager = EconomyManager()
+        
+        for i, participant in enumerate(participants):
+            placement = i + 1 if participant.placement is None else participant.placement
+            participant.placement = placement
+            
+            player_stats = db.query(PlayerStats).filter(
+                PlayerStats.player_id == participant.player_id
+            ).first()
+            
+            if player_stats:
+                reward = economy_manager.award_tournament_rewards(
+                    player_stats, placement, len(participants), tournament.entry_fee or 0
+                )
+                participant.prize_won = reward["gold_earned"]
         
         db.commit()
+        
+        winner = participants[0] if participants else None
         
         await connection_manager.broadcast_to_tournament(tournament_id, {
             "type": "tournament_completed",

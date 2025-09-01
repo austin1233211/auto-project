@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 from app.database import engine, Base
-from app.routers import auth, tournaments, players, matches, websocket
+from app.routers import auth, tournaments, players, matches, websocket, shop
 
 load_dotenv()
 
@@ -19,7 +19,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:8080").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:8080,http://localhost:8081").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in origins],
@@ -38,6 +38,7 @@ app.include_router(tournaments.router, prefix="/api/tournaments", tags=["tournam
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
 app.include_router(websocket.router, prefix="/ws", tags=["websocket"])
+app.include_router(shop.router, prefix="/api/shop", tags=["shop"])
 
 @app.get("/")
 async def root():
