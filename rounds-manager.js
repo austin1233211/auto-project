@@ -84,39 +84,41 @@ export class RoundsManager {
 
     this.container.innerHTML = `
       <div class="rounds-container">
-        <h1 class="rounds-title">🏟️ Tournament Lobby</h1>
-        
-        <div class="tournament-info">
-          <div class="tournament-details">
-            <h2>${this.currentTournament?.name || 'Loading...'}</h2>
-            <p>Tournament ID: ${this.currentTournament?.id || 'N/A'}</p>
-            <p>Status: ${this.currentTournament?.status || 'waiting'}</p>
-          </div>
+        <div class="tournament-main">
+          <h1 class="rounds-title">🏟️ Tournament Lobby</h1>
           
-          <div class="player-status">
-            <h3>Your Hero</h3>
-            <div class="hero-card-mini">
-              <span class="hero-avatar">${this.userHero?.avatar || '❓'}</span>
-              <span class="hero-name">${this.userHero?.name || 'Unknown'}</span>
+          <div class="tournament-info">
+            <div class="tournament-details">
+              <h2>${this.currentTournament?.name || 'Loading...'}</h2>
+              <p>Tournament ID: ${this.currentTournament?.id || 'N/A'}</p>
+              <p>Status: ${this.currentTournament?.status || 'waiting'}</p>
+            </div>
+            
+            <div class="player-status">
+              <h3>Your Hero</h3>
+              <div class="hero-card-mini">
+                <span class="hero-avatar">${this.userHero?.avatar || '❓'}</span>
+                <span class="hero-name">${this.userHero?.name || 'Unknown'}</span>
+              </div>
             </div>
           </div>
+          
+          <div class="tournament-status">
+            <div class="status-message" id="status-message">
+              ${this.getStatusMessage()}
+            </div>
+          </div>
+          
+          <div class="tournament-controls">
+            <button class="action-button secondary" id="back-to-selection">Back to Hero Selection</button>
+          </div>
         </div>
         
-        <div class="tournament-participants">
+        <div class="players-sidebar">
           <h3>Tournament Participants</h3>
-          <div class="participants-grid">
+          <div class="players-list">
             ${this.renderParticipants()}
           </div>
-        </div>
-        
-        <div class="tournament-status">
-          <div class="status-message" id="status-message">
-            ${this.getStatusMessage()}
-          </div>
-        </div>
-        
-        <div class="tournament-controls">
-          <button class="action-button secondary" id="back-to-selection">Back to Hero Selection</button>
         </div>
       </div>
     `;
@@ -141,18 +143,20 @@ export class RoundsManager {
         const isCurrentUser = participant.player_id === this.playerId;
         
         participantsHtml += `
-          <div class="participant-card ${isCurrentUser ? 'current-user' : ''}">
-            <div class="participant-avatar">${hero?.avatar || '❓'}</div>
-            <div class="participant-name">${hero?.name || 'Unknown'}${isCurrentUser ? ' (You)' : ''}</div>
-            <div class="participant-status">${participant.status}</div>
+          <div class="player-card ${isCurrentUser ? 'active' : ''}">
+            <div class="player-info">
+              <span class="player-name">${hero?.name || 'Unknown'}${isCurrentUser ? ' (You)' : ''}</span>
+            </div>
+            <div class="player-hero">${hero?.avatar || '❓'} ${participant.status}</div>
           </div>
         `;
       } else {
         participantsHtml += `
-          <div class="participant-card empty">
-            <div class="participant-avatar">⏳</div>
-            <div class="participant-name">Waiting...</div>
-            <div class="participant-status">open</div>
+          <div class="player-card">
+            <div class="player-info">
+              <span class="player-name">Waiting...</span>
+            </div>
+            <div class="player-hero">⏳ open</div>
           </div>
         `;
       }
