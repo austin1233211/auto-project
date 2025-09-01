@@ -14,20 +14,28 @@ export class RoundsManager {
     this.currentMatchIndex = 0;
   }
 
-  init() {
-    this.initializePlayers();
+  init(userHero = null) {
+    this.initializePlayers(userHero);
     this.render();
     this.startRound();
   }
 
-  initializePlayers() {
+  initializePlayers(userHero = null) {
     this.players = [];
     for (let i = 0; i < 8; i++) {
-      const randomHero = heroes[Math.floor(Math.random() * heroes.length)];
+      let hero, playerName;
+      if (i === 0 && userHero) {
+        hero = { ...userHero };
+        playerName = "You";
+      } else {
+        hero = heroes[Math.floor(Math.random() * heroes.length)];
+        playerName = `Player ${i + 1}`;
+      }
+      
       const player = {
         id: i + 1,
-        name: `Player ${i + 1}`,
-        hero: { ...randomHero },
+        name: playerName,
+        hero: hero,
         health: 100,
         isEliminated: false,
         wins: 0
