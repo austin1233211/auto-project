@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
-from app.models import Player
+from app.models import Player, PlayerStats
 from app.schemas import UserCreate, UserLogin, UserResponse, Token
 from app.auth import (
     get_password_hash,
@@ -33,6 +33,10 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
+        
+        player_stats = PlayerStats(player_id=db_user.id)
+        db.add(player_stats)
+        db.commit()
         
         return db_user
         
