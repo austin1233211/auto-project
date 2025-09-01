@@ -34,6 +34,7 @@ class AutoGladiators {
     const heroSelection = new HeroSelection(heroSelectionContainer);
 
     heroSelection.setOnTournamentStart(() => {
+      this.selectedHero = heroSelection.getSelectedHero();
       this.startTournament();
     });
   }
@@ -89,7 +90,7 @@ class AutoGladiators {
 
   startTournament() {
     this.switchScreen('rounds-screen');
-    this.rounds.init();
+    this.rounds.init(this.selectedHero);
   }
 
   switchScreen(screenId) {
