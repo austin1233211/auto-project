@@ -12,7 +12,6 @@ from app.schemas import (
     TournamentJoin,
     TournamentParticipantResponse
 )
-from app.auth import get_current_active_user
 from app.heroes import get_hero_by_id
 from app.realtime_tournament import realtime_tournament_manager
 
@@ -21,8 +20,7 @@ router = APIRouter()
 @router.post("/", response_model=TournamentResponse, status_code=status.HTTP_201_CREATED)
 async def create_tournament(
     tournament: TournamentCreate,
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
     """Create a new tournament"""
     db_tournament = Tournament(
@@ -42,8 +40,7 @@ async def create_tournament(
 @router.get("/", response_model=List[TournamentResponse])
 async def list_tournaments(
     status_filter: str = None,
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
     """List all tournaments, optionally filtered by status"""
     query = db.query(Tournament)
@@ -57,8 +54,7 @@ async def list_tournaments(
 @router.get("/{tournament_id}", response_model=TournamentResponse)
 async def get_tournament(
     tournament_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
     """Get tournament details"""
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
@@ -73,8 +69,7 @@ async def get_tournament(
 async def join_tournament(
     tournament_id: uuid.UUID,
     join_data: TournamentJoin,
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
     """Join a tournament with selected hero"""
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
@@ -96,18 +91,14 @@ async def join_tournament(
             detail="Tournament is full"
         )
     
+    temp_player_id = uuid.uuid4()
+    
     existing_participant = db.query(TournamentParticipant).filter(
         and_(
             TournamentParticipant.tournament_id == tournament_id,
-            TournamentParticipant.player_id == current_user.id
+            TournamentParticipant.player_id == temp_player_id
         )
     ).first()
-    
-    if existing_participant:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Already joined this tournament"
-        )
     
     hero = get_hero_by_id(join_data.hero_id)
     if not hero:
@@ -118,7 +109,7 @@ async def join_tournament(
     
     participant = TournamentParticipant(
         tournament_id=tournament_id,
-        player_id=current_user.id,
+        player_id=temp_player_id,
         hero_id=join_data.hero_id,
         current_health=hero["stats"]["health"],
         max_health=hero["stats"]["health"]
@@ -142,8 +133,7 @@ async def join_tournament(
 @router.get("/{tournament_id}/participants", response_model=List[TournamentParticipantResponse])
 async def get_tournament_participants(
     tournament_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
     """Get all participants in a tournament"""
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
@@ -162,8 +152,8 @@ async def get_tournament_participants(
 @router.delete("/{tournament_id}/leave")
 async def leave_tournament(
     tournament_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: Player = Depends(get_current_active_user)
+    player_id: uuid.UUID,
+    db: Session = Depends(get_db)
 ):
     """Leave a tournament (only if not started)"""
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
@@ -182,7 +172,7 @@ async def leave_tournament(
     participant = db.query(TournamentParticipant).filter(
         and_(
             TournamentParticipant.tournament_id == tournament_id,
-            TournamentParticipant.player_id == current_user.id
+            TournamentParticipant.player_id == player_id
         )
     ).first()
     
