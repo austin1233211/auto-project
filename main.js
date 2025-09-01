@@ -19,12 +19,13 @@ class AutoGladiators {
     this.initShop();
     this.initPlayerHealth();
     this.initRounds();
+    this.switchScreen(this.currentScreen);
   }
 
   initGameModeSelection() {
     const gameModeContainer = document.getElementById('game-mode-selection');
     const gameModeSelection = new GameModeSelection(gameModeContainer);
-
+    
     gameModeSelection.setOnModeSelected((mode) => {
       this.selectedMode = mode;
       this.switchScreen('hero-selection');
