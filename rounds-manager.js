@@ -1,6 +1,7 @@
 import { heroes } from './heroes.js';
 import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
+import { PlayerHealth } from './player-health.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null) {
@@ -37,7 +38,7 @@ export class RoundsManager {
         id: i + 1,
         name: playerName,
         hero: hero,
-        health: 100,
+        playerHealth: i === 0 && userHero && this.playerHealth ? this.playerHealth : new PlayerHealth(),
         isEliminated: false,
         wins: 0
       };
@@ -158,19 +159,13 @@ export class RoundsManager {
     if (result === 'victory') {
       match.winner = player1;
       player1.wins++;
-      player2.health -= 25;
+      player1.playerHealth.processRoundResult('victory');
+      player2.playerHealth.processRoundResult('defeat');
     } else {
       match.winner = player2;
       player2.wins++;
-      player1.health -= 25;
-    }
-    
-    if (isUserMatch && this.playerHealth) {
-      if (player1.name === "You") {
-        this.playerHealth.processRoundResult(result);
-      } else if (player2.name === "You") {
-        this.playerHealth.processRoundResult(result === 'victory' ? 'defeat' : 'victory');
-      }
+      player1.playerHealth.processRoundResult('defeat');
+      player2.playerHealth.processRoundResult('victory');
     }
     
     match.completed = true;
@@ -197,7 +192,7 @@ export class RoundsManager {
 
   processRoundResults() {
     this.activePlayers = this.activePlayers.filter(player => {
-      if (player.health <= 0) {
+      if (player.playerHealth.currentHealth <= 0) {
         player.isEliminated = true;
         return false;
       }
@@ -252,18 +247,9 @@ export class RoundsManager {
 
   renderPlayersList() {
     return this.players.map(player => {
-      let currentHealth, maxHealth, healthPercentage;
-      
-      if (player.name === "You" && this.playerHealth) {
-        currentHealth = this.playerHealth.currentHealth;
-        maxHealth = 50;
-        healthPercentage = (currentHealth / maxHealth) * 100;
-      } else {
-        const scaledHealth = Math.round((player.health / 100) * 50);
-        currentHealth = scaledHealth;
-        maxHealth = 50;
-        healthPercentage = (scaledHealth / 50) * 100;
-      }
+      const currentHealth = player.playerHealth.currentHealth;
+      const maxHealth = player.playerHealth.maxHealth;
+      const healthPercentage = (currentHealth / maxHealth) * 100;
       
       return `
         <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
