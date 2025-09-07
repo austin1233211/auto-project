@@ -167,7 +167,10 @@ export class RoundsManager {
     
     if (result === 'victory') {
       match.winner = player1;
-      if (!player1.isGhost) player1.wins++;
+      if (!player1.isGhost) {
+        player1.wins++;
+        player1.losses = 0; // Reset loss streak on win
+      }
       if (!player2.isGhost) {
         player2.losses++;
         const healthLoss = player2.losses;
@@ -175,7 +178,10 @@ export class RoundsManager {
       }
     } else {
       match.winner = player2;
-      if (!player2.isGhost) player2.wins++;
+      if (!player2.isGhost) {
+        player2.wins++;
+        player2.losses = 0; // Reset loss streak on win
+      }
       if (!player1.isGhost) {
         player1.losses++;
         const healthLoss = player1.losses;
