@@ -1,6 +1,7 @@
 import { heroes } from './heroes.js';
 import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
+import { PlayerHealth } from './player-health.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null) {
@@ -38,7 +39,7 @@ export class RoundsManager {
         id: i + 1,
         name: playerName,
         hero: hero,
-        health: 100,
+        playerHealth: i === 0 && userHero && this.playerHealth ? this.playerHealth : new PlayerHealth(),
         isEliminated: false,
         wins: 0,
         losses: 0
@@ -169,31 +170,19 @@ export class RoundsManager {
       match.winner = player1;
       if (!player1.isGhost) {
         player1.wins++;
-        player1.losses = 0; // Reset loss streak on win
+        player1.playerHealth.processRoundResult('victory');
       }
       if (!player2.isGhost) {
-        player2.losses++;
-        const healthLoss = player2.losses;
-        player2.health -= healthLoss;
+        player2.playerHealth.processRoundResult('defeat');
       }
     } else {
       match.winner = player2;
       if (!player2.isGhost) {
         player2.wins++;
-        player2.losses = 0; // Reset loss streak on win
+        player2.playerHealth.processRoundResult('victory');
       }
       if (!player1.isGhost) {
-        player1.losses++;
-        const healthLoss = player1.losses;
-        player1.health -= healthLoss;
-      }
-    }
-    
-    if (isUserMatch && this.playerHealth) {
-      if (player1.name === "You") {
-        this.playerHealth.processRoundResult(result);
-      } else if (player2.name === "You") {
-        this.playerHealth.processRoundResult(result === 'victory' ? 'defeat' : 'victory');
+        player1.playerHealth.processRoundResult('defeat');
       }
     }
     
@@ -220,20 +209,20 @@ export class RoundsManager {
   }
 
   processRoundResults() {
-    const newlyEliminated = this.activePlayers.filter(player => player.health <= 0);
+    const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
       const ghostPlayer = {
         ...player,
         name: `👻 Ghost of ${player.name.replace('👻 Ghost of ', '')}`,
         isGhost: true,
-        health: player.hero.stats.health,
+        playerHealth: { currentHealth: 0, maxHealth: 50 },
         losses: 0
       };
       this.ghostPlayers.push(ghostPlayer);
     });
 
-    this.activePlayers = this.activePlayers.filter(player => player.health > 0);
+    this.activePlayers = this.activePlayers.filter(player => player.playerHealth.currentHealth > 0);
 
     if (this.activePlayers.length > 1) {
       this.currentRound++;
@@ -284,18 +273,9 @@ export class RoundsManager {
   renderPlayersList() {
     const allPlayers = [...this.players, ...this.ghostPlayers];
     return allPlayers.map(player => {
-      let currentHealth, maxHealth, healthPercentage;
-      
-      if (player.name === "You" && this.playerHealth) {
-        currentHealth = this.playerHealth.currentHealth;
-        maxHealth = 50;
-        healthPercentage = (currentHealth / maxHealth) * 100;
-      } else {
-        const scaledHealth = Math.round((player.health / 100) * 50);
-        currentHealth = scaledHealth;
-        maxHealth = 50;
-        healthPercentage = (scaledHealth / 50) * 100;
-      }
+      const currentHealth = player.playerHealth.currentHealth;
+      const maxHealth = player.playerHealth.maxHealth;
+      const healthPercentage = (currentHealth / maxHealth) * 100;
       
       return `
         <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
