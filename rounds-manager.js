@@ -240,11 +240,6 @@ export class RoundsManager {
       setTimeout(() => {
         this.startRound();
       }, 3000);
-    } else if (this.activePlayers.length === 1 && this.ghostPlayers.length > 0) {
-      this.currentRound++;
-      setTimeout(() => {
-        this.startRound();
-      }, 3000);
     } else {
       this.endTournament();
     }
