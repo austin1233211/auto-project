@@ -853,6 +853,22 @@ body:has(#hero-selection.active) #player-health-display {
   background: rgba(239, 68, 68, 0.1);
 }
 
+.player-card.ghost {
+  opacity: 0.7;
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  border-style: dashed;
+}
+
+.player-card.ghost .player-name {
+  color: #a78bfa;
+}
+
+.losses {
+  margin-left: 0.5rem;
+  color: #ef4444;
+}
+
 .player-info {
   display: flex;
   justify-content: space-between;
