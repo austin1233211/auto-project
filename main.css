@@ -738,7 +738,7 @@ body:has(#hero-selection.active) #player-health-display {
   height: 100%;
   transition: width 0.5s ease;
   border-radius: 4px;
-  background: linear-gradient(90deg, #2d2d2d, #1a1a1a);
+  background: linear-gradient(90deg, #10b981, #059669);
 }
 
 .player-health-text {
@@ -899,7 +899,7 @@ body:has(#hero-selection.active) #player-health-display {
   height: 100%;
   transition: width 0.5s ease;
   border-radius: 4px;
-  background: linear-gradient(90deg, #2d2d2d, #1a1a1a);
+  background: linear-gradient(90deg, #10b981, #059669);
 }
 
 .player-health .health-text {
