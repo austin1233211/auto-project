@@ -315,6 +315,9 @@ export class RoundsManager {
       roundInfo.innerHTML = `
         <h2>Round ${this.currentRound}</h2>
         <p>${this.activePlayers.length} players remaining${this.ghostPlayers.length > 0 ? ` (${this.ghostPlayers.length} ghosts available)` : ''}</p>
+        <div id="round-timer" class="round-timer">
+          <div class="timer-display">Preparing round...</div>
+        </div>
       `;
     }
     this.updatePlayersList();
