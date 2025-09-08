@@ -516,7 +516,7 @@ body {
 }
 
 .player-health {
-  background: linear-gradient(90deg, #2d2d2d, #1a1a1a);
+  background: linear-gradient(90deg, #10b981, #059669);
 }
 
 .enemy-health {
