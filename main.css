@@ -738,7 +738,7 @@ body:has(#hero-selection.active) #player-health-display {
   height: 100%;
   transition: width 0.5s ease;
   border-radius: 4px;
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: linear-gradient(90deg, #10b981, #059669);
 }
 
 .player-health-text {
