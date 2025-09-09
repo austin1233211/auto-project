@@ -970,3 +970,136 @@ body:has(#hero-selection.active) #player-health-display {
     max-width: 350px;
   }
 }
+
+/* Item Shop Styles */
+.item-shop-container {
+  max-width: min(90vw, 600px);
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.shop-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.shop-title {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.shop-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.player-gold {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.shop-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.shop-slot {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.item-slot {
+  text-align: center;
+}
+
+.item-slot.empty {
+  opacity: 0.5;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.item-emoji {
+  font-size: 1.5rem;
+}
+
+.item-cost {
+  background: var(--accent-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.item-name {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.item-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.purchased-items {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.purchased-items h3 {
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.purchased-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.no-items {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.shop-controls {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .item-shop-container {
+    max-width: min(85vw, 800px);
+  }
+  
+  .item-actions {
+    flex-direction: row;
+  }
+}
