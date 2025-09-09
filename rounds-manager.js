@@ -254,7 +254,7 @@ export class RoundsManager {
             <!-- Combat will be rendered here -->
           </div>
           <div class="tournament-controls">
-            <button class="action-button secondary" id="back-to-selection">Back to Hero Selection</button>
+            <button class="action-button secondary" id="back-to-selection" style="display: none;">Back to Hero Selection</button>
           </div>
         </div>
         
