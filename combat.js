@@ -91,7 +91,7 @@ export class Combat {
 
         <div class="battle-controls">
           <div class="auto-battle-status" id="battle-status">Auto-battle in progress...</div>
-          <button class="action-button secondary" id="back-to-selection">Back to Hero Selection</button>
+          <button class="action-button secondary" id="back-to-selection" style="display: none;">Back to Hero Selection</button>
         </div>
       </div>
     `;
@@ -241,6 +241,9 @@ export class Combat {
     const battleStatus = this.container.querySelector('#battle-status');
     battleStatus.textContent = result === 'victory' ? 'Victory!' : 'Defeated!';
     battleStatus.className = `auto-battle-status ${result}`;
+
+    const backButton = this.container.querySelector('#back-to-selection');
+    backButton.style.display = 'block';
 
     setTimeout(() => {
       if (this.onBattleEnd) {
