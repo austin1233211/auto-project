@@ -272,12 +272,15 @@ export const heroes = [
     stats: {
       health: 1154,
       attack: 26,
-      armor: 3,
+      armor: 0,
       speed: 1.1,
       critChance: 0.18,
       critDamage: 1.8,
       evasionChance: 0.15,
-      evasionDamageReduction: 0.30
+      evasionDamageReduction: 0.30,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Searing Arrows', description: 'Arrows deal fire damage over time' },
@@ -293,12 +296,15 @@ export const heroes = [
     stats: {
       health: 1638,
       attack: 23,
-      armor: 8,
+      armor: 0,
       speed: 0.96,
       critChance: 0.07,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Dragon Blood', description: 'Regeneration and armor' },
@@ -314,12 +320,15 @@ export const heroes = [
     stats: {
       health: 1477,
       attack: 24,
-      armor: 5,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Aftershock', description: 'Abilities stun nearby enemies' },
@@ -335,12 +344,15 @@ export const heroes = [
     stats: {
       health: 1316,
       attack: 25,
-      armor: 4,
+      armor: 0,
       speed: 1.02,
       critChance: 0.14,
       critDamage: 1.7,
       evasionChance: 0.11,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Time Lock', description: 'Chance to bash and slow' },
@@ -356,12 +368,15 @@ export const heroes = [
     stats: {
       health: 1208,
       attack: 24,
-      armor: 4,
+      armor: 0,
       speed: 1.05,
       critChance: 0.16,
       critDamage: 1.7,
       evasionChance: 0.13,
-      evasionDamageReduction: 0.28
+      evasionDamageReduction: 0.28,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Scurry', description: 'Gains movement speed when taking damage' },
