@@ -16,6 +16,7 @@ export class HeroSelection {
   init() {
     this.render();
     this.attachEventListeners();
+    this.startSelectionTimer();
   }
 
   render() {
@@ -25,7 +26,7 @@ export class HeroSelection {
       <div class="hero-selection-container">
         <h1 class="hero-selection-title">Choose Your Gladiator</h1>
         
-        <div id="selection-timer" class="selection-timer" style="display: none;">
+        <div id="selection-timer" class="selection-timer">
           <div class="timer-display">Selection Time: 0:30</div>
         </div>
         
@@ -103,8 +104,6 @@ export class HeroSelection {
         if (this.onTournamentStart) {
           this.onTournamentStart();
         }
-      } else {
-        this.startSelectionTimer();
       }
     });
   }
