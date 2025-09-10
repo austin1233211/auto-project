@@ -509,12 +509,15 @@ export const heroes = [
     stats: {
       health: 1531,
       attack: 24,
-      armor: 6,
+      armor: 0,
       speed: 1.0,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Empower', description: 'Enhanced damage and cleave attacks' },
@@ -530,12 +533,15 @@ export const heroes = [
     stats: {
       health: 1262,
       attack: 24,
-      armor: 4,
+      armor: 0,
       speed: 1.05,
       critChance: 0.16,
       critDamage: 1.7,
       evasionChance: 0.13,
-      evasionDamageReduction: 0.28
+      evasionDamageReduction: 0.28,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Leap', description: 'Enhanced mobility and evasion' },
@@ -551,12 +557,15 @@ export const heroes = [
     stats: {
       health: 1638,
       attack: 22,
-      armor: 8,
+      armor: 0,
       speed: 0.96,
       critChance: 0.07,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Degen Aura', description: 'Slows nearby enemies' },
@@ -572,12 +581,15 @@ export const heroes = [
     stats: {
       health: 1746,
       attack: 22,
-      armor: 5,
+      armor: 0,
       speed: 0.95,
       critChance: 0.06,
       critDamage: 1.3,
       evasionChance: 0.05,
-      evasionDamageReduction: 0.22
+      evasionDamageReduction: 0.22,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Flesh Heap', description: 'Gains health and magic resistance from kills' },
@@ -593,12 +605,15 @@ export const heroes = [
     stats: {
       health: 1100,
       attack: 26,
-      armor: 3,
+      armor: 0,
       speed: 1.1,
       critChance: 0.18,
       critDamage: 1.8,
       evasionChance: 0.15,
-      evasionDamageReduction: 0.30
+      evasionDamageReduction: 0.30,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Permanent Invisibility', description: 'Always invisible when not attacking' },
