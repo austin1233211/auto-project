@@ -629,12 +629,15 @@ export const heroes = [
     stats: {
       health: 1208,
       attack: 27,
-      armor: 3,
+      armor: 0,
       speed: 1.02,
       critChance: 0.14,
       critDamage: 1.7,
       evasionChance: 0.12,
-      evasionDamageReduction: 0.28
+      evasionDamageReduction: 0.28,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Necromastery', description: 'Gain damage from kills' },
@@ -650,12 +653,15 @@ export const heroes = [
     stats: {
       health: 1100,
       attack: 28,
-      armor: 2,
+      armor: 0,
       speed: 1.02,
       critChance: 0.11,
       critDamage: 1.6,
       evasionChance: 0.09,
-      evasionDamageReduction: 0.18
+      evasionDamageReduction: 0.18,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Ancient Seal', description: 'Spells amplify damage on enemies' },
@@ -671,12 +677,15 @@ export const heroes = [
     stats: {
       health: 1262,
       attack: 25,
-      armor: 4,
+      armor: 0,
       speed: 1.05,
       critChance: 0.16,
       critDamage: 1.7,
       evasionChance: 0.13,
-      evasionDamageReduction: 0.28
+      evasionDamageReduction: 0.28,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Essence Shift', description: 'Steals enemy attributes on attack' },
@@ -692,12 +701,15 @@ export const heroes = [
     stats: {
       health: 1154,
       attack: 26,
-      armor: 3,
+      armor: 0,
       speed: 1.0,
       critChance: 0.13,
       critDamage: 1.7,
       evasionChance: 0.11,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Headshot', description: 'Chance for bonus damage' },
@@ -713,12 +725,15 @@ export const heroes = [
     stats: {
       health: 1585,
       attack: 24,
-      armor: 6,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Great Cleave', description: 'Attacks hit multiple enemies' },
