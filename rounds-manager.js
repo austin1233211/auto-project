@@ -2,6 +2,7 @@ import { heroes } from './heroes.js';
 import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
 import { PlayerHealth } from './player-health.js';
+import { Timer } from './timer.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null) {
@@ -15,6 +16,8 @@ export class RoundsManager {
     this.combat = null;
     this.currentMatchIndex = 0;
     this.playerHealth = playerHealth;
+    this.timer = new Timer();
+    this.setupTimer();
   }
 
   init(userHero = null) {
@@ -86,7 +89,10 @@ export class RoundsManager {
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.updateRoundDisplay();
-    this.startSimultaneousMatches();
+    
+    this.timer.startBuffer(() => {
+      this.startSimultaneousMatches();
+    });
   }
 
   startSimultaneousMatches() {
@@ -209,6 +215,8 @@ export class RoundsManager {
   }
 
   processRoundResults() {
+    this.timer.stopTimer();
+    
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
@@ -256,6 +264,9 @@ export class RoundsManager {
           <div class="round-info">
             <h2>Round ${this.currentRound}</h2>
             <p>${this.activePlayers.length} players remaining${this.ghostPlayers.length > 0 ? ` (${this.ghostPlayers.length} ghosts available)` : ''}</p>
+            <div id="round-timer" class="round-timer">
+              <div class="timer-display">Preparing round...</div>
+            </div>
           </div>
           <div id="battle-area" class="battle-area">
             <!-- Combat will be rendered here -->
@@ -311,6 +322,9 @@ export class RoundsManager {
       roundInfo.innerHTML = `
         <h2>Round ${this.currentRound}</h2>
         <p>${this.activePlayers.length} players remaining${this.ghostPlayers.length > 0 ? ` (${this.ghostPlayers.length} ghosts available)` : ''}</p>
+        <div id="round-timer" class="round-timer">
+          <div class="timer-display">Preparing round...</div>
+        </div>
       `;
     }
     this.updatePlayersList();
@@ -330,6 +344,42 @@ export class RoundsManager {
         this.onTournamentEnd('back');
       }
     });
+  }
+
+  setupTimer() {
+    this.timer.setOnTimerUpdate((timerData) => {
+      this.updateTimerDisplay(timerData);
+    });
+
+    this.timer.setOnRoundEnd(() => {
+      if (this.combat) {
+        this.combat.endBattle('timeout');
+      } else {
+        this.processRoundResults();
+      }
+    });
+
+    this.timer.setOnSpeedBoost((isActive) => {
+      if (this.combat) {
+        this.combat.setSpeedMultiplier(isActive ? 4 : 1);
+      }
+    });
+  }
+
+  updateTimerDisplay(timerData) {
+    const timerElement = this.container.querySelector('#round-timer');
+    if (timerElement) {
+      const minutes = Math.floor(timerData.time / 60);
+      const seconds = timerData.time % 60;
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (timerData.isBuffer) {
+        timerElement.innerHTML = `<div class="timer-display buffer">Pre-Round: ${timeString}</div>`;
+      } else {
+        const speedBoostClass = timerData.speedBoost ? ' speed-boost' : '';
+        timerElement.innerHTML = `<div class="timer-display round${speedBoostClass}">Round Timer: ${timeString}</div>`;
+      }
+    }
   }
 
   setOnTournamentEnd(callback) {
