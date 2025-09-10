@@ -46,8 +46,7 @@ export class Economy {
       }
     }
 
-    const interestEligibleGold = Math.floor(player.gold / this.interestThreshold) * this.interestThreshold;
-    const interest = Math.min(interestEligibleGold * this.interestRate / this.interestThreshold * 10, this.maxInterest);
+    const interest = Math.min(Math.floor(player.gold / 100) * 10, this.maxInterest);
     breakdown.interest = interest;
     totalIncome += interest;
 
