@@ -1,6 +1,7 @@
 import { heroes } from './heroes.js';
 import { StatsCalculator } from './stats-calculator.js';
 import { AbilitySystem } from './abilities.js';
+import { CombatShop } from './combat-shop-v2.js';
 
 export class Combat {
   constructor(container) {
@@ -14,6 +15,8 @@ export class Combat {
     this.playerAttackTimer = null;
     this.enemyAttackTimer = null;
     this.speedMultiplier = 1;
+    this.combatShop = null;
+    this.combatShopContainer = null;
   }
 
   init(playerHero, playerMoney = 0) {
@@ -34,6 +37,7 @@ export class Combat {
     this.clearTimers();
     
     this.render();
+    this.initCombatShop();
     this.startBattle();
   }
 
@@ -98,6 +102,9 @@ export class Combat {
           <div class="auto-battle-status" id="battle-status">Auto-battle in progress...</div>
           <button class="action-button secondary" id="back-to-selection" style="display: none;">Back to Hero Selection</button>
         </div>
+        
+        <button class="combat-shop-toggle" id="combat-shop-toggle">🏪</button>
+        <div id="combat-shop-container" class="combat-shop-container"></div>
       </div>
     `;
 
@@ -106,10 +113,17 @@ export class Combat {
 
   attachEventListeners() {
     const backBtn = this.container.querySelector('#back-to-selection');
+    const shopToggleBtn = this.container.querySelector('#combat-shop-toggle');
 
     backBtn.addEventListener('click', () => {
       if (this.onBattleEnd) {
         this.onBattleEnd('back');
+      }
+    });
+
+    shopToggleBtn.addEventListener('click', () => {
+      if (this.combatShop) {
+        this.combatShop.toggle();
       }
     });
   }
@@ -276,6 +290,17 @@ export class Combat {
         }
       }, enemyAttackInterval);
     }
+  }
+
+  initCombatShop() {
+    this.combatShopContainer = this.container.querySelector('#combat-shop-container');
+    this.combatShop = new CombatShop(this.combatShopContainer, this);
+    this.combatShop.setPlayerMoney(this.playerMoney);
+    this.combatShop.init();
+  }
+
+  getCombatShopItems() {
+    return this.combatShop ? this.combatShop.purchasedItems : [];
   }
 
   setOnBattleEnd(callback) {

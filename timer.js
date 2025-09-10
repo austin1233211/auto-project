@@ -1,7 +1,7 @@
 export class Timer {
   constructor() {
     this.roundDuration = 30;
-    this.bufferDuration = 5;
+    this.bufferDuration = 30;
     this.currentTime = 0;
     this.isRunning = false;
     this.isBufferPhase = false;
