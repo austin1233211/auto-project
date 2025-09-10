@@ -224,12 +224,15 @@ export const heroes = [
     stats: {
       health: 1585,
       attack: 23,
-      armor: 7,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Bristleback', description: 'Reduce damage from behind' },
@@ -245,12 +248,15 @@ export const heroes = [
     stats: {
       health: 1531,
       attack: 24,
-      armor: 6,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Chaos Strike', description: 'Attacks have random critical chance' },
