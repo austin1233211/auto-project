@@ -2,6 +2,7 @@ import { GameModeSelection } from './game-mode-selection.js';
 import { HeroSelection } from './hero-selection.js';
 import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
+import { ItemShop } from './item-shop.js';
 
 class AutoGladiators {
   constructor() {
@@ -17,6 +18,7 @@ class AutoGladiators {
     this.initHeroSelection();
     this.initPlayerHealth();
     this.initRounds();
+    this.initItemShop();
   }
 
   initGameModeSelection() {
@@ -85,6 +87,26 @@ class AutoGladiators {
           this.switchScreen('hero-selection');
         }, 3000);
       }
+    });
+
+    this.rounds.setOnItemShop(() => {
+      this.switchScreen('shop-screen');
+      this.itemShop.init();
+    });
+  }
+
+  initItemShop() {
+    const shopContainer = document.getElementById('shop-screen');
+    this.itemShop = new ItemShop(shopContainer);
+    
+    this.itemShop.setOnShopComplete((purchasedItems) => {
+      const userPlayer = this.rounds.players.find(p => p.name === "You");
+      if (userPlayer && purchasedItems.length > 0) {
+        userPlayer.hero = this.itemShop.applyItemsToHero(userPlayer.hero);
+      }
+      
+      this.switchScreen('rounds-screen');
+      this.rounds.continueAfterItemShop();
     });
   }
 

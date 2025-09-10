@@ -234,9 +234,16 @@ export class RoundsManager {
 
     if (this.activePlayers.length > 1) {
       this.currentRound++;
-      setTimeout(() => {
-        this.startRound();
-      }, 3000);
+      
+      if (this.currentRound % 3 === 0) {
+        if (this.onItemShop) {
+          this.onItemShop();
+        }
+      } else {
+        setTimeout(() => {
+          this.startRound();
+        }, 3000);
+      }
     } else {
       this.endTournament();
     }
@@ -377,5 +384,15 @@ export class RoundsManager {
 
   setOnTournamentEnd(callback) {
     this.onTournamentEnd = callback;
+  }
+
+  setOnItemShop(callback) {
+    this.onItemShop = callback;
+  }
+
+  continueAfterItemShop() {
+    setTimeout(() => {
+      this.startRound();
+    }, 1000);
   }
 }
