@@ -424,15 +424,6 @@ export class RoundsManager {
     this.onTournamentEnd = callback;
   }
 
-  setOnItemShop(callback) {
-    this.onItemShop = callback;
-  }
-
-  continueAfterItemShop() {
-    setTimeout(() => {
-      this.startRound();
-    }, 1000);
-  }
 
   initRoundsShop() {
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
