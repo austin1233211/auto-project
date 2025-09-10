@@ -47,7 +47,7 @@ export class RoundsManager {
         id: i + 1,
         name: playerName,
         hero: hero,
-        playerHealth: i === 0 && userHero && this.playerHealth ? this.playerHealth : new PlayerHealth(hero.stats.health),
+        playerHealth: i === 0 && userHero && this.playerHealth ? this.playerHealth : new PlayerHealth(),
         isEliminated: false,
         wins: 0,
         losses: 0,
@@ -242,7 +242,7 @@ export class RoundsManager {
         ...player,
         name: `👻 Ghost of ${player.name.replace('👻 Ghost of ', '')}`,
         isGhost: true,
-        playerHealth: { currentHealth: 0, maxHealth: player.hero.stats.health },
+        playerHealth: { currentHealth: 0, maxHealth: 50 },
         losses: 0
       };
       this.ghostPlayers.push(ghostPlayer);

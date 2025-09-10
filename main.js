@@ -9,7 +9,7 @@ class AutoGladiators {
     this.currentScreen = 'game-mode-selection';
     this.selectedHero = null;
     this.selectedMode = null;
-    this.playerHealth = null;
+    this.playerHealth = new PlayerHealth();
     this.init();
   }
 
