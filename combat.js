@@ -1,7 +1,7 @@
 import { heroes } from './heroes.js';
 import { StatsCalculator } from './stats-calculator.js';
 import { AbilitySystem } from './abilities.js';
-import { CombatShop } from './combat-shop.js';
+import { CombatShop } from './combat-shop-v2.js';
 
 export class Combat {
   constructor(container) {

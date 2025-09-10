@@ -4,7 +4,7 @@ import { StatsCalculator } from './stats-calculator.js';
 import { PlayerHealth } from './player-health.js';
 import { Timer } from './timer.js';
 import { Economy } from './economy.js';
-import { CombatShop } from './combat-shop.js';
+import { CombatShop } from './combat-shop-v2.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null) {
