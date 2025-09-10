@@ -161,7 +161,7 @@ export class RoundsManager {
     });
 
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
-    this.combat.init(player1.hero);
+    this.combat.init(player1.hero, player1.money || 0);
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {

@@ -16,13 +16,14 @@ export class Combat {
     this.speedMultiplier = 1;
   }
 
-  init(playerHero) {
+  init(playerHero, playerMoney = 0) {
     this.playerHero = StatsCalculator.processHeroStats({ 
       ...playerHero, 
       currentHealth: playerHero.stats.health,
       currentMana: 0,
       maxMana: 100
     });
+    this.playerMoney = playerMoney;
     this.enemyHero = this.selectRandomEnemy();
     this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
     this.enemyHero.currentHealth = this.enemyHero.stats.health;
@@ -45,7 +46,10 @@ export class Combat {
   render() {
     this.container.innerHTML = `
       <div class="combat-container">
-        <h1 class="combat-title">Battle Arena</h1>
+        <div class="combat-header">
+          <h1 class="combat-title">Battle Arena</h1>
+          <div class="player-money-display">💰 Money: ${this.playerMoney || 0}</div>
+        </div>
         
         <div class="battle-field">
           <div class="hero-battle-card player">
