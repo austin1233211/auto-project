@@ -45,7 +45,6 @@ export class CombatShop extends ItemShop {
     const tooltipText = `${slot.item.name}: ${slot.item.description}`;
 
     return `
-ly
       <div class="item-slot-mini ${slot.item.tier ? `tier-${slot.item.tier}` : ''}">
         ${slot.item.tier ? `<div class="item-tier-badge-mini">T${slot.item.tier}</div>` : ''}
         <div class="item-info-container" title="${tooltipText}">
@@ -106,5 +105,17 @@ ly
   setPlayerGold(amount) {
     this.playerGold = amount;
     this.updateGoldDisplay();
+  }
+
+  purchaseItem(slotIndex) {
+    super.purchaseItem(slotIndex);
+    
+    if (this.onGoldChange) {
+      this.onGoldChange(this.playerGold);
+    }
+  }
+
+  setOnGoldChange(callback) {
+    this.onGoldChange = callback;
   }
 }
