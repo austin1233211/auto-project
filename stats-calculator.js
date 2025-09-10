@@ -8,7 +8,7 @@ export class StatsCalculator {
   }
 
   static calculateEffectiveSpeed(baseSpeed) {
-    return this.applyDiminishingReturns(baseSpeed, 40, 0.6);
+    return this.applyDiminishingReturns(baseSpeed, 2.0, 0.6);
   }
 
   static applyDiminishingReturns(value, threshold, diminishingFactor) {
@@ -22,13 +22,23 @@ export class StatsCalculator {
   }
 
   static processHeroStats(hero) {
+    let effectiveSpeed = this.calculateEffectiveSpeed(hero.stats.speed);
+    
+    if (hero.statusEffects) {
+      for (const effect of hero.statusEffects) {
+        if (effect.type === 'attack_speed' && effect.ticksRemaining > 0) {
+          effectiveSpeed *= (1 + effect.bonus);
+        }
+      }
+    }
+    
     return {
       ...hero,
       effectiveStats: {
         health: hero.stats.health,
         attack: this.calculateEffectiveAttack(hero.stats.attack),
         armor: this.calculateEffectiveArmor(hero.stats.armor),
-        speed: this.calculateEffectiveSpeed(hero.stats.speed)
+        speed: effectiveSpeed
       }
     };
   }

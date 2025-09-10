@@ -128,10 +128,9 @@ export class Combat {
     });
   }
 
-  calculateAttackInterval(speed) {
-    const baseInterval = 3000;
-    const speedMultiplier = speed / 10;
-    return Math.max(250, (baseInterval / speedMultiplier) / this.speedMultiplier);
+  calculateAttackInterval(attacksPerSecond) {
+    const interval = 1000 / attacksPerSecond;
+    return Math.max(250, interval / this.speedMultiplier);
   }
 
   clearTimers() {
@@ -152,7 +151,7 @@ export class Combat {
     const playerAttackInterval = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
     const enemyAttackInterval = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
     
-    this.addToLog(`${this.playerHero.name} attacks every ${(playerAttackInterval/1000).toFixed(1)}s | ${this.enemyHero.name} attacks every ${(enemyAttackInterval/1000).toFixed(1)}s`);
+    this.addToLog(`${this.playerHero.name} attacks ${this.playerHero.effectiveStats.speed.toFixed(2)} times/sec | ${this.enemyHero.name} attacks ${this.enemyHero.effectiveStats.speed.toFixed(2)} times/sec`);
     
     this.playerAttackTimer = setInterval(() => {
       if (!this.isGameOver) {

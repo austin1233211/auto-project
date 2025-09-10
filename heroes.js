@@ -9,7 +9,7 @@ export const heroes = [
       health: 120,
       attack: 15,
       armor: 8,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Warrior Training', description: 'Gains damage reduction when health is low' },
@@ -26,7 +26,7 @@ export const heroes = [
       health: 80,
       attack: 25,
       armor: 3,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Arcane Mastery', description: 'Generates mana faster during combat' },
@@ -43,7 +43,7 @@ export const heroes = [
       health: 90,
       attack: 20,
       armor: 5,
-      speed: 9
+      speed: 1.08
     },
     abilities: {
       passive: { name: 'Eagle Eye', description: 'Chance for critical strikes with precision' },
@@ -60,7 +60,7 @@ export const heroes = [
       health: 70,
       attack: 22,
       armor: 4,
-      speed: 10
+      speed: 1.1
     },
     abilities: {
       passive: { name: 'Shadow Step', description: 'Chance to dodge attacks with shadow movement' },
@@ -77,7 +77,7 @@ export const heroes = [
       health: 110,
       attack: 18,
       armor: 7,
-      speed: 5
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Divine Blessing', description: 'Slowly regenerates health when wounded' },
@@ -94,7 +94,7 @@ export const heroes = [
       health: 85,
       attack: 23,
       armor: 4,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Dark Aura', description: 'Drains small amounts of enemy health over time' },
@@ -111,7 +111,7 @@ export const heroes = [
       health: 95,
       attack: 18,
       armor: 4,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Chemical Mastery', description: 'Attacks have chance to reduce enemy armor' },
@@ -128,7 +128,7 @@ export const heroes = [
       health: 85,
       attack: 21,
       armor: 5,
-      speed: 9
+      speed: 1.08
     },
     abilities: {
       passive: { name: 'Mana Break', description: 'Attacks burn enemy mana' },
@@ -145,7 +145,7 @@ export const heroes = [
       health: 125,
       attack: 16,
       armor: 6,
-      speed: 5
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Battle Hunger', description: 'Damage over time effect' },
