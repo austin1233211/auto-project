@@ -68,7 +68,7 @@ export class Combat {
               <span class="mana-text">${this.playerHero.currentMana}/${this.playerHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
-              ATK: ${Math.round(this.playerHero.effectiveStats.attack)} | ARM: ${Math.round(this.playerHero.effectiveStats.armor)} | SPD: ${Math.round(this.playerHero.effectiveStats.speed)}
+              ATK: ${Math.round(this.playerHero.effectiveStats.attack)} | ARM: ${Math.round(this.playerHero.effectiveStats.armor)} | SPD: ${Math.round(this.playerHero.effectiveStats.speed)} | CRIT: ${(this.playerHero.effectiveStats.critChance * 100).toFixed(1)}% | EVA: ${(this.playerHero.effectiveStats.evasionChance * 100).toFixed(1)}%
             </div>
           </div>
 
@@ -86,7 +86,7 @@ export class Combat {
               <span class="mana-text">${this.enemyHero.currentMana}/${this.enemyHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
-              ATK: ${Math.round(this.enemyHero.effectiveStats.attack)} | ARM: ${Math.round(this.enemyHero.effectiveStats.armor)} | SPD: ${Math.round(this.enemyHero.effectiveStats.speed)}
+              ATK: ${Math.round(this.enemyHero.effectiveStats.attack)} | ARM: ${Math.round(this.enemyHero.effectiveStats.armor)} | SPD: ${Math.round(this.enemyHero.effectiveStats.speed)} | CRIT: ${(this.enemyHero.effectiveStats.critChance * 100).toFixed(1)}% | EVA: ${(this.enemyHero.effectiveStats.evasionChance * 100).toFixed(1)}%
             </div>
           </div>
         </div>
@@ -180,13 +180,26 @@ export class Combat {
       damage = abilityResult.damage;
       attacker.currentMana = 0;
     } else {
-      damage = this.calculateDamage(attacker.effectiveStats.attack, target.effectiveStats.armor);
-      if (passiveResult && passiveResult.criticalHit) {
-        damage = Math.round(damage * 1.5);
-        this.addToLog(`${attacker.name} attacks with a critical hit for ${damage} damage!`);
-      } else {
-        this.addToLog(`${attacker.name} attacks for ${damage} damage!`);
+      let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target.effectiveStats.armor);
+      
+      if (Math.random() < target.effectiveStats.evasionChance) {
+        finalDamage = Math.round(finalDamage * (1 - target.effectiveStats.evasionDamageReduction));
+        this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
       }
+      
+      let totalCritChance = attacker.effectiveStats.critChance;
+      if (passiveResult && passiveResult.criticalHit) {
+        totalCritChance += 0.15;
+      }
+      
+      if (Math.random() < totalCritChance) {
+        finalDamage = Math.round(finalDamage * attacker.effectiveStats.critDamage);
+        this.addToLog(`${attacker.name} attacks with a critical hit for ${finalDamage} damage!`);
+      } else {
+        this.addToLog(`${attacker.name} attacks for ${finalDamage} damage!`);
+      }
+      
+      damage = finalDamage;
       attacker.currentMana = Math.min(attacker.maxMana, attacker.currentMana + manaGain);
     }
 
