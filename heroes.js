@@ -749,12 +749,15 @@ export const heroes = [
     stats: {
       health: 1692,
       attack: 22,
-      armor: 7,
+      armor: 0,
       speed: 0.96,
       critChance: 0.07,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Kraken Shell', description: 'Damage reduction and purge' },
@@ -770,12 +773,15 @@ export const heroes = [
     stats: {
       health: 1800,
       attack: 21,
-      armor: 8,
+      armor: 0,
       speed: 0.95,
       critChance: 0.06,
       critDamage: 1.3,
       evasionChance: 0.05,
-      evasionDamageReduction: 0.22
+      evasionDamageReduction: 0.22,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Craggy Exterior', description: 'Chance to stun attackers' },
@@ -791,12 +797,15 @@ export const heroes = [
     stats: {
       health: 1531,
       attack: 23,
-      armor: 6,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Undying Will', description: 'Gains strength when enemies die nearby' },
@@ -812,12 +821,15 @@ export const heroes = [
     stats: {
       health: 1316,
       attack: 24,
-      armor: 5,
+      armor: 0,
       speed: 1.0,
       critChance: 0.10,
       critDamage: 1.5,
       evasionChance: 0.08,
-      evasionDamageReduction: 0.15
+      evasionDamageReduction: 0.15,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Poison Attack', description: 'Toxic damage over time' },
@@ -833,12 +845,15 @@ export const heroes = [
     stats: {
       health: 1370,
       attack: 24,
-      armor: 4,
+      armor: 0,
       speed: 1.0,
       critChance: 0.10,
       critDamage: 1.5,
       evasionChance: 0.08,
-      evasionDamageReduction: 0.15
+      evasionDamageReduction: 0.15,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Elemental Strike', description: 'Attacks cycle through elements' },
@@ -854,12 +869,15 @@ export const heroes = [
     stats: {
       health: 1262,
       attack: 25,
-      armor: 3,
+      armor: 0,
       speed: 0.98,
       critChance: 0.10,
       critDamage: 1.5,
       evasionChance: 0.08,
-      evasionDamageReduction: 0.15
+      evasionDamageReduction: 0.15,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Undead Resilience', description: 'Immune to certain status effects' },
