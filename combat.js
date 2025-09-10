@@ -13,6 +13,7 @@ export class Combat {
     this.abilitySystem = new AbilitySystem(this);
     this.playerAttackTimer = null;
     this.enemyAttackTimer = null;
+    this.speedMultiplier = 1;
   }
 
   init(playerHero) {
@@ -112,7 +113,7 @@ export class Combat {
   calculateAttackInterval(speed) {
     const baseInterval = 3000;
     const speedMultiplier = speed / 10;
-    return Math.max(1000, baseInterval / speedMultiplier);
+    return Math.max(250, (baseInterval / speedMultiplier) / this.speedMultiplier);
   }
 
   clearTimers() {
@@ -250,6 +251,27 @@ export class Combat {
         this.onBattleEnd(result);
       }
     }, 3000);
+  }
+
+  setSpeedMultiplier(multiplier) {
+    this.speedMultiplier = multiplier;
+    if (!this.isGameOver && this.playerAttackTimer && this.enemyAttackTimer) {
+      this.clearTimers();
+      const playerAttackInterval = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
+      const enemyAttackInterval = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
+      
+      this.playerAttackTimer = setInterval(() => {
+        if (!this.isGameOver) {
+          this.executeAttack(this.playerHero, this.enemyHero);
+        }
+      }, playerAttackInterval);
+      
+      this.enemyAttackTimer = setInterval(() => {
+        if (!this.isGameOver) {
+          this.executeAttack(this.enemyHero, this.playerHero);
+        }
+      }, enemyAttackInterval);
+    }
   }
 
   setOnBattleEnd(callback) {
