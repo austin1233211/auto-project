@@ -231,11 +231,6 @@ export class AbilitySystem {
         }
         break;
       case 'Dark Aura':
-        if (target && Math.random() < 0.1) {
-          const drainAmount = Math.round(target.stats.health * 0.02);
-          target.currentHealth = Math.max(0, target.currentHealth - drainAmount);
-          hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + drainAmount);
-        }
         break;
     }
     

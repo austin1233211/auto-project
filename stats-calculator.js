@@ -45,7 +45,8 @@ export class StatsCalculator {
         critChance: hero.stats.critChance,
         critDamage: hero.stats.critDamage,
         evasionChance: hero.stats.evasionChance,
-        evasionDamageReduction: hero.stats.evasionDamageReduction
+        evasionDamageReduction: hero.stats.evasionDamageReduction,
+        manaRegeneration: hero.stats.manaRegeneration || 0
       }
     };
   }
