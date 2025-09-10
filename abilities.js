@@ -673,11 +673,13 @@ export class AbilitySystem {
     for (const effect of hero.statusEffects) {
       if (effect.ticksRemaining > 0) {
         if (effect.type === 'burn') {
-          hero.currentHealth = Math.max(0, hero.currentHealth - effect.damage);
-          this.combat.addToLog(`🔥 ${hero.name} takes ${effect.damage} burn damage!`);
+          const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
+          hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
+          this.combat.addToLog(`🔥 ${hero.name} takes ${escalatedDamage} burn damage!`);
         } else if (effect.type === 'poison') {
-          hero.currentHealth = Math.max(0, hero.currentHealth - effect.damage);
-          this.combat.addToLog(`☠️ ${hero.name} takes ${effect.damage} poison damage!`);
+          const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
+          hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
+          this.combat.addToLog(`☠️ ${hero.name} takes ${escalatedDamage} poison damage!`);
         } else if (effect.type === 'skeleton' && effect.target) {
           const skeletonDamage = Math.round(hero.effectiveStats.attack * effect.attackPercent);
           const damage = this.combat.calculateDamage(skeletonDamage, effect.target.effectiveStats.armor);

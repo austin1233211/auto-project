@@ -19,6 +19,7 @@ export class Combat {
     this.manaUITimer = null;
     this.statusEffectsTimer = null;
     this.speedMultiplier = 1;
+    this.damageMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
   }
@@ -293,6 +294,8 @@ export class Combat {
     
     finalDamage = finalDamage * (1 + damageAmplification / 100);
     
+    finalDamage = finalDamage * this.damageMultiplier;
+    
     return Math.max(1, Math.round(finalDamage));
   }
 
@@ -403,5 +406,9 @@ export class Combat {
 
   setOnBattleEnd(callback) {
     this.onBattleEnd = callback;
+  }
+
+  setDamageMultiplier(multiplier) {
+    this.damageMultiplier = multiplier;
   }
 }
