@@ -68,7 +68,7 @@ export class Combat {
               <span class="mana-text">${this.playerHero.currentMana}/${this.playerHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
-              ATK: ${Math.round(this.playerHero.effectiveStats.attack)} | ARM: ${Math.round(this.playerHero.effectiveStats.armor)} | SPD: ${Math.round(this.playerHero.effectiveStats.speed)} | CRIT: ${(this.playerHero.effectiveStats.critChance * 100).toFixed(1)}% | EVA: ${(this.playerHero.effectiveStats.evasionChance * 100).toFixed(1)}%
+              ATK: ${Math.round(this.playerHero.effectiveStats.attack)} | ARM: ${this.playerHero.effectiveStats.armor}% | SPD: ${Math.round(this.playerHero.effectiveStats.speed)} | CRIT: ${(this.playerHero.effectiveStats.critChance * 100).toFixed(1)}% | EVA: ${(this.playerHero.effectiveStats.evasionChance * 100).toFixed(1)}%
             </div>
           </div>
 
@@ -86,7 +86,7 @@ export class Combat {
               <span class="mana-text">${this.enemyHero.currentMana}/${this.enemyHero.maxMana}</span>
             </div>
             <div class="hero-stats-mini">
-              ATK: ${Math.round(this.enemyHero.effectiveStats.attack)} | ARM: ${Math.round(this.enemyHero.effectiveStats.armor)} | SPD: ${Math.round(this.enemyHero.effectiveStats.speed)} | CRIT: ${(this.enemyHero.effectiveStats.critChance * 100).toFixed(1)}% | EVA: ${(this.enemyHero.effectiveStats.evasionChance * 100).toFixed(1)}%
+              ATK: ${Math.round(this.enemyHero.effectiveStats.attack)} | ARM: ${this.enemyHero.effectiveStats.armor}% | SPD: ${Math.round(this.enemyHero.effectiveStats.speed)} | CRIT: ${(this.enemyHero.effectiveStats.critChance * 100).toFixed(1)}% | EVA: ${(this.enemyHero.effectiveStats.evasionChance * 100).toFixed(1)}%
             </div>
           </div>
         </div>
@@ -180,7 +180,7 @@ export class Combat {
       damage = abilityResult.damage;
       attacker.currentMana = 0;
     } else {
-      let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target.effectiveStats.armor);
+      let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical');
       
       if (Math.random() < target.effectiveStats.evasionChance) {
         finalDamage = Math.round(finalDamage * (1 - target.effectiveStats.evasionDamageReduction));
@@ -217,11 +217,28 @@ export class Combat {
     }
   }
 
-  calculateDamage(attack, armor) {
+  calculateDamage(attack, target, damageType = 'physical') {
     const baseDamage = attack;
-    const damageReduction = armor * 0.1;
-    const finalDamage = Math.max(1, Math.round(baseDamage - damageReduction));
-    return finalDamage;
+    
+    let damageReduction = 0;
+    if (damageType === 'physical') {
+      damageReduction = target.effectiveStats.armor;
+    } else if (damageType === 'magic') {
+      damageReduction = target.effectiveStats.magicDamageReduction || 0;
+    }
+    
+    let finalDamage = baseDamage * (1 - damageReduction / 100);
+    
+    let damageAmplification = 0;
+    if (damageType === 'physical') {
+      damageAmplification = target.effectiveStats.physicalDamageAmplification || 0;
+    } else if (damageType === 'magic') {
+      damageAmplification = target.effectiveStats.magicDamageAmplification || 0;
+    }
+    
+    finalDamage = finalDamage * (1 + damageAmplification / 100);
+    
+    return Math.max(1, Math.round(finalDamage));
   }
 
   updateHealthAndManaBars() {

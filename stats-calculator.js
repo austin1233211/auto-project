@@ -37,7 +37,10 @@ export class StatsCalculator {
       effectiveStats: {
         health: hero.stats.health,
         attack: this.calculateEffectiveAttack(hero.stats.attack),
-        armor: this.calculateEffectiveArmor(hero.stats.armor),
+        armor: hero.stats.armor,
+        magicDamageReduction: hero.stats.magicDamageReduction || 0,
+        physicalDamageAmplification: hero.stats.physicalDamageAmplification || 0,
+        magicDamageAmplification: hero.stats.magicDamageAmplification || 0,
         speed: effectiveSpeed,
         critChance: hero.stats.critChance,
         critDamage: hero.stats.critDamage,
