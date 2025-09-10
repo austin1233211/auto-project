@@ -434,6 +434,12 @@ export class RoundsManager {
       
       this.roundsShop = new CombatShop(this.roundsShopContainer, null, this.currentRound);
       this.roundsShop.setPlayerGold(playerGold);
+      this.roundsShop.setOnGoldChange((newGold) => {
+        if (userPlayer) {
+          userPlayer.gold = newGold;
+          this.updatePlayersList();
+        }
+      });
       this.roundsShop.init();
     }
   }
