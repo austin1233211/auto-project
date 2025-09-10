@@ -294,8 +294,8 @@ export class Combat {
 
   initCombatShop() {
     this.combatShopContainer = this.container.querySelector('#combat-shop-container');
-    this.combatShop = new CombatShop(this.combatShopContainer, this);
-    this.combatShop.setPlayerMoney(this.playerMoney);
+    this.combatShop = new CombatShop(this.combatShopContainer, this, 1);
+    this.combatShop.setPlayerGold(this.playerMoney);
     this.combatShop.init();
   }
 

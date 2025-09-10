@@ -1401,3 +1401,73 @@ body:has(#hero-selection.active) #player-health-display {
     max-width: min(80vw, 800px);
   }
 }
+
+/* Tier-based item styling */
+.item-slot.tier-1 {
+  border-left: 4px solid #10b981;
+}
+
+.item-slot.tier-2 {
+  border-left: 4px solid #3b82f6;
+}
+
+.item-slot.tier-3 {
+  border-left: 4px solid #8b5cf6;
+}
+
+.item-tier-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--accent-color);
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.tier-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.player-gold {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.player-gold-mini {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.item-tier-badge-mini {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  background: var(--accent-color);
+  color: white;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.item-slot-mini.tier-1 {
+  border-left: 3px solid #10b981;
+}
+
+.item-slot-mini.tier-2 {
+  border-left: 3px solid #3b82f6;
+}
+
+.item-slot-mini.tier-3 {
+  border-left: 3px solid #8b5cf6;
+}
+
+.shop-slot-mini {
+  position: relative;
+}
