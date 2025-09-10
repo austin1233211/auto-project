@@ -260,6 +260,8 @@ export class Combat {
   }
 
   endBattle(result) {
+    if (this.isGameOver) return;
+    
     this.isGameOver = true;
     this.clearTimers();
     

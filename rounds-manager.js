@@ -178,7 +178,7 @@ export class RoundsManager {
       );
     }
     
-    if (!match) return;
+    if (!match || match.completed) return;
     
     if (result === 'victory') {
       match.winner = player1;
@@ -472,25 +472,12 @@ export class RoundsManager {
   }
 
   startInterRoundTimer() {
-    let timeLeft = 30;
-    const timerElement = this.container.querySelector('#round-timer');
     this.showRoundsShop();
     this.updateRoundsShopMoney();
     
-    const countdown = setInterval(() => {
-      if (timerElement) {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        timerElement.innerHTML = `<div class="timer-display buffer">Next Round: ${timeString}</div>`;
-      }
-      
-      timeLeft--;
-      if (timeLeft < 0) {
-        clearInterval(countdown);
-        this.hideRoundsShop();
-        this.startRound();
-      }
-    }, 1000);
+    this.timer.startBuffer(() => {
+      this.hideRoundsShop();
+      this.startRound();
+    });
   }
 }
