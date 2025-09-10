@@ -573,7 +573,7 @@ export const heroes = [
     avatar: '🦅',
     description: 'A celestial mage with mastery over arcane forces. Rains down magical bolts from the heavens.',
     stats: {
-      health: 70,
+      health: 1100,
       attack: 28,
       armor: 2,
       speed: 1.02,
@@ -594,7 +594,7 @@ export const heroes = [
     avatar: '🐟',
     description: 'An escaped prisoner from the depths. Steals enemy attributes and becomes stronger in darkness.',
     stats: {
-      health: 85,
+      health: 1262,
       attack: 25,
       armor: 4,
       speed: 1.05,
@@ -615,7 +615,7 @@ export const heroes = [
     avatar: '🎯',
     description: 'A keen marksman with exceptional range. Picks off enemies from great distances with precise shots.',
     stats: {
-      health: 75,
+      health: 1154,
       attack: 26,
       armor: 3,
       speed: 1.0,
@@ -657,7 +657,7 @@ export const heroes = [
     avatar: '🌊',
     description: 'An ancient sea creature with control over the tides. Creates devastating waves and anchors enemies.',
     stats: {
-      health: 125,
+      health: 1692,
       attack: 22,
       armor: 7,
       speed: 0.96,
@@ -741,7 +741,7 @@ export const heroes = [
     avatar: '🎌',
     description: 'A mystical warrior from ancient lands. Combines martial arts with elemental magic for devastating combos.',
     stats: {
-      health: 95,
+      health: 1370,
       attack: 24,
       armor: 4,
       speed: 1.0,
@@ -762,7 +762,7 @@ export const heroes = [
     avatar: '🎸',
     description: 'An undead musician whose haunting melodies drive enemies mad. Uses sonic attacks and necromantic rhythms.',
     stats: {
-      health: 85,
+      health: 1262,
       attack: 25,
       armor: 3,
       speed: 0.98,
