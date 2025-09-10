@@ -98,15 +98,12 @@ export class HeroSelection {
 
     const tournamentBtn = this.container.querySelector('#start-tournament-btn');
     tournamentBtn.addEventListener('click', () => {
-      console.log('Tournament button clicked, selectedHero:', this.selectedHero);
       if (this.selectedHero) {
-        console.log('Hero selected, starting tournament');
         this.timer.stopTimer();
         if (this.onTournamentStart) {
           this.onTournamentStart();
         }
       } else {
-        console.log('No hero selected, starting timer');
         this.startSelectionTimer();
       }
     });
@@ -216,15 +213,11 @@ export class HeroSelection {
   }
 
   startSelectionTimer() {
-    console.log('startSelectionTimer called');
     this.timerActive = true;
     const timerElement = this.container.querySelector('#selection-timer');
-    console.log('Timer element found:', timerElement);
     if (timerElement) {
       timerElement.style.display = 'block';
-      console.log('Timer element display set to block');
     }
-    console.log('Starting timer.startRound()');
     this.timer.startRound();
   }
 
