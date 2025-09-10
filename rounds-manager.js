@@ -3,6 +3,7 @@ import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
 import { PlayerHealth } from './player-health.js';
 import { Timer } from './timer.js';
+import { Economy } from './economy.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null) {
@@ -17,6 +18,7 @@ export class RoundsManager {
     this.currentMatchIndex = 0;
     this.playerHealth = playerHealth;
     this.timer = new Timer();
+    this.economy = new Economy();
     this.setupTimer();
   }
 
@@ -45,7 +47,10 @@ export class RoundsManager {
         playerHealth: i === 0 && userHero && this.playerHealth ? this.playerHealth : new PlayerHealth(),
         isEliminated: false,
         wins: 0,
-        losses: 0
+        losses: 0,
+        money: 50,
+        consecutiveWins: 0,
+        consecutiveLosses: 0
       };
       this.players.push(player);
     }
@@ -156,7 +161,7 @@ export class RoundsManager {
     });
 
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
-    this.combat.init(player1.hero);
+    this.combat.init(player1.hero, player1.money || 0);
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {
@@ -177,18 +182,22 @@ export class RoundsManager {
       if (!player1.isGhost) {
         player1.wins++;
         player1.playerHealth.processRoundResult('victory');
+        this.economy.awardMoney(player1, true);
       }
       if (!player2.isGhost) {
         player2.playerHealth.processRoundResult('defeat');
+        this.economy.awardMoney(player2, false);
       }
     } else {
       match.winner = player2;
       if (!player2.isGhost) {
         player2.wins++;
         player2.playerHealth.processRoundResult('victory');
+        this.economy.awardMoney(player2, true);
       }
       if (!player1.isGhost) {
         player1.playerHealth.processRoundResult('defeat');
+        this.economy.awardMoney(player1, false);
       }
     }
     
@@ -310,6 +319,7 @@ export class RoundsManager {
           <div class="player-stats">
             <span class="wins">Wins: ${player.wins}</span>
             <span class="losses">Losses: ${player.losses}</span>
+            <span class="money">💰 ${player.money || 0}</span>
           </div>
         </div>
       `;
