@@ -237,7 +237,7 @@ export const heroes = [
     avatar: '💀',
     description: 'An undead archer with burning arrows. Moves invisibly and strikes with deadly precision.',
     stats: {
-      health: 75,
+      health: 1154,
       attack: 26,
       armor: 3,
       speed: 1.1,
@@ -258,7 +258,7 @@ export const heroes = [
     avatar: '🐉',
     description: 'A noble knight with draconic powers. Transforms into a mighty dragon with devastating breath attacks.',
     stats: {
-      health: 120,
+      health: 1638,
       attack: 23,
       armor: 8,
       speed: 0.96,
@@ -300,7 +300,7 @@ export const heroes = [
     avatar: '⏰',
     description: 'A being from outside time with temporal powers. Manipulates time to dodge attacks and trap enemies.',
     stats: {
-      health: 90,
+      health: 1316,
       attack: 25,
       armor: 4,
       speed: 1.02,
@@ -321,7 +321,7 @@ export const heroes = [
     avatar: '🦝',
     description: 'A cunning trickster who uses nature and deception. Sets traps and confuses enemies with illusions.',
     stats: {
-      health: 80,
+      health: 1208,
       attack: 24,
       armor: 4,
       speed: 1.05,
@@ -363,7 +363,7 @@ export const heroes = [
     avatar: '⚔️',
     description: 'A masked swordsman with incredible blade skills. Spins to damage all nearby enemies and strikes with precision.',
     stats: {
-      health: 95,
+      health: 1369,
       attack: 26,
       armor: 5,
       speed: 1.02,
@@ -405,7 +405,7 @@ export const heroes = [
     avatar: '⚡',
     description: 'A fiery sorceress with devastating lightning magic. Casts powerful spells that grow stronger with each cast.',
     stats: {
-      health: 75,
+      health: 1154,
       attack: 27,
       armor: 2,
       speed: 1.02,
@@ -426,7 +426,7 @@ export const heroes = [
     avatar: '🦁',
     description: 'A demon witch with powerful hexes and life drain. Transforms enemies and steals their essence.',
     stats: {
-      health: 85,
+      health: 1262,
       attack: 25,
       armor: 3,
       speed: 1.0,
@@ -447,7 +447,7 @@ export const heroes = [
     avatar: '🐂',
     description: 'A mighty beast warrior with magnetic powers. Charges into battle and pulls enemies with magnetic force.',
     stats: {
-      health: 110,
+      health: 1531,
       attack: 24,
       armor: 6,
       speed: 1.0,
@@ -468,7 +468,7 @@ export const heroes = [
     avatar: '🌙',
     description: 'A lunar priestess who rides with her sacred mount. Shoots sacred arrows and calls down starfall.',
     stats: {
-      health: 85,
+      health: 1262,
       attack: 24,
       armor: 4,
       speed: 1.05,
@@ -489,7 +489,7 @@ export const heroes = [
     avatar: '✨',
     description: 'A holy paladin devoted to protecting others. Heals allies and grants powerful protective blessings.',
     stats: {
-      health: 120,
+      health: 1638,
       attack: 22,
       armor: 8,
       speed: 0.96,
@@ -531,7 +531,7 @@ export const heroes = [
     avatar: '👤',
     description: 'A master assassin who strikes from the shadows. Permanently invisible and deals bonus damage from behind.',
     stats: {
-      health: 70,
+      health: 1100,
       attack: 26,
       armor: 3,
       speed: 1.1,
@@ -552,7 +552,7 @@ export const heroes = [
     avatar: '👹',
     description: 'A demonic entity that collects souls. Grows stronger with each kill and unleashes devastating shadow magic.',
     stats: {
-      health: 80,
+      health: 1208,
       attack: 27,
       armor: 3,
       speed: 1.02,
