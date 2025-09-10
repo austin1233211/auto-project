@@ -392,12 +392,15 @@ export const heroes = [
     stats: {
       health: 1423,
       attack: 24,
-      armor: 4,
+      armor: 0,
       speed: 1.0,
       critChance: 0.09,
       critDamage: 1.5,
       evasionChance: 0.07,
-      evasionDamageReduction: 0.18
+      evasionDamageReduction: 0.18,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Berserkers Blood', description: 'Power increases when wounded' },
@@ -413,12 +416,15 @@ export const heroes = [
     stats: {
       health: 1369,
       attack: 26,
-      armor: 5,
+      armor: 0,
       speed: 1.02,
       critChance: 0.14,
       critDamage: 1.7,
       evasionChance: 0.11,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Blade Dance', description: 'Chance for critical strikes' },
@@ -434,12 +440,15 @@ export const heroes = [
     stats: {
       health: 1585,
       attack: 23,
-      armor: 7,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Moment of Courage', description: 'Chance to counter-attack with lifesteal' },
@@ -455,12 +464,15 @@ export const heroes = [
     stats: {
       health: 1154,
       attack: 27,
-      armor: 2,
+      armor: 0,
       speed: 1.02,
       critChance: 0.11,
       critDamage: 1.6,
       evasionChance: 0.09,
-      evasionDamageReduction: 0.18
+      evasionDamageReduction: 0.18,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Fiery Soul', description: 'Spells increase attack and movement speed' },
@@ -476,7 +488,7 @@ export const heroes = [
     stats: {
       health: 1262,
       attack: 25,
-      armor: 3,
+      armor: 0,
       speed: 1.0,
       critChance: 0.10,
       critDamage: 1.5,
