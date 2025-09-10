@@ -68,6 +68,14 @@ export class HeroSelection {
             <span class="stat-label">SPD</span>
             <span class="stat-value">${hero.stats.speed}</span>
           </div>
+          <div class="stat">
+            <span class="stat-label">CRIT</span>
+            <span class="stat-value">${(hero.stats.critChance * 100).toFixed(1)}%</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">EVA</span>
+            <span class="stat-value">${(hero.stats.evasionChance * 100).toFixed(1)}%</span>
+          </div>
         </div>
         <button class="reroll-btn" data-display-index="${displayIndex}" 
                 ${hero.hasBeenRerolled ? 'disabled' : ''}>

@@ -38,7 +38,11 @@ export class StatsCalculator {
         health: hero.stats.health,
         attack: this.calculateEffectiveAttack(hero.stats.attack),
         armor: this.calculateEffectiveArmor(hero.stats.armor),
-        speed: effectiveSpeed
+        speed: effectiveSpeed,
+        critChance: hero.stats.critChance,
+        critDamage: hero.stats.critDamage,
+        evasionChance: hero.stats.evasionChance,
+        evasionDamageReduction: hero.stats.evasionDamageReduction
       }
     };
   }
