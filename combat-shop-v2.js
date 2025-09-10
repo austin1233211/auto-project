@@ -36,15 +36,16 @@ export class CombatShop extends ItemShop {
 
   renderItemSlotMini(slotIndex) {
     const slot = this.itemSlots[slotIndex];
-    
+
     if (!slot.item) {
       return `<div class="item-slot-mini empty">Sold Out</div>`;
     }
 
     const canAfford = this.playerGold >= slot.item.cost;
     const tooltipText = `${slot.item.name}: ${slot.item.description}`;
-    
+
     return `
+ly
       <div class="item-slot-mini ${slot.item.tier ? `tier-${slot.item.tier}` : ''}">
         ${slot.item.tier ? `<div class="item-tier-badge-mini">T${slot.item.tier}</div>` : ''}
         <div class="item-info-container" title="${tooltipText}">
