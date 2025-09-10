@@ -914,9 +914,16 @@ body:has(#hero-selection.active) #player-health-display {
 }
 
 .player-stats {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
   font-size: 0.7rem;
   color: var(--text-secondary);
+  gap: 0.5rem;
+}
+
+.player-stats .money {
+  color: var(--accent-color);
+  font-weight: bold;
 }
 
 .tournament-btn {
@@ -991,6 +998,13 @@ body:has(#hero-selection.active) #player-health-display {
 
 .shop-subtitle {
   color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.player-money {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--accent-color);
   margin-bottom: 1rem;
 }
 

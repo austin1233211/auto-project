@@ -90,7 +90,9 @@ class AutoGladiators {
     });
 
     this.rounds.setOnItemShop(() => {
+      const userPlayer = this.rounds.players.find(p => p.name === "You");
       this.switchScreen('shop-screen');
+      this.itemShop.setPlayerMoney(userPlayer ? userPlayer.money : 0);
       this.itemShop.init();
     });
   }
@@ -101,8 +103,11 @@ class AutoGladiators {
     
     this.itemShop.setOnShopComplete((purchasedItems) => {
       const userPlayer = this.rounds.players.find(p => p.name === "You");
-      if (userPlayer && purchasedItems.length > 0) {
-        userPlayer.hero = this.itemShop.applyItemsToHero(userPlayer.hero);
+      if (userPlayer) {
+        if (purchasedItems.length > 0) {
+          userPlayer.hero = this.itemShop.applyItemsToHero(userPlayer.hero);
+        }
+        userPlayer.money = this.itemShop.playerMoney;
       }
       
       this.switchScreen('rounds-screen');
