@@ -376,6 +376,9 @@ export class RoundsManager {
   setupTimer() {
     this.timer.setOnTimerUpdate((timerData) => {
       this.updateTimerDisplay(timerData);
+      if (this.combat && timerData.damageMultiplier) {
+        this.combat.setDamageMultiplier(timerData.damageMultiplier);
+      }
     });
 
     this.timer.setOnRoundEnd(() => {
@@ -390,6 +393,9 @@ export class RoundsManager {
       if (this.combat) {
         this.combat.setSpeedMultiplier(isActive ? 4 : 1);
       }
+    });
+
+    this.timer.setOnDamageEscalation((isActive) => {
     });
   }
 
@@ -406,7 +412,9 @@ export class RoundsManager {
         this.updateRoundsShopMoney();
       } else {
         const speedBoostClass = timerData.speedBoost ? ' speed-boost' : '';
-        timerElement.innerHTML = `<div class="timer-display round${speedBoostClass}">Round Timer: ${timeString}</div>`;
+        const damageEscalationClass = timerData.damageEscalation ? ' damage-escalation' : '';
+        const multiplierText = timerData.damageMultiplier > 1 ? ` (${(timerData.damageMultiplier * 100).toFixed(0)}% damage)` : '';
+        timerElement.innerHTML = `<div class="timer-display round${speedBoostClass}${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
         this.hideRoundsShop();
       }
     }
