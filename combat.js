@@ -16,6 +16,7 @@ export class Combat {
     this.enemyAttackTimer = null;
     this.playerManaTimer = null;
     this.enemyManaTimer = null;
+    this.manaUITimer = null;
     this.speedMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
@@ -136,25 +137,30 @@ export class Combat {
   }
 
   startManaRegeneration() {
-    const baseManaInterval = Math.floor(1000 / 11);
+    const manaInterval = 250;
+    const manaPerTick = Math.ceil(11 * (manaInterval / 1000));
     
     this.playerManaTimer = setInterval(() => {
       if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
         const totalRegen = 11 + (this.playerHero.effectiveStats.manaRegeneration || 0);
-        const regenPerTick = Math.max(1, Math.floor(totalRegen / 11));
-        this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenPerTick);
-        this.updateHealthAndManaBars();
+        const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
+        this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
-    }, baseManaInterval);
+    }, manaInterval);
     
     this.enemyManaTimer = setInterval(() => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
         const totalRegen = 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0);
-        const regenPerTick = Math.max(1, Math.floor(totalRegen / 11));
-        this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenPerTick);
+        const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
+        this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
+      }
+    }, manaInterval);
+    
+    this.manaUITimer = setInterval(() => {
+      if (!this.isGameOver) {
         this.updateHealthAndManaBars();
       }
-    }, baseManaInterval);
+    }, 500);
   }
 
   clearTimers() {
@@ -173,6 +179,10 @@ export class Combat {
     if (this.enemyManaTimer) {
       clearInterval(this.enemyManaTimer);
       this.enemyManaTimer = null;
+    }
+    if (this.manaUITimer) {
+      clearInterval(this.manaUITimer);
+      this.manaUITimer = null;
     }
   }
 
@@ -236,11 +246,6 @@ export class Combat {
     }
 
     target.currentHealth = Math.max(0, target.currentHealth - damage);
-    
-    this.abilitySystem.processStatusEffects(this.playerHero);
-    this.abilitySystem.processStatusEffects(this.enemyHero);
-    
-    this.updateHealthAndManaBars();
 
     if (target.currentHealth <= 0) {
       const result = target === this.enemyHero ? 'victory' : 'defeat';
