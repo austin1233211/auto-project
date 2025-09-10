@@ -51,7 +51,7 @@ export class RoundsManager {
         isEliminated: false,
         wins: 0,
         losses: 0,
-        money: 50,
+        gold: 300,
         consecutiveWins: 0,
         consecutiveLosses: 0
       };
@@ -184,23 +184,29 @@ export class RoundsManager {
       match.winner = player1;
       if (!player1.isGhost) {
         player1.wins++;
+        const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('victory');
-        this.economy.awardMoney(player1, true);
+        this.economy.awardMoney(player1, true, 0);
       }
       if (!player2.isGhost) {
+        const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('defeat');
-        this.economy.awardMoney(player2, false);
+        const hpLost = oldHealth - player2.playerHealth.currentHealth;
+        this.economy.awardMoney(player2, false, hpLost);
       }
     } else {
       match.winner = player2;
       if (!player2.isGhost) {
         player2.wins++;
+        const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('victory');
-        this.economy.awardMoney(player2, true);
+        this.economy.awardMoney(player2, true, 0);
       }
       if (!player1.isGhost) {
+        const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('defeat');
-        this.economy.awardMoney(player1, false);
+        const hpLost = oldHealth - player1.playerHealth.currentHealth;
+        this.economy.awardMoney(player1, false, hpLost);
       }
     }
     
@@ -320,7 +326,7 @@ export class RoundsManager {
           <div class="player-stats">
             <span class="wins">Wins: ${player.wins}</span>
             <span class="losses">Losses: ${player.losses}</span>
-            <span class="money">💰 ${player.money || 0}</span>
+            <span class="gold">💰 ${player.gold || 0}</span>
           </div>
         </div>
       `;
@@ -424,10 +430,10 @@ export class RoundsManager {
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
     if (this.roundsShopContainer) {
       const userPlayer = this.players.find(p => p.name === "You");
-      const playerMoney = userPlayer ? userPlayer.money : 50;
+      const playerGold = userPlayer ? userPlayer.gold : 300;
       
-      this.roundsShop = new CombatShop(this.roundsShopContainer, null);
-      this.roundsShop.setPlayerMoney(playerMoney);
+      this.roundsShop = new CombatShop(this.roundsShopContainer, null, this.currentRound);
+      this.roundsShop.setPlayerGold(playerGold);
       this.roundsShop.init();
     }
   }
@@ -453,8 +459,8 @@ export class RoundsManager {
     if (this.roundsShop) {
       const userPlayer = this.players.find(p => p.name === "You");
       if (userPlayer) {
-        this.roundsShop.setPlayerMoney(userPlayer.money);
-        this.roundsShop.updateMoneyDisplay();
+        this.roundsShop.setPlayerGold(userPlayer.gold);
+        this.roundsShop.updateGoldDisplay();
       }
     }
   }

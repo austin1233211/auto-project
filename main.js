@@ -92,7 +92,8 @@ class AutoGladiators {
     this.rounds.setOnItemShop(() => {
       const userPlayer = this.rounds.players.find(p => p.name === "You");
       this.switchScreen('shop-screen');
-      this.itemShop.setPlayerMoney(userPlayer ? userPlayer.money : 0);
+      this.itemShop.setPlayerGold(userPlayer ? userPlayer.gold : 0);
+      this.itemShop.setRoundNumber(this.rounds.currentRound);
       this.itemShop.init();
     });
   }
@@ -107,7 +108,7 @@ class AutoGladiators {
         if (purchasedItems.length > 0) {
           userPlayer.hero = this.itemShop.applyItemsToHero(userPlayer.hero);
         }
-        userPlayer.money = this.itemShop.playerMoney;
+        userPlayer.gold = this.itemShop.playerGold;
       }
       
       this.switchScreen('rounds-screen');

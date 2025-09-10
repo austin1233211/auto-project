@@ -1,8 +1,8 @@
 import { ItemShop } from './item-shop.js';
 
 export class CombatShop extends ItemShop {
-  constructor(container, combat) {
-    super(container);
+  constructor(container, combat, roundNumber = 1) {
+    super(container, roundNumber);
     this.combat = combat;
     this.isVisible = false;
   }
@@ -19,7 +19,7 @@ export class CombatShop extends ItemShop {
       <div class="combat-shop-widget">
         <div class="shop-header-mini">
           <h3>🏪 Combat Shop</h3>
-          <div class="player-money-mini">💰 ${this.playerMoney}</div>
+          <div class="player-gold-mini">💰 ${this.playerGold}</div>
           <button class="close-shop-btn" id="close-combat-shop">×</button>
         </div>
         <div class="shop-items-mini">
@@ -41,11 +41,12 @@ export class CombatShop extends ItemShop {
       return `<div class="item-slot-mini empty">Sold Out</div>`;
     }
 
-    const canAfford = this.playerMoney >= slot.item.cost;
+    const canAfford = this.playerGold >= slot.item.cost;
     const tooltipText = `${slot.item.name}: ${slot.item.description}`;
     
     return `
-      <div class="item-slot-mini">
+      <div class="item-slot-mini ${slot.item.tier ? `tier-${slot.item.tier}` : ''}">
+        ${slot.item.tier ? `<div class="item-tier-badge-mini">T${slot.item.tier}</div>` : ''}
         <div class="item-info-container" title="${tooltipText}">
           <div class="item-emoji-mini">${slot.item.emoji}</div>
           <div class="item-name-mini">${slot.item.name}</div>
@@ -87,17 +88,22 @@ export class CombatShop extends ItemShop {
       if (buyBtn && !buyBtn.disabled) {
         buyBtn.addEventListener('click', () => {
           this.purchaseItem(index);
-          this.updateMoneyDisplay();
+          this.updateGoldDisplay();
           this.render();
         });
       }
     });
   }
 
-  updateMoneyDisplay() {
-    const moneyDisplay = this.container.querySelector('.player-money-mini');
-    if (moneyDisplay) {
-      moneyDisplay.textContent = `💰 ${this.playerMoney}`;
+  updateGoldDisplay() {
+    const goldDisplay = this.container.querySelector('.player-gold-mini');
+    if (goldDisplay) {
+      goldDisplay.textContent = `💰 ${this.playerGold}`;
     }
+  }
+
+  setPlayerGold(amount) {
+    this.playerGold = amount;
+    this.updateGoldDisplay();
   }
 }

@@ -2,8 +2,9 @@ import { StatsCalculator } from './stats-calculator.js';
 import { Economy } from './economy.js';
 
 export class ItemShop {
-  constructor(container) {
+  constructor(container, roundNumber = 1) {
     this.container = container;
+    this.roundNumber = roundNumber;
     this.onShopComplete = null;
     this.itemSlots = [
       { item: null, rerollsLeft: 2 },
@@ -12,7 +13,7 @@ export class ItemShop {
     ];
     this.purchasedItems = [];
     this.economy = new Economy();
-    this.playerMoney = 0;
+    this.playerGold = 0;
   }
 
   init() {
@@ -28,18 +29,39 @@ export class ItemShop {
   }
 
   generateRandomItem() {
-    const itemTypes = [
-      { name: 'Health Boost', stat: 'health', value: 15, emoji: '❤️', description: '+15 Health', cost: 15 },
-      { name: 'Attack Power', stat: 'attack', value: 8, emoji: '⚔️', description: '+8 Attack', cost: 20 },
-      { name: 'Speed Boost', stat: 'speed', value: 5, emoji: '💨', description: '+5 Speed', cost: 18 },
-      { name: 'Armor Plating', stat: 'armor', value: 6, emoji: '🛡️', description: '+6 Armor', cost: 16 },
-      { name: 'Vitality Ring', stat: 'health', value: 25, emoji: '💍', description: '+25 Health', cost: 35 },
-      { name: 'Berserker Axe', stat: 'attack', value: 12, emoji: '🪓', description: '+12 Attack', cost: 40 },
-      { name: 'Swift Boots', stat: 'speed', value: 8, emoji: '👢', description: '+8 Speed', cost: 32 },
-      { name: 'Dragon Scale', stat: 'armor', value: 10, emoji: '🐉', description: '+10 Armor', cost: 30 }
-    ];
+    const tier = this.economy.generateItemTier(this.roundNumber);
+    return this.generateItemByTier(tier);
+  }
 
-    return itemTypes[Math.floor(Math.random() * itemTypes.length)];
+  generateItemByTier(tier) {
+    const tierCosts = { 1: 100, 2: 200, 3: 300 };
+    const cost = tierCosts[tier];
+    
+    const itemTemplates = {
+      1: [
+        { name: 'Health Boost', stat: 'health', value: 20, emoji: '❤️', description: '+20 Health' },
+        { name: 'Attack Power', stat: 'attack', value: 10, emoji: '⚔️', description: '+10 Attack' },
+        { name: 'Speed Boost', stat: 'speed', value: 8, emoji: '💨', description: '+8 Speed' },
+        { name: 'Armor Plating', stat: 'armor', value: 8, emoji: '🛡️', description: '+8 Armor' }
+      ],
+      2: [
+        { name: 'Vitality Ring', stat: 'health', value: 40, emoji: '💍', description: '+40 Health' },
+        { name: 'Berserker Axe', stat: 'attack', value: 20, emoji: '🪓', description: '+20 Attack' },
+        { name: 'Swift Boots', stat: 'speed', value: 15, emoji: '👢', description: '+15 Speed' },
+        { name: 'Steel Armor', stat: 'armor', value: 15, emoji: '🛡️', description: '+15 Armor' }
+      ],
+      3: [
+        { name: 'Dragon Heart', stat: 'health', value: 60, emoji: '🐉', description: '+60 Health' },
+        { name: 'Legendary Blade', stat: 'attack', value: 30, emoji: '⚔️', description: '+30 Attack' },
+        { name: 'Wind Walker Boots', stat: 'speed', value: 25, emoji: '🌪️', description: '+25 Speed' },
+        { name: 'Dragon Scale Armor', stat: 'armor', value: 25, emoji: '🐲', description: '+25 Armor' }
+      ]
+    };
+    
+    const templates = itemTemplates[tier];
+    const template = templates[Math.floor(Math.random() * templates.length)];
+    
+    return { ...template, cost, tier, tierName: `Tier ${tier}` };
   }
 
   rerollSlot(slotIndex) {
@@ -52,12 +74,12 @@ export class ItemShop {
 
   purchaseItem(slotIndex) {
     const slot = this.itemSlots[slotIndex];
-    if (slot.item && this.playerMoney >= slot.item.cost) {
-      this.playerMoney -= slot.item.cost;
+    if (slot.item && this.playerGold >= slot.item.cost) {
+      this.playerGold -= slot.item.cost;
       this.purchasedItems.push(slot.item);
       slot.item = null;
       this.updateSlotDisplay(slotIndex);
-      this.updateMoneyDisplay();
+      this.updateGoldDisplay();
     }
   }
 
@@ -80,10 +102,12 @@ export class ItemShop {
       `;
     }
 
-    const canAfford = this.playerMoney >= slot.item.cost;
+    const canAfford = this.playerGold >= slot.item.cost;
+    const tierClass = `tier-${slot.item.tier}`;
     
     return `
-      <div class="item-slot">
+      <div class="item-slot ${tierClass}">
+        <div class="item-tier-badge">T${slot.item.tier}</div>
         <div class="item-header">
           <span class="item-emoji">${slot.item.emoji}</span>
           <span class="item-cost">💰${slot.item.cost}</span>
@@ -108,7 +132,8 @@ export class ItemShop {
         <div class="shop-header">
           <h1 class="shop-title">🏪 Item Shop</h1>
           <p class="shop-subtitle">Choose items to boost your hero's stats</p>
-          <div class="player-money">💰 Money: <span id="money-display">${this.playerMoney}</span></div>
+          <div class="player-gold">💰 Gold: <span id="gold-display">${this.playerGold}</span></div>
+          <div class="tier-info">Round ${this.roundNumber} - Higher tiers more likely in later rounds</div>
         </div>
         
         <div class="shop-items">
@@ -206,10 +231,10 @@ export class ItemShop {
     return modifiedHero;
   }
 
-  updateMoneyDisplay() {
-    const moneyDisplay = this.container.querySelector('#money-display');
-    if (moneyDisplay) {
-      moneyDisplay.textContent = this.playerMoney;
+  updateGoldDisplay() {
+    const goldDisplay = this.container.querySelector('#gold-display');
+    if (goldDisplay) {
+      goldDisplay.textContent = this.playerGold;
     }
     
     this.itemSlots.forEach((slot, index) => {
@@ -219,9 +244,13 @@ export class ItemShop {
     });
   }
 
-  setPlayerMoney(amount) {
-    this.playerMoney = amount;
-    this.updateMoneyDisplay();
+  setPlayerGold(amount) {
+    this.playerGold = amount;
+    this.updateGoldDisplay();
+  }
+
+  setRoundNumber(roundNumber) {
+    this.roundNumber = roundNumber;
   }
 
   setOnShopComplete(callback) {
