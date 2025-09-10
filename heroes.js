@@ -162,7 +162,7 @@ export const heroes = [
       health: 115,
       attack: 17,
       armor: 7,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Bristleback', description: 'Reduce damage from behind' },
@@ -179,7 +179,7 @@ export const heroes = [
       health: 110,
       attack: 19,
       armor: 6,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Chaos Strike', description: 'Attacks have random critical chance' },
@@ -196,7 +196,7 @@ export const heroes = [
       health: 75,
       attack: 24,
       armor: 3,
-      speed: 10
+      speed: 1.1
     },
     abilities: {
       passive: { name: 'Searing Arrows', description: 'Arrows deal fire damage over time' },
@@ -213,7 +213,7 @@ export const heroes = [
       health: 120,
       attack: 18,
       armor: 8,
-      speed: 5
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Dragon Blood', description: 'Regeneration and armor' },
@@ -230,7 +230,7 @@ export const heroes = [
       health: 105,
       attack: 20,
       armor: 5,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Aftershock', description: 'Abilities stun nearby enemies' },
@@ -247,7 +247,7 @@ export const heroes = [
       health: 90,
       attack: 22,
       armor: 4,
-      speed: 8
+      speed: 1.05
     },
     abilities: {
       passive: { name: 'Time Lock', description: 'Chance to bash and slow' },
@@ -264,7 +264,7 @@ export const heroes = [
       health: 80,
       attack: 19,
       armor: 4,
-      speed: 9
+      speed: 1.08
     },
     abilities: {
       passive: { name: 'Scurry', description: 'Gains movement speed when taking damage' },
@@ -281,7 +281,7 @@ export const heroes = [
       health: 100,
       attack: 20,
       armor: 4,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Berserkers Blood', description: 'Power increases when wounded' },
@@ -298,7 +298,7 @@ export const heroes = [
       health: 95,
       attack: 23,
       armor: 5,
-      speed: 8
+      speed: 1.05
     },
     abilities: {
       passive: { name: 'Blade Dance', description: 'Chance for critical strikes' },
@@ -315,7 +315,7 @@ export const heroes = [
       health: 115,
       attack: 17,
       armor: 7,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Moment of Courage', description: 'Chance to counter-attack with lifesteal' },
@@ -332,7 +332,7 @@ export const heroes = [
       health: 75,
       attack: 26,
       armor: 2,
-      speed: 8
+      speed: 1.05
     },
     abilities: {
       passive: { name: 'Fiery Soul', description: 'Spells increase attack and movement speed' },
@@ -349,7 +349,7 @@ export const heroes = [
       health: 85,
       attack: 21,
       armor: 3,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Mana Drain', description: 'Attacks steal enemy mana' },
@@ -366,7 +366,7 @@ export const heroes = [
       health: 110,
       attack: 19,
       armor: 6,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Empower', description: 'Enhanced damage and cleave attacks' },
@@ -383,7 +383,7 @@ export const heroes = [
       health: 85,
       attack: 20,
       armor: 4,
-      speed: 9
+      speed: 1.08
     },
     abilities: {
       passive: { name: 'Leap', description: 'Enhanced mobility and evasion' },
@@ -400,7 +400,7 @@ export const heroes = [
       health: 120,
       attack: 16,
       armor: 8,
-      speed: 5
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Degen Aura', description: 'Slows nearby enemies' },
@@ -417,7 +417,7 @@ export const heroes = [
       health: 130,
       attack: 15,
       armor: 5,
-      speed: 4
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Flesh Heap', description: 'Gains health and magic resistance from kills' },
@@ -434,7 +434,7 @@ export const heroes = [
       health: 70,
       attack: 24,
       armor: 3,
-      speed: 10
+      speed: 1.1
     },
     abilities: {
       passive: { name: 'Permanent Invisibility', description: 'Always invisible when not attacking' },
@@ -451,7 +451,7 @@ export const heroes = [
       health: 80,
       attack: 25,
       armor: 3,
-      speed: 8
+      speed: 1.05
     },
     abilities: {
       passive: { name: 'Necromastery', description: 'Gain damage from kills' },
@@ -468,7 +468,7 @@ export const heroes = [
       health: 70,
       attack: 27,
       armor: 2,
-      speed: 8
+      speed: 1.05
     },
     abilities: {
       passive: { name: 'Ancient Seal', description: 'Spells amplify damage on enemies' },
@@ -485,7 +485,7 @@ export const heroes = [
       health: 85,
       attack: 21,
       armor: 4,
-      speed: 9
+      speed: 1.08
     },
     abilities: {
       passive: { name: 'Essence Shift', description: 'Steals enemy attributes on attack' },
@@ -502,7 +502,7 @@ export const heroes = [
       health: 75,
       attack: 23,
       armor: 3,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Headshot', description: 'Chance for bonus damage' },
@@ -519,7 +519,7 @@ export const heroes = [
       health: 115,
       attack: 20,
       armor: 6,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Great Cleave', description: 'Attacks hit multiple enemies' },
@@ -536,7 +536,7 @@ export const heroes = [
       health: 125,
       attack: 16,
       armor: 7,
-      speed: 5
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Kraken Shell', description: 'Damage reduction and purge' },
@@ -553,7 +553,7 @@ export const heroes = [
       health: 135,
       attack: 14,
       armor: 8,
-      speed: 4
+      speed: 0.95
     },
     abilities: {
       passive: { name: 'Craggy Exterior', description: 'Chance to stun attackers' },
@@ -570,7 +570,7 @@ export const heroes = [
       health: 110,
       attack: 17,
       armor: 6,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Undying Will', description: 'Gains strength when enemies die nearby' },
@@ -587,7 +587,7 @@ export const heroes = [
       health: 90,
       attack: 19,
       armor: 5,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Poison Attack', description: 'Toxic damage over time' },
@@ -604,7 +604,7 @@ export const heroes = [
       health: 95,
       attack: 20,
       armor: 4,
-      speed: 7
+      speed: 1.0
     },
     abilities: {
       passive: { name: 'Elemental Strike', description: 'Attacks cycle through elements' },
@@ -621,7 +621,7 @@ export const heroes = [
       health: 85,
       attack: 22,
       armor: 3,
-      speed: 6
+      speed: 0.98
     },
     abilities: {
       passive: { name: 'Undead Resilience', description: 'Immune to certain status effects' },
