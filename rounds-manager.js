@@ -244,15 +244,9 @@ export class RoundsManager {
     if (this.activePlayers.length > 1) {
       this.currentRound++;
       
-      if (this.currentRound % 3 === 0) {
-        if (this.onItemShop) {
-          this.onItemShop();
-        }
-      } else {
-        setTimeout(() => {
-          this.startRound();
-        }, 3000);
-      }
+      setTimeout(() => {
+        this.startInterRoundTimer();
+      }, 3000);
     } else {
       this.endTournament();
     }
@@ -403,6 +397,26 @@ export class RoundsManager {
   continueAfterItemShop() {
     setTimeout(() => {
       this.startRound();
+    }, 1000);
+  }
+
+  startInterRoundTimer() {
+    let timeLeft = 30;
+    const timerElement = this.container.querySelector('#round-timer');
+    
+    const countdown = setInterval(() => {
+      if (timerElement) {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        timerElement.innerHTML = `<div class="timer-display buffer">Next Round: ${timeString}</div>`;
+      }
+      
+      timeLeft--;
+      if (timeLeft < 0) {
+        clearInterval(countdown);
+        this.startRound();
+      }
     }, 1000);
   }
 }
