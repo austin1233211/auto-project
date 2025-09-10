@@ -636,7 +636,7 @@ export const heroes = [
     avatar: '⚔️',
     description: 'A rogue knight seeking redemption. Wields a massive sword and can transform into an unstoppable force.',
     stats: {
-      health: 115,
+      health: 1585,
       attack: 24,
       armor: 6,
       speed: 0.98,
@@ -699,7 +699,7 @@ export const heroes = [
     avatar: '🧟',
     description: 'A necromantic warrior who commands the undead. Steals enemy strength and summons zombie hordes.',
     stats: {
-      health: 110,
+      health: 1531,
       attack: 23,
       armor: 6,
       speed: 0.98,
@@ -720,7 +720,7 @@ export const heroes = [
     avatar: '🐍',
     description: 'A venomous flying serpent with toxic attacks. Poisons enemies and becomes more dangerous when wounded.',
     stats: {
-      health: 90,
+      health: 1316,
       attack: 24,
       armor: 5,
       speed: 1.0,
