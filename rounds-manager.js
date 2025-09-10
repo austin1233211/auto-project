@@ -4,6 +4,7 @@ import { StatsCalculator } from './stats-calculator.js';
 import { PlayerHealth } from './player-health.js';
 import { Timer } from './timer.js';
 import { Economy } from './economy.js';
+import { CombatShop } from './combat-shop.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null) {
@@ -19,6 +20,8 @@ export class RoundsManager {
     this.playerHealth = playerHealth;
     this.timer = new Timer();
     this.economy = new Economy();
+    this.roundsShop = null;
+    this.roundsShopContainer = null;
     this.setupTimer();
   }
 
@@ -285,10 +288,14 @@ export class RoundsManager {
             ${this.renderPlayersList()}
           </div>
         </div>
+        
+        <button class="combat-shop-toggle" id="rounds-shop-toggle" style="display: none;">🏪</button>
+        <div id="rounds-shop-container" class="combat-shop-container"></div>
       </div>
     `;
 
     this.attachEventListeners();
+    this.initRoundsShop();
   }
 
   renderPlayersList() {
@@ -343,11 +350,21 @@ export class RoundsManager {
 
   attachEventListeners() {
     const backBtn = this.container.querySelector('#back-to-selection');
+    const shopToggleBtn = this.container.querySelector('#rounds-shop-toggle');
+    
     backBtn.addEventListener('click', () => {
       if (this.onTournamentEnd) {
         this.onTournamentEnd('back');
       }
     });
+
+    if (shopToggleBtn) {
+      shopToggleBtn.addEventListener('click', () => {
+        if (this.roundsShop) {
+          this.roundsShop.toggle();
+        }
+      });
+    }
   }
 
   setupTimer() {
@@ -379,9 +396,12 @@ export class RoundsManager {
       
       if (timerData.isBuffer) {
         timerElement.innerHTML = `<div class="timer-display buffer">Pre-Round: ${timeString}</div>`;
+        this.showRoundsShop();
+        this.updateRoundsShopMoney();
       } else {
         const speedBoostClass = timerData.speedBoost ? ' speed-boost' : '';
         timerElement.innerHTML = `<div class="timer-display round${speedBoostClass}">Round Timer: ${timeString}</div>`;
+        this.hideRoundsShop();
       }
     }
   }
@@ -400,9 +420,50 @@ export class RoundsManager {
     }, 1000);
   }
 
+  initRoundsShop() {
+    this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
+    if (this.roundsShopContainer) {
+      const userPlayer = this.players.find(p => p.name === "You");
+      const playerMoney = userPlayer ? userPlayer.money : 50;
+      
+      this.roundsShop = new CombatShop(this.roundsShopContainer, null);
+      this.roundsShop.setPlayerMoney(playerMoney);
+      this.roundsShop.init();
+    }
+  }
+
+  showRoundsShop() {
+    const shopToggle = this.container.querySelector('#rounds-shop-toggle');
+    if (shopToggle) {
+      shopToggle.style.display = 'block';
+    }
+  }
+
+  hideRoundsShop() {
+    const shopToggle = this.container.querySelector('#rounds-shop-toggle');
+    if (shopToggle) {
+      shopToggle.style.display = 'none';
+    }
+    if (this.roundsShop) {
+      this.roundsShop.hide();
+    }
+  }
+
+  updateRoundsShopMoney() {
+    if (this.roundsShop) {
+      const userPlayer = this.players.find(p => p.name === "You");
+      if (userPlayer) {
+        this.roundsShop.setPlayerMoney(userPlayer.money);
+        this.roundsShop.updateMoneyDisplay();
+      }
+    }
+  }
+
   startInterRoundTimer() {
     let timeLeft = 30;
     const timerElement = this.container.querySelector('#round-timer');
+    this.showRoundsShop();
+    this.updateRoundsShopMoney();
     
     const countdown = setInterval(() => {
       if (timerElement) {
@@ -415,6 +476,7 @@ export class RoundsManager {
       timeLeft--;
       if (timeLeft < 0) {
         clearInterval(countdown);
+        this.hideRoundsShop();
         this.startRound();
       }
     }, 1000);

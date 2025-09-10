@@ -42,10 +42,12 @@ export class CombatShop extends ItemShop {
     }
 
     const canAfford = this.playerMoney >= slot.item.cost;
+    const tooltipText = `${slot.item.name}: ${slot.item.description}`;
     
     return `
-      <div class="item-slot-mini">
+      <div class="item-slot-mini" title="${tooltipText}">
         <div class="item-emoji-mini">${slot.item.emoji}</div>
+        <div class="item-name-mini">${slot.item.name}</div>
         <div class="item-cost-mini">💰${slot.item.cost}</div>
         <button class="buy-btn-mini" data-slot="${slotIndex}" ${!canAfford ? 'disabled' : ''}>
           ${canAfford ? 'Buy' : 'No $'}
