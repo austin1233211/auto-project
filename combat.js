@@ -19,14 +19,14 @@ export class Combat {
     this.combatShopContainer = null;
   }
 
-  init(playerHero, playerMoney = 0) {
+  init(playerHero, playerGold = 0) {
     this.playerHero = StatsCalculator.processHeroStats({ 
       ...playerHero, 
       currentHealth: playerHero.stats.health,
       currentMana: 0,
       maxMana: 100
     });
-    this.playerMoney = playerMoney;
+    this.playerGold = playerGold;
     this.enemyHero = this.selectRandomEnemy();
     this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
     this.enemyHero.currentHealth = this.enemyHero.stats.health;
@@ -52,7 +52,7 @@ export class Combat {
       <div class="combat-container">
         <div class="combat-header">
           <h1 class="combat-title">Battle Arena</h1>
-          <div class="player-money-display">💰 Money: ${this.playerMoney || 0}</div>
+          <div class="player-money-display">💰 Money: ${this.playerGold || 0}</div>
         </div>
         
         <div class="battle-field">
@@ -295,7 +295,7 @@ export class Combat {
   initCombatShop() {
     this.combatShopContainer = this.container.querySelector('#combat-shop-container');
     this.combatShop = new CombatShop(this.combatShopContainer, this, 1);
-    this.combatShop.setPlayerGold(this.playerMoney);
+    this.combatShop.setPlayerGold(this.playerGold);
     this.combatShop.init();
   }
 

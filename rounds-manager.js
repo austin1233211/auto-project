@@ -164,7 +164,7 @@ export class RoundsManager {
     });
 
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
-    this.combat.init(player1.hero, player1.money || 0);
+    this.combat.init(player1.hero, player1.gold || 0);
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {
@@ -184,11 +184,16 @@ export class RoundsManager {
       match.winner = player1;
       if (!player1.isGhost) {
         player1.wins++;
+        player1.consecutiveWins++;
+        player1.consecutiveLosses = 0;
         const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('victory');
         this.economy.awardMoney(player1, true, 0);
       }
       if (!player2.isGhost) {
+        player2.losses++;
+        player2.consecutiveLosses++;
+        player2.consecutiveWins = 0;
         const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('defeat');
         const hpLost = oldHealth - player2.playerHealth.currentHealth;
@@ -198,11 +203,16 @@ export class RoundsManager {
       match.winner = player2;
       if (!player2.isGhost) {
         player2.wins++;
+        player2.consecutiveWins++;
+        player2.consecutiveLosses = 0;
         const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('victory');
         this.economy.awardMoney(player2, true, 0);
       }
       if (!player1.isGhost) {
+        player1.losses++;
+        player1.consecutiveLosses++;
+        player1.consecutiveWins = 0;
         const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('defeat');
         const hpLost = oldHealth - player1.playerHealth.currentHealth;
