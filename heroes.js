@@ -8,12 +8,15 @@ export const heroes = [
     stats: {
       health: 1638,
       attack: 22,
-      armor: 8,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.4,
       evasionChance: 0.06,
-      evasionDamageReduction: 0.20
+      evasionDamageReduction: 0.20,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Warrior Training', description: 'Gains damage reduction when health is low' },
@@ -29,12 +32,15 @@ export const heroes = [
     stats: {
       health: 1208,
       attack: 27,
-      armor: 3,
+      armor: 0,
       speed: 1.0,
       critChance: 0.10,
       critDamage: 1.5,
       evasionChance: 0.08,
-      evasionDamageReduction: 0.15
+      evasionDamageReduction: 0.15,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Arcane Mastery', description: 'Generates mana faster during combat' },
@@ -50,12 +56,15 @@ export const heroes = [
     stats: {
       health: 1315,
       attack: 24,
-      armor: 5,
+      armor: 0,
       speed: 1.08,
       critChance: 0.15,
       critDamage: 1.7,
       evasionChance: 0.12,
-      evasionDamageReduction: 0.25
+      evasionDamageReduction: 0.25,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Eagle Eye', description: 'Chance for critical strikes with precision' },
@@ -71,12 +80,15 @@ export const heroes = [
     stats: {
       health: 1100,
       attack: 25,
-      armor: 4,
+      armor: 0,
       speed: 1.1,
       critChance: 0.18,
       critDamage: 1.8,
       evasionChance: 0.15,
-      evasionDamageReduction: 0.30
+      evasionDamageReduction: 0.30,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Shadow Step', description: 'Chance to dodge attacks with shadow movement' },
@@ -92,12 +104,15 @@ export const heroes = [
     stats: {
       health: 1531,
       attack: 23,
-      armor: 7,
+      armor: 0,
       speed: 0.95,
       critChance: 0.09,
       critDamage: 1.4,
       evasionChance: 0.07,
-      evasionDamageReduction: 0.18
+      evasionDamageReduction: 0.18,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Divine Blessing', description: 'Slowly regenerates health when wounded' },
@@ -113,12 +128,15 @@ export const heroes = [
     stats: {
       health: 1262,
       attack: 26,
-      armor: 4,
+      armor: 0,
       speed: 0.98,
       critChance: 0.08,
       critDamage: 1.5,
       evasionChance: 0.07,
-      evasionDamageReduction: 0.12
+      evasionDamageReduction: 0.12,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Dark Aura', description: 'Drains small amounts of enemy health over time' },
@@ -134,12 +152,15 @@ export const heroes = [
     stats: {
       health: 1369,
       attack: 23,
-      armor: 4,
+      armor: 0,
       speed: 1.0,
       critChance: 0.11,
       critDamage: 1.6,
       evasionChance: 0.09,
-      evasionDamageReduction: 0.18
+      evasionDamageReduction: 0.18,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Chemical Mastery', description: 'Attacks have chance to reduce enemy armor' },
@@ -155,12 +176,15 @@ export const heroes = [
     stats: {
       health: 1262,
       attack: 25,
-      armor: 5,
+      armor: 0,
       speed: 1.08,
       critChance: 0.16,
       critDamage: 1.7,
       evasionChance: 0.13,
-      evasionDamageReduction: 0.28
+      evasionDamageReduction: 0.28,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Mana Break', description: 'Attacks burn enemy mana' },
@@ -176,12 +200,15 @@ export const heroes = [
     stats: {
       health: 1692,
       attack: 22,
-      armor: 6,
+      armor: 0,
       speed: 0.95,
       critChance: 0.06,
       critDamage: 1.3,
       evasionChance: 0.05,
-      evasionDamageReduction: 0.22
+      evasionDamageReduction: 0.22,
+      magicDamageReduction: 0,
+      physicalDamageAmplification: 0,
+      magicDamageAmplification: 0
     },
     abilities: {
       passive: { name: 'Battle Hunger', description: 'Damage over time effect' },

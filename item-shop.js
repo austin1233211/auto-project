@@ -42,7 +42,7 @@ export class ItemShop {
         { name: 'Health Boost', stat: 'health', value: 300, emoji: '❤️', description: '+300 Health' },
         { name: 'Attack Power', stat: 'attack', value: 17, emoji: '⚔️', description: '+17 Attack' },
         { name: 'Speed Boost', stat: 'speed', value: 8, emoji: '💨', description: '+8 Speed' },
-        { name: 'Armor Plating', stat: 'armor', value: 8, emoji: '🛡️', description: '+8 Armor' },
+        { name: 'Armor Plating', stat: 'armor', value: 8, emoji: '🛡️', description: '+8% Physical Damage Reduction' },
         { name: 'Critical Strike', stat: 'critChance', value: 0.03, emoji: '💥', description: '+3% Crit Chance' },
         { name: 'Evasion Cloak', stat: 'evasionChance', value: 0.02, emoji: '👻', description: '+2% Evasion' }
       ],
@@ -50,7 +50,7 @@ export class ItemShop {
         { name: 'Vitality Ring', stat: 'health', value: 600, emoji: '💍', description: '+600 Health' },
         { name: 'Berserker Axe', stat: 'attack', value: 34, emoji: '🪓', description: '+34 Attack' },
         { name: 'Swift Boots', stat: 'speed', value: 15, emoji: '👢', description: '+15 Speed' },
-        { name: 'Steel Armor', stat: 'armor', value: 15, emoji: '🛡️', description: '+15 Armor' },
+        { name: 'Steel Armor', stat: 'armor', value: 15, emoji: '🛡️', description: '+15% Physical Damage Reduction' },
         { name: 'Precision Blade', stat: 'critChance', value: 0.05, emoji: '🗡️', description: '+5% Crit Chance' },
         { name: 'Shadow Mantle', stat: 'evasionChance', value: 0.04, emoji: '🌫️', description: '+4% Evasion' }
       ],
@@ -58,7 +58,10 @@ export class ItemShop {
         { name: 'Dragon Heart', stat: 'health', value: 900, emoji: '🐉', description: '+900 Health' },
         { name: 'Legendary Blade', stat: 'attack', value: 51, emoji: '⚔️', description: '+51 Attack' },
         { name: 'Wind Walker Boots', stat: 'speed', value: 25, emoji: '🌪️', description: '+25 Speed' },
-        { name: 'Dragon Scale Armor', stat: 'armor', value: 25, emoji: '🐲', description: '+25 Armor' },
+        { name: 'Dragon Scale Armor', stat: 'armor', value: 25, emoji: '🐲', description: '+25% Physical Damage Reduction' },
+        { name: 'Magic Resistance Cloak', stat: 'magicDamageReduction', value: 15, emoji: '🔮', description: '+15% Magic Damage Reduction' },
+        { name: 'Berserker Ring', stat: 'physicalDamageAmplification', value: 10, emoji: '💪', description: '+10% Physical Damage Amplification' },
+        { name: 'Arcane Focus', stat: 'magicDamageAmplification', value: 12, emoji: '✨', description: '+12% Magic Damage Amplification' },
         { name: 'Assassin\'s Edge', stat: 'critChance', value: 0.08, emoji: '🔪', description: '+8% Crit Chance' },
         { name: 'Phantom Cloak', stat: 'evasionChance', value: 0.06, emoji: '👤', description: '+6% Evasion' }
       ]
@@ -231,6 +234,12 @@ export class ItemShop {
         modifiedHero.stats.speed += item.value;
       } else if (item.stat === 'armor') {
         modifiedHero.stats.armor += item.value;
+      } else if (item.stat === 'magicDamageReduction') {
+        modifiedHero.stats.magicDamageReduction = (modifiedHero.stats.magicDamageReduction || 0) + item.value;
+      } else if (item.stat === 'physicalDamageAmplification') {
+        modifiedHero.stats.physicalDamageAmplification = (modifiedHero.stats.physicalDamageAmplification || 0) + item.value;
+      } else if (item.stat === 'magicDamageAmplification') {
+        modifiedHero.stats.magicDamageAmplification = (modifiedHero.stats.magicDamageAmplification || 0) + item.value;
       } else if (item.stat === 'critChance') {
         modifiedHero.stats.critChance += item.value;
       } else if (item.stat === 'evasionChance') {
