@@ -16,7 +16,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Warrior Training', description: 'Gains damage reduction when health is low' },
@@ -40,7 +41,8 @@ export const heroes = [
       evasionDamageReduction: 0.15,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Arcane Mastery', description: 'Generates mana faster during combat' },
@@ -64,7 +66,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Eagle Eye', description: 'Chance for critical strikes with precision' },
@@ -88,7 +91,8 @@ export const heroes = [
       evasionDamageReduction: 0.30,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Shadow Step', description: 'Chance to dodge attacks with shadow movement' },
@@ -112,7 +116,8 @@ export const heroes = [
       evasionDamageReduction: 0.18,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Divine Blessing', description: 'Slowly regenerates health when wounded' },
@@ -136,7 +141,8 @@ export const heroes = [
       evasionDamageReduction: 0.12,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Dark Aura', description: 'Drains small amounts of enemy health over time' },
@@ -160,7 +166,8 @@ export const heroes = [
       evasionDamageReduction: 0.18,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Chemical Mastery', description: 'Attacks have chance to reduce enemy armor' },
@@ -184,7 +191,8 @@ export const heroes = [
       evasionDamageReduction: 0.28,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Mana Break', description: 'Attacks burn enemy mana' },
@@ -208,7 +216,8 @@ export const heroes = [
       evasionDamageReduction: 0.22,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Battle Hunger', description: 'Damage over time effect' },
@@ -232,7 +241,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Bristleback', description: 'Reduce damage from behind' },
@@ -256,7 +266,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Chaos Strike', description: 'Attacks have random critical chance' },
@@ -280,7 +291,8 @@ export const heroes = [
       evasionDamageReduction: 0.30,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Searing Arrows', description: 'Arrows deal fire damage over time' },
@@ -304,7 +316,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Dragon Blood', description: 'Regeneration and armor' },
@@ -328,7 +341,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Aftershock', description: 'Abilities stun nearby enemies' },
@@ -352,7 +366,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Time Lock', description: 'Chance to bash and slow' },
@@ -376,7 +391,8 @@ export const heroes = [
       evasionDamageReduction: 0.28,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Scurry', description: 'Gains movement speed when taking damage' },
@@ -400,7 +416,8 @@ export const heroes = [
       evasionDamageReduction: 0.18,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Berserkers Blood', description: 'Power increases when wounded' },
@@ -424,7 +441,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Blade Dance', description: 'Chance for critical strikes' },
@@ -448,7 +466,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Moment of Courage', description: 'Chance to counter-attack with lifesteal' },
@@ -472,7 +491,8 @@ export const heroes = [
       evasionDamageReduction: 0.18,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Fiery Soul', description: 'Spells increase attack and movement speed' },
@@ -517,7 +537,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Empower', description: 'Enhanced damage and cleave attacks' },
@@ -541,7 +562,8 @@ export const heroes = [
       evasionDamageReduction: 0.28,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Leap', description: 'Enhanced mobility and evasion' },
@@ -565,7 +587,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Degen Aura', description: 'Slows nearby enemies' },
@@ -589,7 +612,8 @@ export const heroes = [
       evasionDamageReduction: 0.22,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Flesh Heap', description: 'Gains health and magic resistance from kills' },
@@ -613,7 +637,8 @@ export const heroes = [
       evasionDamageReduction: 0.30,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Permanent Invisibility', description: 'Always invisible when not attacking' },
@@ -637,7 +662,8 @@ export const heroes = [
       evasionDamageReduction: 0.28,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Necromastery', description: 'Gain damage from kills' },
@@ -661,7 +687,8 @@ export const heroes = [
       evasionDamageReduction: 0.18,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Ancient Seal', description: 'Spells amplify damage on enemies' },
@@ -685,7 +712,8 @@ export const heroes = [
       evasionDamageReduction: 0.28,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Essence Shift', description: 'Steals enemy attributes on attack' },
@@ -709,7 +737,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Headshot', description: 'Chance for bonus damage' },
@@ -733,7 +762,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Great Cleave', description: 'Attacks hit multiple enemies' },
@@ -757,7 +787,8 @@ export const heroes = [
       evasionDamageReduction: 0.25,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Kraken Shell', description: 'Damage reduction and purge' },
@@ -781,7 +812,8 @@ export const heroes = [
       evasionDamageReduction: 0.22,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Craggy Exterior', description: 'Chance to stun attackers' },
@@ -805,7 +837,8 @@ export const heroes = [
       evasionDamageReduction: 0.20,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Undying Will', description: 'Gains strength when enemies die nearby' },
@@ -829,7 +862,8 @@ export const heroes = [
       evasionDamageReduction: 0.15,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Poison Attack', description: 'Toxic damage over time' },
@@ -853,7 +887,8 @@ export const heroes = [
       evasionDamageReduction: 0.15,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Elemental Strike', description: 'Attacks cycle through elements' },
@@ -877,7 +912,8 @@ export const heroes = [
       evasionDamageReduction: 0.15,
       magicDamageReduction: 0,
       physicalDamageAmplification: 0,
-      magicDamageAmplification: 0
+      magicDamageAmplification: 0,
+      manaRegeneration: 0
     },
     abilities: {
       passive: { name: 'Undead Resilience', description: 'Immune to certain status effects' },

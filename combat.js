@@ -14,6 +14,8 @@ export class Combat {
     this.abilitySystem = new AbilitySystem(this);
     this.playerAttackTimer = null;
     this.enemyAttackTimer = null;
+    this.playerManaTimer = null;
+    this.enemyManaTimer = null;
     this.speedMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
@@ -133,6 +135,28 @@ export class Combat {
     return Math.max(250, interval / this.speedMultiplier);
   }
 
+  startManaRegeneration() {
+    const baseManaInterval = Math.floor(1000 / 11);
+    
+    this.playerManaTimer = setInterval(() => {
+      if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
+        const totalRegen = 11 + (this.playerHero.effectiveStats.manaRegeneration || 0);
+        const regenPerTick = Math.max(1, Math.floor(totalRegen / 11));
+        this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenPerTick);
+        this.updateHealthAndManaBars();
+      }
+    }, baseManaInterval);
+    
+    this.enemyManaTimer = setInterval(() => {
+      if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
+        const totalRegen = 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0);
+        const regenPerTick = Math.max(1, Math.floor(totalRegen / 11));
+        this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenPerTick);
+        this.updateHealthAndManaBars();
+      }
+    }, baseManaInterval);
+  }
+
   clearTimers() {
     if (this.playerAttackTimer) {
       clearInterval(this.playerAttackTimer);
@@ -141,6 +165,14 @@ export class Combat {
     if (this.enemyAttackTimer) {
       clearInterval(this.enemyAttackTimer);
       this.enemyAttackTimer = null;
+    }
+    if (this.playerManaTimer) {
+      clearInterval(this.playerManaTimer);
+      this.playerManaTimer = null;
+    }
+    if (this.enemyManaTimer) {
+      clearInterval(this.enemyManaTimer);
+      this.enemyManaTimer = null;
     }
   }
 
@@ -164,13 +196,14 @@ export class Combat {
         this.executeAttack(this.enemyHero, this.playerHero);
       }
     }, enemyAttackInterval);
+    
+    this.startManaRegeneration();
   }
 
   executeAttack(attacker, target) {
     if (this.isGameOver) return;
 
     let damage;
-    let manaGain = 25;
 
     const passiveResult = this.abilitySystem.processPassiveAbility(attacker, target);
     
@@ -200,7 +233,6 @@ export class Combat {
       }
       
       damage = finalDamage;
-      attacker.currentMana = Math.min(attacker.maxMana, attacker.currentMana + manaGain);
     }
 
     target.currentHealth = Math.max(0, target.currentHealth - damage);
@@ -320,6 +352,8 @@ export class Combat {
           this.executeAttack(this.enemyHero, this.playerHero);
         }
       }, enemyAttackInterval);
+      
+      this.startManaRegeneration();
     }
   }
 
