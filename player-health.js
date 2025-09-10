@@ -1,7 +1,7 @@
 export class PlayerHealth {
-  constructor() {
-    this.maxHealth = 50;
-    this.currentHealth = 50;
+  constructor(heroHealth = 50) {
+    this.maxHealth = heroHealth;
+    this.currentHealth = heroHealth;
     this.consecutiveLosses = 0;
     this.onHealthChanged = null;
     this.onGameOver = null;

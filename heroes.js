@@ -6,8 +6,8 @@ export const heroes = [
     avatar: '⚔️',
     description: 'A mighty melee fighter with high health and armor. Excels in close combat and can withstand heavy damage.',
     stats: {
-      health: 120,
-      attack: 15,
+      health: 1638,
+      attack: 22,
       armor: 8,
       speed: 0.98,
       critChance: 0.08,
@@ -27,8 +27,8 @@ export const heroes = [
     avatar: '🔮',
     description: 'A powerful spellcaster with devastating magical abilities. High damage but fragile.',
     stats: {
-      health: 80,
-      attack: 25,
+      health: 1208,
+      attack: 27,
       armor: 3,
       speed: 1.0,
       critChance: 0.10,
@@ -48,8 +48,8 @@ export const heroes = [
     avatar: '🏹',
     description: 'A swift ranged attacker with high accuracy and mobility. Strikes from a distance with precision.',
     stats: {
-      health: 90,
-      attack: 20,
+      health: 1315,
+      attack: 24,
       armor: 5,
       speed: 1.08,
       critChance: 0.15,
@@ -69,8 +69,8 @@ export const heroes = [
     avatar: '🗡️',
     description: 'A stealthy killer with high critical strike chance. Fast attacks and deadly precision.',
     stats: {
-      health: 70,
-      attack: 22,
+      health: 1100,
+      attack: 25,
       armor: 4,
       speed: 1.1,
       critChance: 0.18,
@@ -90,8 +90,8 @@ export const heroes = [
     avatar: '🛡️',
     description: 'A holy warrior with healing abilities and strong defenses. Balanced offense and defense.',
     stats: {
-      health: 110,
-      attack: 18,
+      health: 1531,
+      attack: 23,
       armor: 7,
       speed: 0.95,
       critChance: 0.09,
@@ -111,8 +111,8 @@ export const heroes = [
     avatar: '💀',
     description: 'A dark mage who manipulates life and death. Drains enemy health while sustaining themselves.',
     stats: {
-      health: 85,
-      attack: 23,
+      health: 1262,
+      attack: 26,
       armor: 4,
       speed: 0.98,
       critChance: 0.08,
@@ -132,8 +132,8 @@ export const heroes = [
     avatar: '🧪',
     description: 'A master of chemical warfare and transmutation. Creates powerful potions and explosive concoctions.',
     stats: {
-      health: 95,
-      attack: 18,
+      health: 1369,
+      attack: 23,
       armor: 4,
       speed: 1.0,
       critChance: 0.11,
@@ -153,8 +153,8 @@ export const heroes = [
     avatar: '🚫',
     description: 'A monk warrior dedicated to destroying magic users. Fast attacks that drain mana and punish spellcasters.',
     stats: {
-      health: 85,
-      attack: 21,
+      health: 1262,
+      attack: 25,
       armor: 5,
       speed: 1.08,
       critChance: 0.16,
@@ -174,8 +174,8 @@ export const heroes = [
     avatar: '🪓',
     description: 'A brutal berserker who thrives in the heat of battle. Taunts enemies and executes weakened foes.',
     stats: {
-      health: 125,
-      attack: 16,
+      health: 1692,
+      attack: 22,
       armor: 6,
       speed: 0.95,
       critChance: 0.06,
@@ -195,8 +195,8 @@ export const heroes = [
     avatar: '🦔',
     description: 'A spiny warrior covered in protective quills. Becomes stronger when taking damage from behind.',
     stats: {
-      health: 115,
-      attack: 17,
+      health: 1585,
+      attack: 23,
       armor: 7,
       speed: 0.98,
       critChance: 0.08,
@@ -216,8 +216,8 @@ export const heroes = [
     avatar: '🌀',
     description: 'An agent of chaos with unpredictable abilities. Creates illusions and deals variable damage.',
     stats: {
-      health: 110,
-      attack: 19,
+      health: 1531,
+      attack: 24,
       armor: 6,
       speed: 0.98,
       critChance: 0.08,
@@ -238,7 +238,7 @@ export const heroes = [
     description: 'An undead archer with burning arrows. Moves invisibly and strikes with deadly precision.',
     stats: {
       health: 75,
-      attack: 24,
+      attack: 26,
       armor: 3,
       speed: 1.1,
       critChance: 0.18,
@@ -259,7 +259,7 @@ export const heroes = [
     description: 'A noble knight with draconic powers. Transforms into a mighty dragon with devastating breath attacks.',
     stats: {
       health: 120,
-      attack: 18,
+      attack: 23,
       armor: 8,
       speed: 0.96,
       critChance: 0.07,
@@ -279,8 +279,8 @@ export const heroes = [
     avatar: '⛰️',
     description: 'A mighty shaman who commands the earth itself. Creates fissures and devastating earthquakes.',
     stats: {
-      health: 105,
-      attack: 20,
+      health: 1477,
+      attack: 24,
       armor: 5,
       speed: 0.98,
       critChance: 0.08,
@@ -301,7 +301,7 @@ export const heroes = [
     description: 'A being from outside time with temporal powers. Manipulates time to dodge attacks and trap enemies.',
     stats: {
       health: 90,
-      attack: 22,
+      attack: 25,
       armor: 4,
       speed: 1.02,
       critChance: 0.14,
@@ -322,7 +322,7 @@ export const heroes = [
     description: 'A cunning trickster who uses nature and deception. Sets traps and confuses enemies with illusions.',
     stats: {
       health: 80,
-      attack: 19,
+      attack: 24,
       armor: 4,
       speed: 1.05,
       critChance: 0.16,
@@ -342,8 +342,8 @@ export const heroes = [
     avatar: '🔥',
     description: 'A sacred warrior who grows stronger as he nears death. Throws burning spears and sacrifices health for power.',
     stats: {
-      health: 100,
-      attack: 20,
+      health: 1423,
+      attack: 24,
       armor: 4,
       speed: 1.0,
       critChance: 0.09,
@@ -364,7 +364,7 @@ export const heroes = [
     description: 'A masked swordsman with incredible blade skills. Spins to damage all nearby enemies and strikes with precision.',
     stats: {
       health: 95,
-      attack: 23,
+      attack: 26,
       armor: 5,
       speed: 1.02,
       critChance: 0.14,
@@ -384,8 +384,8 @@ export const heroes = [
     avatar: '🛡️',
     description: 'A disciplined military leader who grows stronger with each victory. Challenges enemies to single combat.',
     stats: {
-      health: 115,
-      attack: 17,
+      health: 1585,
+      attack: 23,
       armor: 7,
       speed: 0.98,
       critChance: 0.08,
@@ -406,7 +406,7 @@ export const heroes = [
     description: 'A fiery sorceress with devastating lightning magic. Casts powerful spells that grow stronger with each cast.',
     stats: {
       health: 75,
-      attack: 26,
+      attack: 27,
       armor: 2,
       speed: 1.02,
       critChance: 0.11,
@@ -427,7 +427,7 @@ export const heroes = [
     description: 'A demon witch with powerful hexes and life drain. Transforms enemies and steals their essence.',
     stats: {
       health: 85,
-      attack: 21,
+      attack: 25,
       armor: 3,
       speed: 1.0,
       critChance: 0.10,
@@ -448,7 +448,7 @@ export const heroes = [
     description: 'A mighty beast warrior with magnetic powers. Charges into battle and pulls enemies with magnetic force.',
     stats: {
       health: 110,
-      attack: 19,
+      attack: 24,
       armor: 6,
       speed: 1.0,
       critChance: 0.08,
@@ -469,7 +469,7 @@ export const heroes = [
     description: 'A lunar priestess who rides with her sacred mount. Shoots sacred arrows and calls down starfall.',
     stats: {
       health: 85,
-      attack: 20,
+      attack: 24,
       armor: 4,
       speed: 1.05,
       critChance: 0.16,
@@ -490,7 +490,7 @@ export const heroes = [
     description: 'A holy paladin devoted to protecting others. Heals allies and grants powerful protective blessings.',
     stats: {
       health: 120,
-      attack: 16,
+      attack: 22,
       armor: 8,
       speed: 0.96,
       critChance: 0.07,
@@ -510,8 +510,8 @@ export const heroes = [
     avatar: '🪝',
     description: 'A grotesque butcher with a meat hook. Pulls enemies close and dismembers them with brutal efficiency.',
     stats: {
-      health: 130,
-      attack: 15,
+      health: 1746,
+      attack: 22,
       armor: 5,
       speed: 0.95,
       critChance: 0.06,
@@ -532,7 +532,7 @@ export const heroes = [
     description: 'A master assassin who strikes from the shadows. Permanently invisible and deals bonus damage from behind.',
     stats: {
       health: 70,
-      attack: 24,
+      attack: 26,
       armor: 3,
       speed: 1.1,
       critChance: 0.18,
@@ -553,7 +553,7 @@ export const heroes = [
     description: 'A demonic entity that collects souls. Grows stronger with each kill and unleashes devastating shadow magic.',
     stats: {
       health: 80,
-      attack: 25,
+      attack: 27,
       armor: 3,
       speed: 1.02,
       critChance: 0.14,
@@ -574,7 +574,7 @@ export const heroes = [
     description: 'A celestial mage with mastery over arcane forces. Rains down magical bolts from the heavens.',
     stats: {
       health: 70,
-      attack: 27,
+      attack: 28,
       armor: 2,
       speed: 1.02,
       critChance: 0.11,
@@ -595,7 +595,7 @@ export const heroes = [
     description: 'An escaped prisoner from the depths. Steals enemy attributes and becomes stronger in darkness.',
     stats: {
       health: 85,
-      attack: 21,
+      attack: 25,
       armor: 4,
       speed: 1.05,
       critChance: 0.16,
@@ -616,7 +616,7 @@ export const heroes = [
     description: 'A keen marksman with exceptional range. Picks off enemies from great distances with precise shots.',
     stats: {
       health: 75,
-      attack: 23,
+      attack: 26,
       armor: 3,
       speed: 1.0,
       critChance: 0.13,
@@ -637,7 +637,7 @@ export const heroes = [
     description: 'A rogue knight seeking redemption. Wields a massive sword and can transform into an unstoppable force.',
     stats: {
       health: 115,
-      attack: 20,
+      attack: 24,
       armor: 6,
       speed: 0.98,
       critChance: 0.08,
@@ -658,7 +658,7 @@ export const heroes = [
     description: 'An ancient sea creature with control over the tides. Creates devastating waves and anchors enemies.',
     stats: {
       health: 125,
-      attack: 16,
+      attack: 22,
       armor: 7,
       speed: 0.96,
       critChance: 0.07,
@@ -678,8 +678,8 @@ export const heroes = [
     avatar: '🗿',
     description: 'A living stone giant that grows larger over time. Throws boulders and allies with devastating force.',
     stats: {
-      health: 135,
-      attack: 14,
+      health: 1800,
+      attack: 21,
       armor: 8,
       speed: 0.95,
       critChance: 0.06,
@@ -700,7 +700,7 @@ export const heroes = [
     description: 'A necromantic warrior who commands the undead. Steals enemy strength and summons zombie hordes.',
     stats: {
       health: 110,
-      attack: 17,
+      attack: 23,
       armor: 6,
       speed: 0.98,
       critChance: 0.08,
@@ -721,7 +721,7 @@ export const heroes = [
     description: 'A venomous flying serpent with toxic attacks. Poisons enemies and becomes more dangerous when wounded.',
     stats: {
       health: 90,
-      attack: 19,
+      attack: 24,
       armor: 5,
       speed: 1.0,
       critChance: 0.10,
@@ -742,7 +742,7 @@ export const heroes = [
     description: 'A mystical warrior from ancient lands. Combines martial arts with elemental magic for devastating combos.',
     stats: {
       health: 95,
-      attack: 20,
+      attack: 24,
       armor: 4,
       speed: 1.0,
       critChance: 0.10,
@@ -763,7 +763,7 @@ export const heroes = [
     description: 'An undead musician whose haunting melodies drive enemies mad. Uses sonic attacks and necromantic rhythms.',
     stats: {
       health: 85,
-      attack: 22,
+      attack: 25,
       armor: 3,
       speed: 0.98,
       critChance: 0.10,
