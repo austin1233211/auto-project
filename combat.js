@@ -17,6 +17,7 @@ export class Combat {
     this.playerManaTimer = null;
     this.enemyManaTimer = null;
     this.manaUITimer = null;
+    this.statusEffectsTimer = null;
     this.speedMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
@@ -158,9 +159,19 @@ export class Combat {
     
     this.manaUITimer = setInterval(() => {
       if (!this.isGameOver) {
-        this.updateHealthAndManaBars();
+        this.updateManaBars();
       }
-    }, 500);
+    }, 250);
+  }
+
+  startStatusEffectsTimer() {
+    this.statusEffectsTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.abilitySystem.processStatusEffects(this.playerHero);
+        this.abilitySystem.processStatusEffects(this.enemyHero);
+        this.updateHealthBars();
+      }
+    }, 1000);
   }
 
   clearTimers() {
@@ -183,6 +194,10 @@ export class Combat {
     if (this.manaUITimer) {
       clearInterval(this.manaUITimer);
       this.manaUITimer = null;
+    }
+    if (this.statusEffectsTimer) {
+      clearInterval(this.statusEffectsTimer);
+      this.statusEffectsTimer = null;
     }
   }
 
@@ -208,6 +223,7 @@ export class Combat {
     }, enemyAttackInterval);
     
     this.startManaRegeneration();
+    this.startStatusEffectsTimer();
   }
 
   executeAttack(attacker, target) {
@@ -246,6 +262,8 @@ export class Combat {
     }
 
     target.currentHealth = Math.max(0, target.currentHealth - damage);
+    
+    this.updateHealthBars();
 
     if (target.currentHealth <= 0) {
       const result = target === this.enemyHero ? 'victory' : 'defeat';
@@ -278,30 +296,39 @@ export class Combat {
     return Math.max(1, Math.round(finalDamage));
   }
 
-  updateHealthAndManaBars() {
+  updateHealthBars() {
     const playerHealthPercent = (this.playerHero.currentHealth / this.playerHero.stats.health) * 100;
     const enemyHealthPercent = (this.enemyHero.currentHealth / this.enemyHero.stats.health) * 100;
-    const playerManaPercent = (this.playerHero.currentMana / this.playerHero.maxMana) * 100;
-    const enemyManaPercent = (this.enemyHero.currentMana / this.enemyHero.maxMana) * 100;
 
     const playerHealthBar = this.container.querySelector('.player-health');
     const enemyHealthBar = this.container.querySelector('.enemy-health');
-    const playerManaBar = this.container.querySelector('.player-mana');
-    const enemyManaBar = this.container.querySelector('.enemy-mana');
     const playerHealthText = this.container.querySelector('.player .health-text');
     const enemyHealthText = this.container.querySelector('.enemy .health-text');
+
+    if (playerHealthBar) playerHealthBar.style.width = `${playerHealthPercent}%`;
+    if (enemyHealthBar) enemyHealthBar.style.width = `${enemyHealthPercent}%`;
+    if (playerHealthText) playerHealthText.textContent = `${this.playerHero.currentHealth}/${this.playerHero.stats.health}`;
+    if (enemyHealthText) enemyHealthText.textContent = `${this.enemyHero.currentHealth}/${this.enemyHero.stats.health}`;
+  }
+
+  updateManaBars() {
+    const playerManaPercent = (this.playerHero.currentMana / this.playerHero.maxMana) * 100;
+    const enemyManaPercent = (this.enemyHero.currentMana / this.enemyHero.maxMana) * 100;
+
+    const playerManaBar = this.container.querySelector('.player-mana');
+    const enemyManaBar = this.container.querySelector('.enemy-mana');
     const playerManaText = this.container.querySelector('.player .mana-text');
     const enemyManaText = this.container.querySelector('.enemy .mana-text');
 
-    playerHealthBar.style.width = `${playerHealthPercent}%`;
-    enemyHealthBar.style.width = `${enemyHealthPercent}%`;
-    playerManaBar.style.width = `${playerManaPercent}%`;
-    enemyManaBar.style.width = `${enemyManaPercent}%`;
-    
-    playerHealthText.textContent = `${this.playerHero.currentHealth}/${this.playerHero.stats.health}`;
-    enemyHealthText.textContent = `${this.enemyHero.currentHealth}/${this.enemyHero.stats.health}`;
-    playerManaText.textContent = `${this.playerHero.currentMana}/${this.playerHero.maxMana}`;
-    enemyManaText.textContent = `${this.enemyHero.currentMana}/${this.enemyHero.maxMana}`;
+    if (playerManaBar) playerManaBar.style.width = `${playerManaPercent}%`;
+    if (enemyManaBar) enemyManaBar.style.width = `${enemyManaPercent}%`;
+    if (playerManaText) playerManaText.textContent = `${this.playerHero.currentMana}/${this.playerHero.maxMana}`;
+    if (enemyManaText) enemyManaText.textContent = `${this.enemyHero.currentMana}/${this.enemyHero.maxMana}`;
+  }
+
+  updateHealthAndManaBars() {
+    this.updateHealthBars();
+    this.updateManaBars();
   }
 
   addToLog(message) {
@@ -359,6 +386,7 @@ export class Combat {
       }, enemyAttackInterval);
       
       this.startManaRegeneration();
+      this.startStatusEffectsTimer();
     }
   }
 
