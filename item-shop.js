@@ -7,13 +7,15 @@ export class ItemShop {
     this.roundNumber = roundNumber;
     this.onShopComplete = null;
     this.itemSlots = [
-      { item: null, rerollsLeft: 2 },
-      { item: null, rerollsLeft: 2 },
-      { item: null, rerollsLeft: 2 }
+      { item: null },
+      { item: null },
+      { item: null }
     ];
     this.purchasedItems = [];
     this.economy = new Economy();
     this.playerGold = 0;
+    this.hasRerolledThisRound = false;
+    this.globalRerollCost = 20;
   }
 
   init() {
@@ -73,12 +75,22 @@ export class ItemShop {
     return { ...template, cost, tier, tierName: `Tier ${tier}` };
   }
 
-  rerollSlot(slotIndex) {
-    if (this.itemSlots[slotIndex].rerollsLeft > 0) {
-      this.itemSlots[slotIndex].item = this.generateRandomItem();
-      this.itemSlots[slotIndex].rerollsLeft--;
-      this.updateSlotDisplay(slotIndex);
+  rerollAllItems() {
+    if (this.hasRerolledThisRound || this.playerGold < this.globalRerollCost) {
+      return false;
     }
+    
+    this.playerGold -= this.globalRerollCost;
+    this.hasRerolledThisRound = true;
+    
+    for (let i = 0; i < 3; i++) {
+      this.itemSlots[i].item = this.generateRandomItem();
+      this.updateSlotDisplay(i);
+    }
+    
+    this.updateGoldDisplay();
+    this.updateGlobalRerollButton();
+    return true;
   }
 
   purchaseItem(slotIndex) {
@@ -89,6 +101,21 @@ export class ItemShop {
       slot.item = null;
       this.updateSlotDisplay(slotIndex);
       this.updateGoldDisplay();
+      this.checkAndRefreshIfAllPurchased();
+    }
+  }
+
+  checkAndRefreshIfAllPurchased() {
+    const allItemsPurchased = this.itemSlots.every(slot => slot.item === null);
+    if (allItemsPurchased) {
+      this.refreshShopInventory();
+    }
+  }
+
+  refreshShopInventory() {
+    this.generateInitialItems();
+    for (let i = 0; i < 3; i++) {
+      this.updateSlotDisplay(i);
     }
   }
 
@@ -127,9 +154,6 @@ export class ItemShop {
           <button class="action-button primary purchase-btn" data-slot="${slotIndex}" ${!canAfford ? 'disabled' : ''}>
             ${canAfford ? 'Buy' : 'Too Expensive'}
           </button>
-          <button class="action-button secondary reroll-btn" data-slot="${slotIndex}" ${slot.rerollsLeft <= 0 ? 'disabled' : ''}>
-            Reroll (${slot.rerollsLeft} left)
-          </button>
         </div>
       </div>
     `;
@@ -161,6 +185,9 @@ export class ItemShop {
         </div>
 
         <div class="shop-controls">
+          <button class="action-button secondary" id="global-reroll-btn">
+            Re-roll All (💰${this.globalRerollCost})
+          </button>
           <button class="action-button primary" id="continue-tournament">Continue Tournament</button>
         </div>
       </div>
@@ -187,6 +214,13 @@ export class ItemShop {
       }
     });
 
+    const globalRerollBtn = this.container.querySelector('#global-reroll-btn');
+    if (globalRerollBtn) {
+      globalRerollBtn.addEventListener('click', () => {
+        this.rerollAllItems();
+      });
+    }
+
     this.itemSlots.forEach((slot, index) => {
       this.attachSlotEventListeners(index);
     });
@@ -197,18 +231,11 @@ export class ItemShop {
     if (!slotElement) return;
 
     const purchaseBtn = slotElement.querySelector('.purchase-btn');
-    const rerollBtn = slotElement.querySelector('.reroll-btn');
 
     if (purchaseBtn) {
       purchaseBtn.addEventListener('click', () => {
         this.purchaseItem(slotIndex);
         this.updatePurchasedItemsDisplay();
-      });
-    }
-
-    if (rerollBtn && !rerollBtn.disabled) {
-      rerollBtn.addEventListener('click', () => {
-        this.rerollSlot(slotIndex);
       });
     }
   }
@@ -261,6 +288,8 @@ export class ItemShop {
         this.updateSlotDisplay(index);
       }
     });
+    
+    this.updateGlobalRerollButton();
   }
 
   setPlayerGold(amount) {
@@ -274,5 +303,22 @@ export class ItemShop {
 
   setOnShopComplete(callback) {
     this.onShopComplete = callback;
+  }
+
+  updateGlobalRerollButton() {
+    const globalRerollBtn = this.container.querySelector('#global-reroll-btn');
+    if (globalRerollBtn) {
+      const canReroll = !this.hasRerolledThisRound && this.playerGold >= this.globalRerollCost;
+      globalRerollBtn.disabled = !canReroll;
+      globalRerollBtn.textContent = this.hasRerolledThisRound 
+        ? 'Re-roll Used This Round' 
+        : `Re-roll All (💰${this.globalRerollCost})`;
+    }
+  }
+
+  resetForNewRound() {
+    this.hasRerolledThisRound = false;
+    this.refreshShopInventory();
+    this.updateGlobalRerollButton();
   }
 }

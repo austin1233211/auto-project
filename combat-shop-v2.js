@@ -29,6 +29,11 @@ export class CombatShop extends ItemShop {
             </div>
           `).join('')}
         </div>
+        <div class="shop-controls-mini">
+          <button class="action-button secondary" id="global-reroll-btn">
+            Re-roll All (💰${this.globalRerollCost})
+          </button>
+        </div>
       </div>
     `;
     this.attachEventListeners();
@@ -83,6 +88,14 @@ export class CombatShop extends ItemShop {
       closeBtn.addEventListener('click', () => this.hide());
     }
 
+    const globalRerollBtn = this.container.querySelector('#global-reroll-btn');
+    if (globalRerollBtn) {
+      globalRerollBtn.addEventListener('click', () => {
+        this.rerollAllItems();
+        this.render();
+      });
+    }
+
     this.itemSlots.forEach((slot, index) => {
       const buyBtn = this.container.querySelector(`[data-slot="${index}"] .buy-btn-mini`);
       if (buyBtn && !buyBtn.disabled) {
@@ -100,6 +113,7 @@ export class CombatShop extends ItemShop {
     if (goldDisplay) {
       goldDisplay.textContent = `💰 ${this.playerGold}`;
     }
+    this.updateGlobalRerollButton();
   }
 
   setPlayerGold(amount) {
