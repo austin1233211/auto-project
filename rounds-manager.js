@@ -541,7 +541,6 @@ export class RoundsManager {
     const combatContainer = this.container.querySelector('#battle-area');
     if (combatContainer) {
       const minionCombat = new MinionCombat(combatContainer, this.heroStatsCard);
-      minionCombat.getCurrentRound = () => this.currentRound;
       
       minionCombat.setOnBattleEnd((result) => {
         this.handleMinionBattleResult(result);
@@ -549,7 +548,7 @@ export class RoundsManager {
       
       const userPlayer = this.players.find(p => p.name === "You");
       if (userPlayer) {
-        minionCombat.init(userPlayer.hero, userPlayer.gold);
+        minionCombat.init(userPlayer.hero, userPlayer.gold, this.currentRound);
       }
     }
   }

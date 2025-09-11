@@ -4,6 +4,21 @@ export class MinionCombat extends Combat {
   constructor(container, heroStatsCard = null) {
     super(container, heroStatsCard);
     this.isMinionBattle = true;
+    this.currentRound = 5;
+  }
+
+  init(playerHero, playerGold, currentRound = 5) {
+    this.currentRound = currentRound;
+    this.playerHero = playerHero;
+    this.playerHero.currentHealth = this.playerHero.stats.health;
+    this.playerHero.maxMana = 100;
+    
+    this.enemyHero = this.selectRandomEnemy();
+    this.enemyHero.currentHealth = this.enemyHero.stats.health;
+    this.enemyHero.maxMana = 100;
+    
+    this.render();
+    this.startBattle();
   }
 
   selectRandomEnemy() {
@@ -39,7 +54,7 @@ export class MinionCombat extends Combat {
   }
 
   getCurrentRound() {
-    return 5;
+    return this.currentRound || 5;
   }
 
   endBattle(winner) {
