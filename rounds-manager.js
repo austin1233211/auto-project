@@ -164,7 +164,7 @@ export class RoundsManager {
     });
 
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
-    this.combat.init(player1.hero, player1.money || 0);
+    this.combat.init(player1.hero, player1.gold || 0);
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {
@@ -424,15 +424,6 @@ export class RoundsManager {
     this.onTournamentEnd = callback;
   }
 
-  setOnItemShop(callback) {
-    this.onItemShop = callback;
-  }
-
-  continueAfterItemShop() {
-    setTimeout(() => {
-      this.startRound();
-    }, 1000);
-  }
 
   initRoundsShop() {
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
