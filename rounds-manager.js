@@ -98,12 +98,15 @@ export class RoundsManager {
   }
 
   startRound() {
+    console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+    
     if (this.activePlayers.length <= 1) {
       this.endTournament();
       return;
     }
     
     if ([5, 10, 15].includes(this.currentRound)) {
+      console.log(`Triggering minion round for round ${this.currentRound}`);
       this.startMinionRound();
       return;
     }
@@ -200,6 +203,17 @@ export class RoundsManager {
       return;
     }
     
+    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+      const isUserBattle = player1.name === "You" || player2.name === "You";
+      if (isUserBattle) {
+        console.log(`User battle completed in artifact round ${this.currentRound}, showing artifact selection`);
+        this.artifactSelectionShown = true;
+        this.processBattleResult(player1, player2, result);
+        this.startArtifactRound();
+        return;
+      }
+    }
+    
     this.processBattleResult(player1, player2, result);
   }
 
@@ -271,12 +285,6 @@ export class RoundsManager {
 
   processRoundResults() {
     this.timer.stopTimer();
-    
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-      this.artifactSelectionShown = true;
-      this.startArtifactRound();
-      return;
-    }
     
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
@@ -538,11 +546,13 @@ export class RoundsManager {
   }
 
   startMinionRound() {
+    console.log(`Starting minion round ${this.currentRound}`);
     this.isSpecialRound = true;
     this.updateRoundDisplay();
     
     const combatContainer = this.container.querySelector('#battle-area');
     if (combatContainer) {
+      console.log('Combat container found, creating MinionCombat');
       const minionCombat = new MinionCombat(combatContainer, this.heroStatsCard);
       
       minionCombat.setOnBattleEnd((result) => {
@@ -551,8 +561,13 @@ export class RoundsManager {
       
       const userPlayer = this.players.find(p => p.name === "You");
       if (userPlayer) {
+        console.log('User player found, initializing minion combat');
         minionCombat.init(userPlayer.hero, userPlayer.gold, this.currentRound);
+      } else {
+        console.log('User player not found!');
       }
+    } else {
+      console.log('Combat container not found!');
     }
   }
 
