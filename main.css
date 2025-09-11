@@ -1403,15 +1403,15 @@ body:has(#hero-selection.active) #player-health-display {
 }
 
 /* Tier-based item styling */
-.item-slot.tier-1 {
+.item-slot.tier-1, .artifact-slot.tier-1, .equipment-slot.tier-1 {
   border-left: 4px solid #10b981;
 }
 
-.item-slot.tier-2 {
+.item-slot.tier-2, .artifact-slot.tier-2, .equipment-slot.tier-2 {
   border-left: 4px solid #3b82f6;
 }
 
-.item-slot.tier-3 {
+.item-slot.tier-3, .artifact-slot.tier-3, .equipment-slot.tier-3 {
   border-left: 4px solid #8b5cf6;
 }
 
@@ -1466,6 +1466,232 @@ body:has(#hero-selection.active) #player-health-display {
 
 .item-slot-mini.tier-3 {
   border-left: 3px solid #8b5cf6;
+}
+
+/* Artifacts Shop Styling */
+.artifacts-shop {
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border: 2px solid var(--accent-color);
+}
+
+.artifacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.artifact-slot {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.artifact-slot:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
+}
+
+.artifact-slot.selected {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.artifact-info {
+  margin-bottom: 1rem;
+}
+
+.artifact-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.artifact-emoji {
+  font-size: 1.5rem;
+}
+
+.artifact-name {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.artifact-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.artifact-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.artifact-cost {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.select-artifact-button {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.select-artifact-button:hover {
+  background: rgb(37, 99, 235);
+}
+
+/* Equipment Reward Styling */
+.equipment-reward {
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border: 2px solid #10b981;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.equipment-slot {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.equipment-slot:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
+}
+
+.equipment-slot.selected {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.equipment-info {
+  margin-bottom: 1rem;
+}
+
+.equipment-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.equipment-emoji {
+  font-size: 1.5rem;
+}
+
+.equipment-name {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.equipment-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.equipment-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.equipment-tier {
+  color: var(--text-secondary);
+}
+
+.equipment-cost {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.select-equipment-button {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.select-equipment-button:hover {
+  background: rgb(37, 99, 235);
+}
+
+.reward-actions, .shop-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.reroll-button, .confirm-selection-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.reroll-button {
+  background: #f59e0b;
+  color: white;
+}
+
+.reroll-button:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.reroll-button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.confirm-selection-button {
+  background: #10b981;
+  color: white;
+}
+
+.confirm-selection-button:hover:not(:disabled) {
+  background: #059669;
+}
+
+.confirm-selection-button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  cursor: not-allowed;
 }
 
 .shop-slot-mini {

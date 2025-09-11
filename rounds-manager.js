@@ -5,6 +5,10 @@ import { PlayerHealth } from './player-health.js';
 import { Timer } from './timer.js';
 import { Economy } from './economy.js';
 import { CombatShop } from './combat-shop-v2.js';
+import { MinionCombat } from './minion-combat.js';
+import { ArtifactsShop } from './artifacts-shop.js';
+import { EquipmentReward } from './equipment-reward.js';
+import { ArtifactSystem } from './artifacts.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -24,6 +28,8 @@ export class RoundsManager {
     this.roundsShop = null;
     this.roundsShopContainer = null;
     this.userBattleCompleted = false;
+    this.artifactSystem = new ArtifactSystem();
+    this.isSpecialRound = false;
     this.setupTimer();
   }
 
@@ -96,6 +102,17 @@ export class RoundsManager {
       return;
     }
     
+    if ([5, 10, 15].includes(this.currentRound)) {
+      this.startMinionRound();
+      return;
+    }
+    
+    if ([3, 8, 13].includes(this.currentRound)) {
+      this.startArtifactRound();
+      return;
+    }
+
+    this.isSpecialRound = false;
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.userBattleCompleted = false;
@@ -163,7 +180,7 @@ export class RoundsManager {
     this.combat = new Combat(combatContainer, this.heroStatsCard);
     
     this.combat.setOnBattleEnd((result) => {
-      this.processBattleResult(player1, player2, result);
+      this.endBattle(result, player1, player2);
     });
 
     this.combat.setOnMoneyChange((newMoney) => {
@@ -179,6 +196,15 @@ export class RoundsManager {
     if (this.heroStatsCard && player1.name === "You") {
       this.heroStatsCard.updateHero(player1.hero);
     }
+  }
+
+  endBattle(result, player1, player2) {
+    if (this.isSpecialRound) {
+      this.handleSpecialRoundResult(result);
+      return;
+    }
+    
+    this.processBattleResult(player1, player2, result);
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {
@@ -440,6 +466,10 @@ export class RoundsManager {
 
 
   initRoundsShop() {
+    if ([3, 8, 13].includes(this.currentRound)) {
+      return;
+    }
+    
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
     if (this.roundsShopContainer) {
       const userPlayer = this.players.find(p => p.name === "You");
@@ -450,10 +480,9 @@ export class RoundsManager {
       this.roundsShop.setOnGoldChange((newGold) => {
         if (userPlayer) {
           userPlayer.gold = newGold;
+          userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayersList();
-          if (this.heroStatsCard) {
-            this.heroStatsCard.refresh();
-          }
+          this.updatePlayerHero();
         }
       });
       this.roundsShop.init();
@@ -461,6 +490,10 @@ export class RoundsManager {
   }
 
   showRoundsShop() {
+    if ([3, 8, 13].includes(this.currentRound)) {
+      return;
+    }
+    
     const shopToggle = this.container.querySelector('#rounds-shop-toggle');
     if (shopToggle) {
       shopToggle.style.display = 'block';
@@ -499,5 +532,109 @@ export class RoundsManager {
       this.hideRoundsShop();
       this.startRound();
     });
+  }
+
+  startMinionRound() {
+    this.isSpecialRound = true;
+    this.updateRoundDisplay();
+    
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      const minionCombat = new MinionCombat(combatContainer, this.heroStatsCard);
+      minionCombat.getCurrentRound = () => this.currentRound;
+      
+      minionCombat.setOnBattleEnd((result) => {
+        this.handleMinionBattleResult(result);
+      });
+      
+      const userPlayer = this.players.find(p => p.name === "You");
+      if (userPlayer) {
+        minionCombat.init(userPlayer.hero, userPlayer.gold);
+      }
+    }
+  }
+
+  startArtifactRound() {
+    this.isSpecialRound = true;
+    this.updateRoundDisplay();
+    
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      const artifactsShop = new ArtifactsShop(combatContainer, this.currentRound);
+      
+      artifactsShop.setOnArtifactSelected((artifact) => {
+        this.handleArtifactSelection(artifact);
+      });
+      
+      artifactsShop.init();
+    }
+  }
+
+  handleMinionBattleResult(result) {
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      const equipmentReward = new EquipmentReward(combatContainer);
+      
+      equipmentReward.setOnEquipmentSelected((equipment) => {
+        this.handleEquipmentSelection(equipment);
+      });
+      
+      equipmentReward.init(result.playerWon);
+    }
+  }
+
+  handleArtifactSelection(artifact) {
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer) {
+      userPlayer.hero = this.artifactSystem.applyArtifactToHero(userPlayer.hero, artifact);
+      this.updatePlayerHero();
+    }
+    
+    this.processRoundResults();
+  }
+
+  handleEquipmentSelection(equipment) {
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer) {
+      if (!userPlayer.hero.equipment) {
+        userPlayer.hero.equipment = [];
+      }
+      userPlayer.hero.equipment.push(equipment);
+      
+      if (equipment.stat === 'health') {
+        userPlayer.hero.stats.health += equipment.value;
+      } else if (equipment.stat === 'attack') {
+        userPlayer.hero.stats.attack += equipment.value;
+      } else if (equipment.stat === 'speed') {
+        userPlayer.hero.stats.speed += equipment.value;
+      } else if (equipment.stat === 'armor') {
+        userPlayer.hero.stats.armor += equipment.value;
+      } else if (equipment.stat === 'magicDamageReduction') {
+        userPlayer.hero.stats.magicDamageReduction = (userPlayer.hero.stats.magicDamageReduction || 0) + equipment.value;
+      } else if (equipment.stat === 'physicalDamageAmplification') {
+        userPlayer.hero.stats.physicalDamageAmplification = (userPlayer.hero.stats.physicalDamageAmplification || 0) + equipment.value;
+      } else if (equipment.stat === 'magicDamageAmplification') {
+        userPlayer.hero.stats.magicDamageAmplification = (userPlayer.hero.stats.magicDamageAmplification || 0) + equipment.value;
+      } else if (equipment.stat === 'critChance') {
+        userPlayer.hero.stats.critChance = (userPlayer.hero.stats.critChance || 0) + equipment.value;
+      } else if (equipment.stat === 'evasionChance') {
+        userPlayer.hero.stats.evasionChance = (userPlayer.hero.stats.evasionChance || 0) + equipment.value;
+      }
+      
+      this.updatePlayerHero();
+    }
+    
+    this.processRoundResults();
+  }
+
+  handleSpecialRoundResult(result) {
+    this.processRoundResults();
+  }
+
+  updatePlayerHero() {
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer && this.heroStatsCard) {
+      this.heroStatsCard.updateHero(userPlayer.hero);
+    }
   }
 }
