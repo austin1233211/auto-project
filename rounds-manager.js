@@ -577,13 +577,22 @@ export class RoundsManager {
     
     const combatContainer = this.container.querySelector('#battle-area');
     if (combatContainer) {
-      const artifactsShop = new ArtifactsShop(combatContainer, this.currentRound);
+      if (this.combat) {
+        this.combat.clearTimers();
+        this.combat = null;
+      }
       
-      artifactsShop.setOnArtifactSelected((artifact) => {
-        this.handleArtifactSelection(artifact);
-      });
+      combatContainer.innerHTML = '';
       
-      artifactsShop.init();
+      setTimeout(() => {
+        const artifactsShop = new ArtifactsShop(combatContainer, this.currentRound);
+        
+        artifactsShop.setOnArtifactSelected((artifact) => {
+          this.handleArtifactSelection(artifact);
+        });
+        
+        artifactsShop.init();
+      }, 100);
     }
   }
 
