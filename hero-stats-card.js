@@ -48,7 +48,7 @@ export class HeroStatsCard {
         <div class="hero-stats-grid">
           <div class="stat-item">
             <span class="stat-label">❤️ HP</span>
-            <span class="stat-value">${Math.round(this.currentHero.currentHealth || stats.health)}/${stats.health}</span>
+            <span class="stat-value">${Math.round(stats.health)}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">⚔️ ATK</span>
@@ -67,8 +67,32 @@ export class HeroStatsCard {
             <span class="stat-value">${(stats.critChance * 100).toFixed(1)}%</span>
           </div>
           <div class="stat-item">
+            <span class="stat-label">💀 CRIT DMG</span>
+            <span class="stat-value">${(stats.critDamage * 100).toFixed(0)}%</span>
+          </div>
+          <div class="stat-item">
             <span class="stat-label">👻 EVA</span>
             <span class="stat-value">${(stats.evasionChance * 100).toFixed(1)}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">🔰 EVA DMG</span>
+            <span class="stat-value">${(stats.evasionDamageReduction * 100).toFixed(0)}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">🔮 MAG DEF</span>
+            <span class="stat-value">${(stats.magicDamageReduction * 100).toFixed(0)}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">⚡ PHY AMP</span>
+            <span class="stat-value">${(stats.physicalDamageAmplification * 100).toFixed(0)}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">✨ MAG AMP</span>
+            <span class="stat-value">${(stats.magicDamageAmplification * 100).toFixed(0)}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">🧙 MANA REGEN</span>
+            <span class="stat-value">${stats.manaRegeneration.toFixed(1)}</span>
           </div>
         </div>
       </div>

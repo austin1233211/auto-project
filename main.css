@@ -1523,14 +1523,17 @@ body:has(#hero-selection.active) #player-health-display {
 .hero-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  padding: 0.1rem 0;
 }
 
 .stat-label {
@@ -1559,10 +1562,10 @@ body:has(#hero-selection.active) .hero-stats-card {
   }
   
   .hero-stats-grid {
-    gap: 0.4rem;
+    gap: 0.3rem;
   }
   
   .stat-item {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 }
