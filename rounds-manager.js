@@ -23,6 +23,7 @@ export class RoundsManager {
     this.economy = new Economy();
     this.roundsShop = null;
     this.roundsShopContainer = null;
+    this.userBattleCompleted = false;
     this.setupTimer();
   }
 
@@ -94,9 +95,10 @@ export class RoundsManager {
       this.endTournament();
       return;
     }
-
+    
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
+    this.userBattleCompleted = false;
     this.updateRoundDisplay();
     
     this.timer.startBuffer(() => {
@@ -226,8 +228,7 @@ export class RoundsManager {
     this.updatePlayersList();
     
     if (isUserMatch) {
-      this.timer.stopTimer();
-      this.updateTimerDisplay({ time: 0, isBuffer: false, phase: 'completed' });
+      this.userBattleCompleted = true;
       this.currentMatchIndex++;
       setTimeout(() => {
         this.checkRoundCompletion();
@@ -415,17 +416,19 @@ export class RoundsManager {
       const seconds = timerData.time % 60;
       const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
-      if (timerData.phase === 'completed') {
-        timerElement.innerHTML = `<div class="timer-display completed">Battle Complete</div>`;
-        this.hideRoundsShop();
-      } else if (timerData.isBuffer) {
+      if (timerData.isBuffer) {
         timerElement.innerHTML = `<div class="timer-display buffer">Pre-Round: ${timeString}</div>`;
         this.showRoundsShop();
         this.updateRoundsShopMoney();
       } else {
         const damageEscalationClass = timerData.damageEscalation ? ' damage-escalation' : '';
         const multiplierText = timerData.damageMultiplier > 1 ? ` (${(timerData.damageMultiplier * 100).toFixed(0)}% damage)` : '';
-        timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
+        
+        if (this.userBattleCompleted) {
+          timerElement.innerHTML = `<div class="timer-display completed">Your Battle Complete - Others Fighting: ${timeString}${multiplierText}</div>`;
+        } else {
+          timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
+        }
         this.hideRoundsShop();
       }
     }
