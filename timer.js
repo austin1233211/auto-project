@@ -8,8 +8,6 @@ export class Timer {
     this.timerInterval = null;
     this.onTimerUpdate = null;
     this.onRoundEnd = null;
-    this.onSpeedBoost = null;
-    this.speedBoostTriggered = false;
     this.onDamageEscalation = null;
     this.damageEscalationActive = false;
   }
@@ -18,7 +16,6 @@ export class Timer {
     this.isBufferPhase = true;
     this.currentTime = this.bufferDuration;
     this.isRunning = true;
-    this.speedBoostTriggered = false;
     
     this.timerInterval = setInterval(() => {
       this.currentTime--;
@@ -44,7 +41,6 @@ export class Timer {
     this.isBufferPhase = false;
     this.currentTime = this.roundDuration;
     this.isRunning = true;
-    this.speedBoostTriggered = false;
     this.damageEscalationActive = false;
     
     this.timerInterval = setInterval(() => {
@@ -57,13 +53,6 @@ export class Timer {
         }
       }
       
-      if (this.currentTime === 10 && !this.speedBoostTriggered) {
-        this.speedBoostTriggered = true;
-        if (this.onSpeedBoost) {
-          this.onSpeedBoost(true);
-        }
-      }
-      
       const secondsElapsed = this.roundDuration - this.currentTime;
       const damageMultiplier = secondsElapsed >= 20 ? 1 + (0.06 * (secondsElapsed - 20)) : 1;
       
@@ -72,7 +61,6 @@ export class Timer {
           time: this.currentTime,
           isBuffer: false,
           phase: 'round',
-          speedBoost: this.speedBoostTriggered,
           damageEscalation: this.damageEscalationActive,
           damageMultiplier: damageMultiplier
         });
@@ -86,9 +74,6 @@ export class Timer {
 
   endRound() {
     this.stopTimer();
-    if (this.onSpeedBoost) {
-      this.onSpeedBoost(false);
-    }
     if (this.onDamageEscalation) {
       this.onDamageEscalation(false);
     }
@@ -111,10 +96,6 @@ export class Timer {
 
   setOnRoundEnd(callback) {
     this.onRoundEnd = callback;
-  }
-
-  setOnSpeedBoost(callback) {
-    this.onSpeedBoost = callback;
   }
 
   setOnDamageEscalation(callback) {
