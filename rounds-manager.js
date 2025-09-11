@@ -23,6 +23,7 @@ export class RoundsManager {
     this.economy = new Economy();
     this.roundsShop = null;
     this.roundsShopContainer = null;
+    this.userBattleCompleted = false;
     this.setupTimer();
   }
 
@@ -94,9 +95,10 @@ export class RoundsManager {
       this.endTournament();
       return;
     }
-
+    
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
+    this.userBattleCompleted = false;
     this.updateRoundDisplay();
     
     this.timer.startBuffer(() => {
@@ -164,6 +166,13 @@ export class RoundsManager {
       this.processBattleResult(player1, player2, result);
     });
 
+    this.combat.setOnMoneyChange((newMoney) => {
+      if (player1.name === "You") {
+        player1.gold = newMoney;
+        this.updatePlayersList();
+      }
+    });
+
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
     this.combat.init(player1.hero, player1.gold || 0);
     
@@ -219,6 +228,7 @@ export class RoundsManager {
     this.updatePlayersList();
     
     if (isUserMatch) {
+      this.userBattleCompleted = true;
       this.currentMatchIndex++;
       setTimeout(() => {
         this.checkRoundCompletion();
@@ -413,7 +423,12 @@ export class RoundsManager {
       } else {
         const damageEscalationClass = timerData.damageEscalation ? ' damage-escalation' : '';
         const multiplierText = timerData.damageMultiplier > 1 ? ` (${(timerData.damageMultiplier * 100).toFixed(0)}% damage)` : '';
-        timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
+        
+        if (this.userBattleCompleted) {
+          timerElement.innerHTML = `<div class="timer-display completed">Your Battle Complete - Others Fighting: ${timeString}${multiplierText}</div>`;
+        } else {
+          timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
+        }
         this.hideRoundsShop();
       }
     }
