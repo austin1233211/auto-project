@@ -30,6 +30,7 @@ export class RoundsManager {
     this.userBattleCompleted = false;
     this.artifactSystem = new ArtifactSystem();
     this.isSpecialRound = false;
+    this.artifactSelectionShown = false;
     this.setupTimer();
   }
 
@@ -107,12 +108,7 @@ export class RoundsManager {
       return;
     }
     
-    if ([3, 8, 13].includes(this.currentRound)) {
-      this.startArtifactRound();
-      return;
-    }
-
-    this.isSpecialRound = false;
+    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.userBattleCompleted = false;
@@ -199,7 +195,7 @@ export class RoundsManager {
   }
 
   endBattle(result, player1, player2) {
-    if (this.isSpecialRound) {
+    if ([5, 10, 15].includes(this.currentRound)) {
       this.handleSpecialRoundResult(result);
       return;
     }
@@ -276,6 +272,12 @@ export class RoundsManager {
   processRoundResults() {
     this.timer.stopTimer();
     
+    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+      this.artifactSelectionShown = true;
+      this.startArtifactRound();
+      return;
+    }
+    
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
@@ -293,6 +295,7 @@ export class RoundsManager {
 
     if (this.activePlayers.length > 1) {
       this.currentRound++;
+      this.artifactSelectionShown = false; // Reset for next artifact round
       
       setTimeout(() => {
         this.startInterRoundTimer();
