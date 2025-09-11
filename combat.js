@@ -374,29 +374,6 @@ export class Combat {
     }, 3000);
   }
 
-  setSpeedMultiplier(multiplier) {
-    this.speedMultiplier = multiplier;
-    if (!this.isGameOver && this.playerAttackTimer && this.enemyAttackTimer) {
-      this.clearTimers();
-      const playerAttackInterval = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
-      const enemyAttackInterval = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
-      
-      this.playerAttackTimer = setInterval(() => {
-        if (!this.isGameOver) {
-          this.executeAttack(this.playerHero, this.enemyHero);
-        }
-      }, playerAttackInterval);
-      
-      this.enemyAttackTimer = setInterval(() => {
-        if (!this.isGameOver) {
-          this.executeAttack(this.enemyHero, this.playerHero);
-        }
-      }, enemyAttackInterval);
-      
-      this.startManaRegeneration();
-      this.startStatusEffectsTimer();
-    }
-  }
 
   initCombatShop() {
     this.combatShopContainer = this.container.querySelector('#combat-shop-container');
