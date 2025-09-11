@@ -476,6 +476,10 @@ export class RoundsManager {
     this.showRoundsShop();
     this.updateRoundsShopMoney();
     
+    if (this.roundsShop && this.roundsShop.resetForNewRound) {
+      this.roundsShop.resetForNewRound();
+    }
+    
     this.timer.startBuffer(() => {
       this.hideRoundsShop();
       this.startRound();
