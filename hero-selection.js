@@ -27,7 +27,7 @@ export class HeroSelection {
         <h1 class="hero-selection-title">Choose Your Gladiator</h1>
         
         <div id="selection-timer" class="selection-timer">
-          <div class="timer-display">Selection Time: 0:30</div>
+          <div class="timer-display">Selection Time: 0:50</div>
         </div>
         
         <div class="heroes-grid">

@@ -164,6 +164,13 @@ export class RoundsManager {
       this.processBattleResult(player1, player2, result);
     });
 
+    this.combat.setOnMoneyChange((newMoney) => {
+      if (player1.name === "You") {
+        player1.gold = newMoney;
+        this.updatePlayersList();
+      }
+    });
+
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
     this.combat.init(player1.hero, player1.gold || 0);
     
@@ -219,6 +226,8 @@ export class RoundsManager {
     this.updatePlayersList();
     
     if (isUserMatch) {
+      this.timer.stopTimer();
+      this.updateTimerDisplay({ time: 0, isBuffer: false, phase: 'completed' });
       this.currentMatchIndex++;
       setTimeout(() => {
         this.checkRoundCompletion();
@@ -406,7 +415,10 @@ export class RoundsManager {
       const seconds = timerData.time % 60;
       const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
-      if (timerData.isBuffer) {
+      if (timerData.phase === 'completed') {
+        timerElement.innerHTML = `<div class="timer-display completed">Battle Complete</div>`;
+        this.hideRoundsShop();
+      } else if (timerData.isBuffer) {
         timerElement.innerHTML = `<div class="timer-display buffer">Pre-Round: ${timeString}</div>`;
         this.showRoundsShop();
         this.updateRoundsShopMoney();

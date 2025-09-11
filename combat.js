@@ -381,6 +381,9 @@ export class Combat {
     this.combatShop.setPlayerGold(this.playerMoney);
     this.combatShop.setOnGoldChange((newGold) => {
       this.playerMoney = newGold;
+      if (this.onMoneyChange) {
+        this.onMoneyChange(newGold);
+      }
       if (this.heroStatsCard) {
         this.heroStatsCard.refresh();
       }
@@ -398,5 +401,9 @@ export class Combat {
 
   setDamageMultiplier(multiplier) {
     this.damageMultiplier = multiplier;
+  }
+
+  setOnMoneyChange(callback) {
+    this.onMoneyChange = callback;
   }
 }
