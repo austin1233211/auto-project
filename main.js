@@ -2,6 +2,7 @@ import { GameModeSelection } from './game-mode-selection.js';
 import { HeroSelection } from './hero-selection.js';
 import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
+import { HeroStatsCard } from './hero-stats-card.js';
 
 class AutoGladiators {
   constructor() {
@@ -9,6 +10,7 @@ class AutoGladiators {
     this.selectedHero = null;
     this.selectedMode = null;
     this.playerHealth = new PlayerHealth();
+    this.heroStatsCard = new HeroStatsCard();
     this.init();
   }
 
@@ -17,6 +19,7 @@ class AutoGladiators {
     this.initHeroSelection();
     this.initPlayerHealth();
     this.initRounds();
+    this.initHeroStatsCard();
   }
 
   initGameModeSelection() {
@@ -74,7 +77,7 @@ class AutoGladiators {
 
   initRounds() {
     const roundsContainer = document.getElementById('rounds-screen');
-    this.rounds = new RoundsManager(roundsContainer, this.playerHealth);
+    this.rounds = new RoundsManager(roundsContainer, this.playerHealth, this.heroStatsCard);
     
     this.rounds.setOnTournamentEnd((result) => {
       if (result === 'back') {
@@ -89,10 +92,14 @@ class AutoGladiators {
 
   }
 
+  initHeroStatsCard() {
+    this.heroStatsCard.init();
+  }
 
   startTournament() {
     this.switchScreen('rounds-screen');
     this.rounds.init(this.selectedHero);
+    this.heroStatsCard.updateHero(this.selectedHero);
   }
 
   switchScreen(screenId) {

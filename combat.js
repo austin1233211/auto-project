@@ -4,7 +4,7 @@ import { AbilitySystem } from './abilities.js';
 import { CombatShop } from './combat-shop-v2.js';
 
 export class Combat {
-  constructor(container) {
+  constructor(container, heroStatsCard = null) {
     this.container = container;
     this.playerHero = null;
     this.enemyHero = null;
@@ -22,6 +22,7 @@ export class Combat {
     this.damageMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
+    this.heroStatsCard = heroStatsCard;
   }
 
   init(playerHero, playerMoney = 0) {
@@ -312,6 +313,10 @@ export class Combat {
     if (enemyHealthBar) enemyHealthBar.style.width = `${enemyHealthPercent}%`;
     if (playerHealthText) playerHealthText.textContent = `${this.playerHero.currentHealth}/${this.playerHero.stats.health}`;
     if (enemyHealthText) enemyHealthText.textContent = `${this.enemyHero.currentHealth}/${this.enemyHero.stats.health}`;
+    
+    if (this.heroStatsCard) {
+      this.heroStatsCard.refresh();
+    }
   }
 
   updateManaBars() {
@@ -397,6 +402,12 @@ export class Combat {
     this.combatShopContainer = this.container.querySelector('#combat-shop-container');
     this.combatShop = new CombatShop(this.combatShopContainer, this, 1);
     this.combatShop.setPlayerGold(this.playerMoney);
+    this.combatShop.setOnGoldChange((newGold) => {
+      this.playerMoney = newGold;
+      if (this.heroStatsCard) {
+        this.heroStatsCard.refresh();
+      }
+    });
     this.combatShop.init();
   }
 

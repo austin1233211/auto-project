@@ -7,7 +7,7 @@ import { Economy } from './economy.js';
 import { CombatShop } from './combat-shop-v2.js';
 
 export class RoundsManager {
-  constructor(container, playerHealth = null) {
+  constructor(container, playerHealth = null, heroStatsCard = null) {
     this.container = container;
     this.players = [];
     this.currentRound = 1;
@@ -18,6 +18,7 @@ export class RoundsManager {
     this.combat = null;
     this.currentMatchIndex = 0;
     this.playerHealth = playerHealth;
+    this.heroStatsCard = heroStatsCard;
     this.timer = new Timer();
     this.economy = new Economy();
     this.roundsShop = null;
@@ -157,7 +158,7 @@ export class RoundsManager {
 
   startBattle(player1, player2) {
     const combatContainer = this.container.querySelector('#battle-area');
-    this.combat = new Combat(combatContainer);
+    this.combat = new Combat(combatContainer, this.heroStatsCard);
     
     this.combat.setOnBattleEnd((result) => {
       this.processBattleResult(player1, player2, result);
@@ -165,6 +166,10 @@ export class RoundsManager {
 
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
     this.combat.init(player1.hero, player1.gold || 0);
+    
+    if (this.heroStatsCard && player1.name === "You") {
+      this.heroStatsCard.updateHero(player1.hero);
+    }
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {
@@ -437,6 +442,9 @@ export class RoundsManager {
         if (userPlayer) {
           userPlayer.gold = newGold;
           this.updatePlayersList();
+          if (this.heroStatsCard) {
+            this.heroStatsCard.refresh();
+          }
         }
       });
       this.roundsShop.init();
