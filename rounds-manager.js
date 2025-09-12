@@ -32,6 +32,7 @@ export class RoundsManager {
     this.isSpecialRound = false;
     this.artifactSelectionShown = false;
     this.isProcessingRoundResults = false;
+    this.backgroundMatchTimeouts = [];
     this.setupTimer();
   }
 
@@ -118,6 +119,7 @@ export class RoundsManager {
       return;
     }
     
+    this.clearBackgroundMatchTimeouts();
     this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
@@ -165,11 +167,12 @@ export class RoundsManager {
     matches.forEach((match, index) => {
       const delay = Math.random() * 2000 + 1000;
       console.log(`Background match ${index + 1}: ${match.player1.name} vs ${match.player2.name} - delay: ${delay.toFixed(0)}ms`);
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         console.log(`Completing background match: ${match.player1.name} vs ${match.player2.name}`);
         const result = this.simulateBattle(match.player1, match.player2);
         this.processBattleResult(match.player1, match.player2, result, false);
       }, delay);
+      this.backgroundMatchTimeouts.push(timeoutId);
     });
   }
 
@@ -738,5 +741,13 @@ export class RoundsManager {
     if (userPlayer && this.heroStatsCard) {
       this.heroStatsCard.updateHero(userPlayer.hero);
     }
+  }
+
+  clearBackgroundMatchTimeouts() {
+    console.log(`Clearing ${this.backgroundMatchTimeouts.length} background match timeouts`);
+    this.backgroundMatchTimeouts.forEach(timeoutId => {
+      clearTimeout(timeoutId);
+    });
+    this.backgroundMatchTimeouts = [];
   }
 }
