@@ -9,6 +9,7 @@ import { MinionCombat } from './minion-combat.js';
 import { ArtifactsShop } from './artifacts-shop.js';
 import { EquipmentReward } from './equipment-reward.js';
 import { ArtifactSystem } from './artifacts.js';
+import { debugTools } from './debug-tools.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -119,6 +120,13 @@ export class RoundsManager {
       return;
     }
     
+    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+      console.log(`Triggering artifact round for round ${this.currentRound}`);
+      this.artifactSelectionShown = true;
+      this.startArtifactRound();
+      return;
+    }
+    
     this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
@@ -162,14 +170,20 @@ export class RoundsManager {
       return;
     }
     
+    debugTools.startProcess(`bg_matches_round_${this.currentRound}`, `${matches.length} background matches for round ${this.currentRound}`, 5000);
     console.log(`Starting ${matches.length} background matches for round ${this.currentRound}`);
+    
     matches.forEach((match, index) => {
       const delay = Math.random() * 2000 + 1000;
       console.log(`Background match ${index + 1}: ${match.player1.name} vs ${match.player2.name} - delay: ${delay.toFixed(0)}ms`);
+      
+      const matchId = debugTools.monitorBackgroundMatch(index, match.player1.name, match.player2.name, delay);
+      
       setTimeout(() => {
         console.log(`Completing background match: ${match.player1.name} vs ${match.player2.name}`);
         const result = this.simulateBattle(match.player1, match.player2);
         this.processBattleResult(match.player1, match.player2, result, false);
+        debugTools.endProcess(matchId);
       }, delay);
     });
   }
@@ -346,12 +360,17 @@ export class RoundsManager {
   }
 
   processRoundResults() {
+    debugTools.logDebug(`🏁 Processing round ${this.currentRound} results`);
+    debugTools.validateBattleState(this.currentRound, this.userBattleCompleted, this.currentMatches, this.activePlayers);
+    
     this.timer.stopTimer();
     
     if (this.combat) {
       this.combat.clearTimers();
       this.combat = null;
     }
+    
+    debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
     
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
@@ -369,14 +388,19 @@ export class RoundsManager {
     this.activePlayers = this.activePlayers.filter(player => player.playerHealth.currentHealth > 0);
 
     if (this.activePlayers.length > 1) {
+      const oldRound = this.currentRound;
       this.currentRound++;
       this.artifactSelectionShown = false; // Reset for next artifact round
       this.isProcessingRoundResults = false; // Reset flag for next round
+      
+      debugTools.logRoundTransition(oldRound, this.currentRound, 'Round completed', this.activePlayers.length);
+      debugTools.generateTestReport(oldRound);
       
       setTimeout(() => {
         this.startInterRoundTimer();
       }, 3000);
     } else {
+      debugTools.logDebug('🏆 Tournament ending - only 1 player remaining');
       this.endTournament();
     }
   }
@@ -641,7 +665,14 @@ export class RoundsManager {
       const userPlayer = this.players.find(p => p.name === "You");
       if (userPlayer) {
         console.log('User player found, initializing minion combat');
-        minionCombat.init(userPlayer.hero, userPlayer.gold, this.currentRound);
+        console.log('Original userPlayer.hero:', userPlayer.hero);
+        console.log('Original userPlayer.hero.stats:', userPlayer.hero.stats);
+        const processedHero = StatsCalculator.processHeroStats(userPlayer.hero);
+        processedHero.stats = processedHero.effectiveStats;
+        console.log('Processed hero structure:', processedHero);
+        console.log('Hero stats:', processedHero.stats);
+        console.log('Hero effectiveStats:', processedHero.effectiveStats);
+        minionCombat.init(processedHero, userPlayer.gold, this.currentRound);
       } else {
         console.log('User player not found!');
       }
