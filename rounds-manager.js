@@ -740,6 +740,11 @@ export class RoundsManager {
       this.updatePlayerHero();
     }
     
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      combatContainer.innerHTML = '';
+    }
+    
     this.currentRound++;
     this.artifactSelectionShown = false;
     this.isArtifactSelectionActive = false;
