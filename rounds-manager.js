@@ -199,6 +199,12 @@ export class RoundsManager {
 
   startBattle(player1, player2) {
     const combatContainer = this.container.querySelector('#battle-area');
+    
+    if (this.combat) {
+      this.combat.clearTimers();
+      this.combat = null;
+    }
+    
     this.combat = new Combat(combatContainer, this.heroStatsCard);
     
     this.combat.setOnBattleEnd((result) => {
@@ -231,6 +237,10 @@ export class RoundsManager {
   }
 
   endBattle(result, player1, player2) {
+    if (this.combat) {
+      this.combat.clearTimers();
+    }
+    
     if ([5, 10, 15].includes(this.currentRound)) {
       this.handleSpecialRoundResult(result);
       return;
@@ -337,6 +347,11 @@ export class RoundsManager {
 
   processRoundResults() {
     this.timer.stopTimer();
+    
+    if (this.combat) {
+      this.combat.clearTimers();
+      this.combat = null;
+    }
     
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
