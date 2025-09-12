@@ -73,7 +73,7 @@ export class ArtifactSystem {
         modifiedHero.stats.healthRegeneration = (modifiedHero.stats.healthRegeneration || 0) + artifact.value;
         break;
       case 'stealth_bonus':
-        modifiedHero.stats.evasionChance = (modifiedHero.stats.evasionChance || 0) + artifact.value;
+        modifiedHero.stats.evasionChance = (modifiedHero.stats.evasionChance || 0) + (artifact.value / 100);
         break;
       case 'ultimate_artifact':
         modifiedHero.stats.attack = Math.round(modifiedHero.stats.attack * (1 + artifact.value / 100));
@@ -83,7 +83,7 @@ export class ArtifactSystem {
         break;
       case 'legendary_weapon':
         modifiedHero.stats.attack += artifact.value;
-        modifiedHero.stats.critChance = (modifiedHero.stats.critChance || 0) + 50;
+        modifiedHero.stats.critChance = (modifiedHero.stats.critChance || 0) + 0.50;
         break;
       case 'legendary_armor':
         modifiedHero.stats.armor += artifact.value;

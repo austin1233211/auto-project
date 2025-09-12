@@ -23,11 +23,11 @@ export class EquipmentReward {
       { name: 'Steel Shield', stat: 'armor', value: 15, emoji: '🛡️', description: '+15 Armor' },
       { name: 'Health Potion', stat: 'health', value: 80, emoji: '❤️', description: '+80 Health' },
       { name: 'Swift Boots', stat: 'speed', value: 12, emoji: '👢', description: '+12 Speed' },
-      { name: 'Magic Ring', stat: 'magicDamageAmplification', value: 15, emoji: '💍', description: '+15% Magic Damage' },
-      { name: 'Lucky Charm', stat: 'critChance', value: 18, emoji: '🍀', description: '+18% Critical Hit Chance' },
-      { name: 'Cloak of Evasion', stat: 'evasionChance', value: 15, emoji: '👤', description: '+15% Evasion Chance' },
-      { name: 'Power Gauntlets', stat: 'physicalDamageAmplification', value: 12, emoji: '🥊', description: '+12% Physical Damage' },
-      { name: 'Mage Robes', stat: 'magicDamageReduction', value: 20, emoji: '👘', description: '+20% Magic Resistance' },
+      { name: 'Magic Ring', stat: 'magicDamageAmplification', value: 0.15, emoji: '💍', description: '+15% Magic Damage' },
+      { name: 'Lucky Charm', stat: 'critChance', value: 0.18, emoji: '🍀', description: '+18% Critical Hit Chance' },
+      { name: 'Cloak of Evasion', stat: 'evasionChance', value: 0.15, emoji: '👤', description: '+15% Evasion Chance' },
+      { name: 'Power Gauntlets', stat: 'physicalDamageAmplification', value: 0.12, emoji: '🥊', description: '+12% Physical Damage' },
+      { name: 'Mage Robes', stat: 'magicDamageReduction', value: 0.20, emoji: '👘', description: '+20% Magic Resistance' },
       { name: 'Berserker Axe', stat: 'attack', value: 25, emoji: '🪓', description: '+25 Attack Power' }
     ];
 

@@ -74,19 +74,19 @@ export class AbilitiesShop extends ItemShop {
           modifiedHero.stats.armor += ability.value;
           break;
         case 'crit_chance':
-          modifiedHero.stats.critChance = (modifiedHero.stats.critChance || 0) + ability.value;
+          modifiedHero.stats.critChance = (modifiedHero.stats.critChance || 0) + (ability.value / 100);
           break;
         case 'evasion_chance':
-          modifiedHero.stats.evasionChance = (modifiedHero.stats.evasionChance || 0) + ability.value;
+          modifiedHero.stats.evasionChance = (modifiedHero.stats.evasionChance || 0) + (ability.value / 100);
           break;
         case 'physical_amp':
-          modifiedHero.stats.physicalDamageAmplification = (modifiedHero.stats.physicalDamageAmplification || 0) + ability.value;
+          modifiedHero.stats.physicalDamageAmplification = (modifiedHero.stats.physicalDamageAmplification || 0) + (ability.value / 100);
           break;
         case 'magic_amp':
-          modifiedHero.stats.magicDamageAmplification = (modifiedHero.stats.magicDamageAmplification || 0) + ability.value;
+          modifiedHero.stats.magicDamageAmplification = (modifiedHero.stats.magicDamageAmplification || 0) + (ability.value / 100);
           break;
         case 'magic_resist':
-          modifiedHero.stats.magicDamageReduction = (modifiedHero.stats.magicDamageReduction || 0) + ability.value;
+          modifiedHero.stats.magicDamageReduction = (modifiedHero.stats.magicDamageReduction || 0) + (ability.value / 100);
           break;
         case 'stat_boost':
           modifiedHero.stats.attack += ability.value;
