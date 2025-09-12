@@ -13,6 +13,7 @@ export class Timer {
   }
 
   startBuffer(onBufferEnd) {
+    this.stopTimer();
     this.isBufferPhase = true;
     this.currentTime = this.bufferDuration;
     this.isRunning = true;
@@ -38,6 +39,7 @@ export class Timer {
   }
 
   startRound() {
+    this.stopTimer();
     this.isBufferPhase = false;
     this.currentTime = this.roundDuration;
     this.isRunning = true;
