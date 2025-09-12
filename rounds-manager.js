@@ -31,6 +31,7 @@ export class RoundsManager {
     this.artifactSystem = new ArtifactSystem();
     this.isSpecialRound = false;
     this.artifactSelectionShown = false;
+    this.isProcessingRoundResults = false;
     this.setupTimer();
   }
 
@@ -121,6 +122,7 @@ export class RoundsManager {
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.userBattleCompleted = false;
+    this.isProcessingRoundResults = false; // Reset flag for new round
     this.updateRoundDisplay();
     
     this.timer.startBuffer(() => {
@@ -305,6 +307,11 @@ export class RoundsManager {
     const totalMatches = this.currentMatches.length;
     console.log(`Round ${this.currentRound} completion check: ${completedMatches}/${totalMatches} matches completed`);
     
+    if (this.isProcessingRoundResults) {
+      console.log(`Already processing round results for round ${this.currentRound}, skipping`);
+      return;
+    }
+    
     if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
       console.log(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
       return;
@@ -313,6 +320,7 @@ export class RoundsManager {
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
       console.log(`All matches completed for round ${this.currentRound}, processing results`);
+      this.isProcessingRoundResults = true;
       setTimeout(() => {
         this.processRoundResults();
       }, 1000);
@@ -342,6 +350,7 @@ export class RoundsManager {
     if (this.activePlayers.length > 1) {
       this.currentRound++;
       this.artifactSelectionShown = false; // Reset for next artifact round
+      this.isProcessingRoundResults = false; // Reset flag for next round
       
       setTimeout(() => {
         this.startInterRoundTimer();
