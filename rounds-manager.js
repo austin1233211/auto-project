@@ -196,6 +196,18 @@ export class RoundsManager {
     this.combat.setOnBattleEnd((result) => {
       this.endBattle(result, player1, player2);
     });
+    
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer) {
+      this.combat.setOnAbilityPurchased(() => {
+        console.log('Combat: onAbilityPurchased callback triggered');
+        if (userPlayer) {
+          console.log('Combat: Applying abilities to hero');
+          userPlayer.hero = this.combat.combatShop.applyItemsToHero(userPlayer.hero);
+          this.updatePlayerHero();
+        }
+      });
+    }
 
     this.combat.setOnMoneyChange((newMoney) => {
       if (player1.name === "You") {
