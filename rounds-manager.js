@@ -200,9 +200,7 @@ export class RoundsManager {
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer) {
       this.combat.setOnAbilityPurchased(() => {
-        console.log('Combat: onAbilityPurchased callback triggered');
         if (userPlayer) {
-          console.log('Combat: Applying abilities to hero');
           userPlayer.hero = this.combat.combatShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayerHero();
         }
@@ -535,9 +533,7 @@ export class RoundsManager {
       });
       
       this.roundsShop.setOnAbilityPurchased(() => {
-        console.log('RoundsManager: onAbilityPurchased callback triggered');
         if (userPlayer) {
-          console.log('RoundsManager: Applying abilities to hero');
           userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayerHero();
         }
@@ -724,8 +720,6 @@ export class RoundsManager {
   updatePlayerHero() {
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer && this.heroStatsCard) {
-      console.log('updatePlayerHero() - userPlayer.hero:', userPlayer.hero);
-      console.log('updatePlayerHero() - purchasedAbilities:', userPlayer.hero.purchasedAbilities);
       this.heroStatsCard.updateHero(userPlayer.hero);
     }
   }
