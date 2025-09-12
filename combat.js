@@ -369,7 +369,8 @@ export class Combat {
 
   addToLog(message) {
     this.battleLog.push(message);
-    const logEntries = this.container.querySelector('#log-entries');
+    const logEntries = this.container.querySelector('#log-entries') || this.container.querySelector('#battle-log');
+    if (!logEntries) return;
     const logEntry = document.createElement('p');
     logEntry.textContent = message;
     logEntries.appendChild(logEntry);
