@@ -143,11 +143,15 @@ export class RoundsManager {
   }
 
   simulateBackgroundMatches(matches) {
-    matches.forEach(match => {
+    console.log(`Starting ${matches.length} background matches for round ${this.currentRound}`);
+    matches.forEach((match, index) => {
+      const delay = Math.random() * 2000 + 1000;
+      console.log(`Background match ${index + 1}: ${match.player1.name} vs ${match.player2.name} - delay: ${delay.toFixed(0)}ms`);
       setTimeout(() => {
+        console.log(`Completing background match: ${match.player1.name} vs ${match.player2.name}`);
         const result = this.simulateBattle(match.player1, match.player2);
         this.processBattleResult(match.player1, match.player2, result, false);
-      }, Math.random() * 2000 + 1000);
+      }, delay);
     });
   }
 
@@ -201,17 +205,6 @@ export class RoundsManager {
     if ([5, 10, 15].includes(this.currentRound)) {
       this.handleSpecialRoundResult(result);
       return;
-    }
-    
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-      const isUserBattle = player1.name === "You" || player2.name === "You";
-      if (isUserBattle) {
-        console.log(`User battle completed in artifact round ${this.currentRound}, showing artifact selection`);
-        this.artifactSelectionShown = true;
-        this.processBattleResult(player1, player2, result);
-        this.startArtifactRound();
-        return;
-      }
     }
     
     this.processBattleResult(player1, player2, result);
@@ -275,11 +268,18 @@ export class RoundsManager {
   }
 
   checkRoundCompletion() {
+    const completedMatches = this.currentMatches.filter(match => match.completed).length;
+    const totalMatches = this.currentMatches.length;
+    console.log(`Round ${this.currentRound} completion check: ${completedMatches}/${totalMatches} matches completed`);
+    
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
+      console.log(`All matches completed for round ${this.currentRound}, processing results`);
       setTimeout(() => {
         this.processRoundResults();
       }, 1000);
+    } else {
+      console.log(`Still waiting for ${totalMatches - completedMatches} matches to complete`);
     }
   }
 
@@ -302,6 +302,13 @@ export class RoundsManager {
     this.activePlayers = this.activePlayers.filter(player => player.playerHealth.currentHealth > 0);
 
     if (this.activePlayers.length > 1) {
+      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+        console.log(`Round ${this.currentRound} completed, showing artifact selection`);
+        this.artifactSelectionShown = true;
+        this.startArtifactRound();
+        return; // Don't increment round yet, artifact selection will handle it
+      }
+      
       this.currentRound++;
       this.artifactSelectionShown = false; // Reset for next artifact round
       
@@ -616,7 +623,12 @@ export class RoundsManager {
       this.updatePlayerHero();
     }
     
-    this.processRoundResults();
+    this.currentRound++;
+    this.artifactSelectionShown = false;
+    
+    setTimeout(() => {
+      this.startInterRoundTimer();
+    }, 3000);
   }
 
   handleEquipmentSelection(equipment) {
