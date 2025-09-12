@@ -1264,9 +1264,9 @@ body:has(#hero-selection.active) #player-health-display {
   background: var(--card-bg);
   border: 2px solid var(--accent-color);
   border-radius: var(--border-radius);
-  padding: 1rem;
+  padding: 1.5rem;
   z-index: 1000;
-  max-width: min(90vw, 400px);
+  max-width: min(90vw, 600px);
   width: 100%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
