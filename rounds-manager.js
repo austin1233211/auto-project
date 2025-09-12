@@ -724,6 +724,8 @@ export class RoundsManager {
   updatePlayerHero() {
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer && this.heroStatsCard) {
+      console.log('updatePlayerHero() - userPlayer.hero:', userPlayer.hero);
+      console.log('updatePlayerHero() - purchasedAbilities:', userPlayer.hero.purchasedAbilities);
       this.heroStatsCard.updateHero(userPlayer.hero);
     }
   }
