@@ -523,7 +523,10 @@ export class RoundsManager {
       });
       
       this.roundsShop.setOnAbilityPurchased(() => {
+        console.log('RoundsManager: onAbilityPurchased callback triggered');
         if (userPlayer) {
+          console.log('RoundsManager: Applying abilities to hero');
+          userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayerHero();
         }
       });
