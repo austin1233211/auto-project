@@ -34,10 +34,10 @@ class AutoGladiators {
 
   initHeroSelection() {
     const heroSelectionContainer = document.getElementById('hero-selection');
-    const heroSelection = new HeroSelection(heroSelectionContainer);
+    this.heroSelection = new HeroSelection(heroSelectionContainer);
 
-    heroSelection.setOnTournamentStart(() => {
-      this.selectedHero = heroSelection.getSelectedHero();
+    this.heroSelection.setOnTournamentStart(() => {
+      this.selectedHero = this.heroSelection.getSelectedHero();
       this.startTournament();
     });
   }
@@ -97,6 +97,9 @@ class AutoGladiators {
   }
 
   startTournament() {
+    if (this.heroSelection && this.heroSelection.timer) {
+      this.heroSelection.timer.stopTimer();
+    }
     this.switchScreen('rounds-screen');
     this.rounds.init(this.selectedHero);
     this.heroStatsCard.updateHero(this.selectedHero);

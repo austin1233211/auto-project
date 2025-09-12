@@ -694,6 +694,12 @@ export class RoundsManager {
       this.updatePlayerHero();
     }
     
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      combatContainer.innerHTML = '';
+    }
+    this.isArtifactSelectionActive = false;
+    
     this.processRoundResults();
   }
 

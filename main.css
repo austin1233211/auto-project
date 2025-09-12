@@ -983,6 +983,9 @@ body:has(#hero-selection.active) #player-health-display {
   max-width: min(90vw, 600px);
   margin: 0 auto;
   padding: 1rem;
+  background: var(--card-bg);
+  border: 2px solid var(--accent-color);
+  border-radius: var(--border-radius);
 }
 
 .shop-header {
