@@ -54,10 +54,17 @@ export class AbilitiesShop extends ItemShop {
   applyItemsToHero(hero) {
     const modifiedHero = { ...hero };
     
-    this.purchasedItems.forEach(ability => {
-      if (!modifiedHero.purchasedAbilities) {
-        modifiedHero.purchasedAbilities = [];
-      }
+    if (!modifiedHero.purchasedAbilities) {
+      modifiedHero.purchasedAbilities = [];
+    }
+    
+    const existingAbilityIds = new Set(modifiedHero.purchasedAbilities.map(a => `${a.name}-${a.effect}-${a.value}`));
+    const newAbilities = this.purchasedItems.filter(ability => {
+      const abilityId = `${ability.name}-${ability.effect}-${ability.value}`;
+      return !existingAbilityIds.has(abilityId);
+    });
+    
+    newAbilities.forEach(ability => {
       modifiedHero.purchasedAbilities.push(ability);
       
       switch (ability.effect) {
