@@ -665,13 +665,19 @@ export class RoundsManager {
       const userPlayer = this.players.find(p => p.name === "You");
       if (userPlayer) {
         console.log('User player found, initializing minion combat');
-        console.log('Original userPlayer.hero:', userPlayer.hero);
-        console.log('Original userPlayer.hero.stats:', userPlayer.hero.stats);
         const processedHero = StatsCalculator.processHeroStats(userPlayer.hero);
-        processedHero.stats = processedHero.effectiveStats;
-        console.log('Processed hero structure:', processedHero);
-        console.log('Hero stats:', processedHero.stats);
-        console.log('Hero effectiveStats:', processedHero.effectiveStats);
+        
+        processedHero.stats = {
+          health: processedHero.effectiveStats.health,
+          attack: processedHero.effectiveStats.attack,
+          armor: processedHero.effectiveStats.armor,
+          speed: processedHero.effectiveStats.speed,
+          critChance: processedHero.effectiveStats.critChance || 0,
+          evasionChance: processedHero.effectiveStats.evasionChance || 0,
+          manaRegeneration: processedHero.effectiveStats.manaRegeneration || 0
+        };
+        
+        console.log('Processed hero with flat stats:', processedHero.stats);
         minionCombat.init(processedHero, userPlayer.gold, this.currentRound);
       } else {
         console.log('User player not found!');
