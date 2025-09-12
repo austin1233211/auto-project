@@ -60,6 +60,40 @@ export class StatsCalculator {
             modifiedStats.speed += ability.value;
             modifiedStats.armor += ability.value;
             break;
+          case 'attack_speed':
+            modifiedStats.attackSpeed = (modifiedStats.attackSpeed || 0) + (ability.value / 100);
+            break;
+          case 'mana_regen':
+            modifiedStats.manaRegeneration = (modifiedStats.manaRegeneration || 0) + (ability.value / 100);
+            break;
+          case 'gold_bonus':
+            modifiedStats.goldBonus = (modifiedStats.goldBonus || 0) + (ability.value / 100);
+            break;
+          case 'counter_chance':
+            modifiedStats.counterChance = (modifiedStats.counterChance || 0) + (ability.value / 100);
+            break;
+          case 'low_health_damage':
+            modifiedStats.lowHealthDamageBonus = (modifiedStats.lowHealthDamageBonus || 0) + (ability.value / 100);
+            break;
+          case 'damage_immunity':
+            modifiedStats.damageImmunityChance = (modifiedStats.damageImmunityChance || 0) + (ability.value / 100);
+            break;
+          case 'ability_cooldown':
+            modifiedStats.abilityCooldownReduction = (modifiedStats.abilityCooldownReduction || 0) + (ability.value / 100);
+            break;
+          case 'ultimate_power':
+            const ultimateBonus = ability.value / 100;
+            modifiedStats.attack *= (1 + ultimateBonus);
+            modifiedStats.health *= (1 + ultimateBonus);
+            modifiedStats.speed *= (1 + ultimateBonus);
+            modifiedStats.armor *= (1 + ultimateBonus);
+            break;
+          case 'crit_multiplier':
+            modifiedStats.critDamage = (modifiedStats.critDamage || 1.5) + (ability.value / 100);
+            break;
+          case 'death_save':
+            modifiedStats.deathSaveCharges = (modifiedStats.deathSaveCharges || 0) + ability.value;
+            break;
         }
       }
     }
@@ -88,7 +122,14 @@ export class StatsCalculator {
         critDamage: modifiedStats.critDamage,
         evasionChance: modifiedStats.evasionChance,
         evasionDamageReduction: modifiedStats.evasionDamageReduction,
-        manaRegeneration: modifiedStats.manaRegeneration || 0
+        manaRegeneration: modifiedStats.manaRegeneration || 0,
+        attackSpeed: modifiedStats.attackSpeed || 0,
+        goldBonus: modifiedStats.goldBonus || 0,
+        counterChance: modifiedStats.counterChance || 0,
+        lowHealthDamageBonus: modifiedStats.lowHealthDamageBonus || 0,
+        damageImmunityChance: modifiedStats.damageImmunityChance || 0,
+        abilityCooldownReduction: modifiedStats.abilityCooldownReduction || 0,
+        deathSaveCharges: modifiedStats.deathSaveCharges || 0
       }
     };
   }
