@@ -2,6 +2,7 @@ import { heroes } from './heroes.js';
 import { StatsCalculator } from './stats-calculator.js';
 import { AbilitySystem } from './abilities.js';
 import { CombatShop } from './combat-shop-v2.js';
+import { debugTools } from './debug-tools.js';
 
 export class Combat {
   constructor(container, heroStatsCard = null) {
@@ -150,6 +151,7 @@ export class Combat {
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
     }, manaInterval);
+    debugTools.registerTimer('combat_player_mana', 'combat_player_mana', manaInterval, 'Player mana regeneration');
     
     this.enemyManaTimer = setInterval(() => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
@@ -158,12 +160,14 @@ export class Combat {
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
       }
     }, manaInterval);
+    debugTools.registerTimer('combat_enemy_mana', 'combat_enemy_mana', manaInterval, 'Enemy mana regeneration');
     
     this.manaUITimer = setInterval(() => {
       if (!this.isGameOver) {
         this.updateManaBars();
       }
     }, 250);
+    debugTools.registerTimer('combat_mana_ui', 'combat_ui', 250, 'Mana UI updates');
   }
 
   startStatusEffectsTimer() {
@@ -174,36 +178,58 @@ export class Combat {
         this.updateHealthBars();
       }
     }, 1000);
+    debugTools.registerTimer('combat_status_effects', 'combat_effects', 1000, 'Status effects processing');
   }
 
   clearTimers() {
+    debugTools.logDebug('🧹 Combat: Clearing all timers');
+    
     if (this.playerAttackTimer) {
       clearInterval(this.playerAttackTimer);
+      debugTools.unregisterTimer('combat_player_attack');
       this.playerAttackTimer = null;
     }
     if (this.enemyAttackTimer) {
       clearInterval(this.enemyAttackTimer);
+      debugTools.unregisterTimer('combat_enemy_attack');
       this.enemyAttackTimer = null;
     }
     if (this.playerManaTimer) {
       clearInterval(this.playerManaTimer);
+      debugTools.unregisterTimer('combat_player_mana');
       this.playerManaTimer = null;
     }
     if (this.enemyManaTimer) {
       clearInterval(this.enemyManaTimer);
+      debugTools.unregisterTimer('combat_enemy_mana');
       this.enemyManaTimer = null;
     }
     if (this.manaUITimer) {
       clearInterval(this.manaUITimer);
+      debugTools.unregisterTimer('combat_mana_ui');
       this.manaUITimer = null;
     }
     if (this.statusEffectsTimer) {
       clearInterval(this.statusEffectsTimer);
+      debugTools.unregisterTimer('combat_status_effects');
       this.statusEffectsTimer = null;
     }
   }
 
   startBattle() {
+    this.isGameOver = false;
+    this.playerHero.currentMana = 0;
+    this.enemyHero.currentMana = 0;
+    
+    this.updateHealthBars();
+    this.updateManaBars();
+    
+    this.initializeCombatTimers();
+  }
+
+  initializeCombatTimers() {
+    this.clearTimers();
+    
     this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
     this.addToLog(`Battle begins! Both heroes attack simultaneously based on their speed.`);
     
@@ -217,12 +243,14 @@ export class Combat {
         this.executeAttack(this.playerHero, this.enemyHero);
       }
     }, playerAttackInterval);
+    debugTools.registerTimer('combat_player_attack', 'combat_player_attack', playerAttackInterval, `Player attacks (${this.playerHero.effectiveStats.speed.toFixed(2)}/sec)`);
     
     this.enemyAttackTimer = setInterval(() => {
       if (!this.isGameOver) {
         this.executeAttack(this.enemyHero, this.playerHero);
       }
     }, enemyAttackInterval);
+    debugTools.registerTimer('combat_enemy_attack', 'combat_enemy_attack', enemyAttackInterval, `Enemy attacks (${this.enemyHero.effectiveStats.speed.toFixed(2)}/sec)`);
     
     this.startManaRegeneration();
     this.startStatusEffectsTimer();
@@ -351,6 +379,7 @@ export class Combat {
   endBattle(result) {
     if (this.isGameOver) return;
     
+    debugTools.logDebug(`⚔️ Combat: Battle ending with result: ${result}`);
     this.isGameOver = true;
     this.clearTimers();
     

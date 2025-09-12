@@ -1,3 +1,5 @@
+import { debugTools } from './debug-tools.js';
+
 export class Timer {
   constructor() {
     this.roundDuration = 50;
@@ -18,6 +20,8 @@ export class Timer {
     this.currentTime = this.bufferDuration;
     this.isRunning = true;
     
+    debugTools.logDebug(`⏱️ Timer: Starting buffer phase (${this.bufferDuration}s)`);
+    
     this.timerInterval = setInterval(() => {
       this.currentTime--;
       
@@ -32,10 +36,13 @@ export class Timer {
       if (this.currentTime <= 0) {
         this.stopTimer();
         this.isBufferPhase = false;
+        debugTools.logDebug('⏱️ Timer: Buffer phase completed, starting round');
         if (onBufferEnd) onBufferEnd();
         this.startRound();
       }
     }, 1000);
+    
+    debugTools.registerTimer('rounds_buffer', 'rounds', 1000, `Buffer phase timer (${this.bufferDuration}s)`);
   }
 
   startRound() {
@@ -45,11 +52,14 @@ export class Timer {
     this.isRunning = true;
     this.damageEscalationActive = false;
     
+    debugTools.logDebug(`⏱️ Timer: Starting round phase (${this.roundDuration}s)`);
+    
     this.timerInterval = setInterval(() => {
       this.currentTime--;
       
       if (this.currentTime === 30 && !this.damageEscalationActive) {
         this.damageEscalationActive = true;
+        debugTools.logDebug('⏱️ Timer: Damage escalation activated');
         if (this.onDamageEscalation) {
           this.onDamageEscalation(true);
         }
@@ -72,6 +82,8 @@ export class Timer {
         this.endRound();
       }
     }, 1000);
+    
+    debugTools.registerTimer('rounds_main', 'rounds', 1000, `Round phase timer (${this.roundDuration}s)`);
   }
 
   endRound() {
@@ -86,8 +98,15 @@ export class Timer {
 
   stopTimer() {
     if (this.timerInterval) {
+      debugTools.logDebug(`⏱️ Timer: Stopping timer (was in ${this.isBufferPhase ? 'buffer' : 'round'} phase)`);
       clearInterval(this.timerInterval);
       this.timerInterval = null;
+      
+      if (this.isBufferPhase) {
+        debugTools.unregisterTimer('rounds_buffer');
+      } else {
+        debugTools.unregisterTimer('rounds_main');
+      }
     }
     this.isRunning = false;
   }

@@ -44,13 +44,24 @@ export class MinionCombat extends Combat {
     const availableMinions = minionsByRound[currentRound] || minionsByRound[5];
     const selectedMinion = availableMinions[Math.floor(Math.random() * availableMinions.length)];
 
-    return {
+    const minion = {
       ...selectedMinion,
+      effectiveStats: {
+        health: selectedMinion.stats.health,
+        attack: selectedMinion.stats.attack,
+        armor: selectedMinion.stats.armor,
+        speed: selectedMinion.stats.speed,
+        critChance: 0,
+        evasionChance: 0,
+        manaRegeneration: 0
+      },
       abilities: {
         passive: { name: 'Minion Resilience', description: 'Increased health and armor' },
         ultimate: { name: 'Minion Rage', description: 'Powerful attack when low on health' }
       }
     };
+
+    return minion;
   }
 
   getCurrentRound() {
