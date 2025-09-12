@@ -524,7 +524,6 @@ export class RoundsManager {
       
       this.roundsShop.setOnAbilityPurchased(() => {
         if (userPlayer) {
-          userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayerHero();
         }
       });
