@@ -677,7 +677,14 @@ export class RoundsManager {
           manaRegeneration: processedHero.effectiveStats.manaRegeneration || 0
         };
         
-        console.log('Processed hero with flat stats:', processedHero.stats);
+        if (!processedHero.effectiveStats) {
+          processedHero.effectiveStats = processedHero.stats;
+        }
+        
+        console.log('Processed hero with both stats formats:', {
+          stats: processedHero.stats,
+          effectiveStats: processedHero.effectiveStats
+        });
         minionCombat.init(processedHero, userPlayer.gold, this.currentRound);
       } else {
         console.log('User player not found!');
