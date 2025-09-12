@@ -21,7 +21,7 @@ export class Economy {
     return player;
   }
 
-  calculateRoundIncome(player, battleResult = null) {
+  calculateRoundIncome(player, battleResult = null, goldBonus = 0) {
     let totalIncome = this.baseIncomePerRound;
     let breakdown = {
       baseIncome: this.baseIncomePerRound,
@@ -77,7 +77,7 @@ export class Economy {
       player.consecutiveWins = 0;
     }
 
-    const income = this.calculateRoundIncome(player, battleResult);
+    const income = this.calculateRoundIncome(player, battleResult, goldBonus);
     player.gold += income.total;
     player.roundsPlayed = (player.roundsPlayed || 0) + 1;
 
