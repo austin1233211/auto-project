@@ -151,7 +151,7 @@ export class Combat {
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
     }, manaInterval);
-    debugTools.registerTimer('combat_player_mana', 'combat_mana', manaInterval, 'Player mana regeneration');
+    debugTools.registerTimer('combat_player_mana', 'combat_player_mana', manaInterval, 'Player mana regeneration');
     
     this.enemyManaTimer = setInterval(() => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
@@ -160,7 +160,7 @@ export class Combat {
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
       }
     }, manaInterval);
-    debugTools.registerTimer('combat_enemy_mana', 'combat_mana', manaInterval, 'Enemy mana regeneration');
+    debugTools.registerTimer('combat_enemy_mana', 'combat_enemy_mana', manaInterval, 'Enemy mana regeneration');
     
     this.manaUITimer = setInterval(() => {
       if (!this.isGameOver) {
@@ -243,14 +243,14 @@ export class Combat {
         this.executeAttack(this.playerHero, this.enemyHero);
       }
     }, playerAttackInterval);
-    debugTools.registerTimer('combat_player_attack', 'combat_attack', playerAttackInterval, `Player attacks (${this.playerHero.effectiveStats.speed.toFixed(2)}/sec)`);
+    debugTools.registerTimer('combat_player_attack', 'combat_player_attack', playerAttackInterval, `Player attacks (${this.playerHero.effectiveStats.speed.toFixed(2)}/sec)`);
     
     this.enemyAttackTimer = setInterval(() => {
       if (!this.isGameOver) {
         this.executeAttack(this.enemyHero, this.playerHero);
       }
     }, enemyAttackInterval);
-    debugTools.registerTimer('combat_enemy_attack', 'combat_attack', enemyAttackInterval, `Enemy attacks (${this.enemyHero.effectiveStats.speed.toFixed(2)}/sec)`);
+    debugTools.registerTimer('combat_enemy_attack', 'combat_enemy_attack', enemyAttackInterval, `Enemy attacks (${this.enemyHero.effectiveStats.speed.toFixed(2)}/sec)`);
     
     this.startManaRegeneration();
     this.startStatusEffectsTimer();
