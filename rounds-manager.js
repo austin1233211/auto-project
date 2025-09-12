@@ -156,6 +156,11 @@ export class RoundsManager {
   }
 
   simulateBackgroundMatches(matches) {
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing simulateBackgroundMatches()');
+      return;
+    }
+    
     console.log(`Starting ${matches.length} background matches for round ${this.currentRound}`);
     matches.forEach((match, index) => {
       const delay = Math.random() * 2000 + 1000;
