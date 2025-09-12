@@ -54,47 +54,18 @@ export class AbilitiesShop extends ItemShop {
   applyItemsToHero(hero) {
     const modifiedHero = { ...hero };
     
-    this.purchasedItems.forEach(ability => {
-      if (!modifiedHero.purchasedAbilities) {
-        modifiedHero.purchasedAbilities = [];
-      }
+    if (!modifiedHero.purchasedAbilities) {
+      modifiedHero.purchasedAbilities = [];
+    }
+    
+    const existingAbilityIds = new Set(modifiedHero.purchasedAbilities.map(a => `${a.name}-${a.effect}-${a.value}`));
+    const newAbilities = this.purchasedItems.filter(ability => {
+      const abilityId = `${ability.name}-${ability.effect}-${ability.value}`;
+      return !existingAbilityIds.has(abilityId);
+    });
+    
+    newAbilities.forEach(ability => {
       modifiedHero.purchasedAbilities.push(ability);
-      
-      switch (ability.effect) {
-        case 'attack_boost':
-          modifiedHero.stats.attack += ability.value;
-          break;
-        case 'speed_boost':
-          modifiedHero.stats.speed += ability.value;
-          break;
-        case 'health_boost':
-          modifiedHero.stats.health += ability.value;
-          break;
-        case 'armor_boost':
-          modifiedHero.stats.armor += ability.value;
-          break;
-        case 'crit_chance':
-          modifiedHero.stats.critChance = (modifiedHero.stats.critChance || 0) + (ability.value / 100);
-          break;
-        case 'evasion_chance':
-          modifiedHero.stats.evasionChance = (modifiedHero.stats.evasionChance || 0) + (ability.value / 100);
-          break;
-        case 'physical_amp':
-          modifiedHero.stats.physicalDamageAmplification = (modifiedHero.stats.physicalDamageAmplification || 0) + (ability.value / 100);
-          break;
-        case 'magic_amp':
-          modifiedHero.stats.magicDamageAmplification = (modifiedHero.stats.magicDamageAmplification || 0) + (ability.value / 100);
-          break;
-        case 'magic_resist':
-          modifiedHero.stats.magicDamageReduction = (modifiedHero.stats.magicDamageReduction || 0) + (ability.value / 100);
-          break;
-        case 'stat_boost':
-          modifiedHero.stats.attack += ability.value;
-          modifiedHero.stats.health += ability.value * 10;
-          modifiedHero.stats.speed += ability.value;
-          modifiedHero.stats.armor += ability.value;
-          break;
-      }
     });
 
     return modifiedHero;

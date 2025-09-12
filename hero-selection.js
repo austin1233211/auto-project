@@ -109,6 +109,7 @@ export class HeroSelection {
     tournamentBtn.addEventListener('click', () => {
       if (this.selectedHero) {
         this.timer.stopTimer();
+        this.timerActive = false;
         if (this.onTournamentStart) {
           this.onTournamentStart();
         }

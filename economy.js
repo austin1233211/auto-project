@@ -33,7 +33,11 @@ export class Economy {
 
     if (battleResult) {
       if (battleResult.isVictory) {
-        breakdown.battleReward = this.winBaseReward;
+        let baseReward = this.winBaseReward;
+        if (goldBonus > 0) {
+          baseReward = Math.round(baseReward * (1 + goldBonus));
+        }
+        breakdown.battleReward = baseReward;
         const streakBonus = Math.min(player.consecutiveWins * this.winStreakBonus, this.maxWinStreakBonus);
         breakdown.streakBonus = streakBonus;
         totalIncome += breakdown.battleReward + streakBonus;
@@ -55,7 +59,7 @@ export class Economy {
     return breakdown;
   }
 
-  awardMoney(player, isVictory, hpLost = 0) {
+  awardMoney(player, isVictory, hpLost = 0, goldBonus = 0) {
     if (!player.gold) {
       player.gold = this.startingGold;
     }

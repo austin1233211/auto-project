@@ -388,6 +388,11 @@ export class Combat {
         this.heroStatsCard.refresh();
       }
     });
+    
+    if (this.onAbilityPurchased) {
+      this.combatShop.setOnAbilityPurchased(this.onAbilityPurchased);
+    }
+    
     this.combatShop.init();
   }
 
@@ -405,5 +410,12 @@ export class Combat {
 
   setOnMoneyChange(callback) {
     this.onMoneyChange = callback;
+  }
+
+  setOnAbilityPurchased(callback) {
+    this.onAbilityPurchased = callback;
+    if (this.combatShop) {
+      this.combatShop.setOnAbilityPurchased(callback);
+    }
   }
 }

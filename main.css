@@ -983,6 +983,9 @@ body:has(#hero-selection.active) #player-health-display {
   max-width: min(90vw, 600px);
   margin: 0 auto;
   padding: 1rem;
+  background: var(--card-bg);
+  border: 2px solid var(--accent-color);
+  border-radius: var(--border-radius);
 }
 
 .shop-header {
@@ -1250,6 +1253,33 @@ body:has(#hero-selection.active) #player-health-display {
   max-width: min(90vw, 400px);
   width: 100%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Combat Shop Container Styles (used during rounds) */
+.combat-shop-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  border: 2px solid var(--accent-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  z-index: 1000;
+  max-width: min(90vw, 600px);
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.combat-shop-container .combat-shop-widget {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  position: static;
+  transform: none;
+  max-width: none;
+  width: auto;
 }
 
 .shop-header-mini {
