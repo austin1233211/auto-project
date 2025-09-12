@@ -33,6 +33,7 @@ export class RoundsManager {
     this.artifactSelectionShown = false;
     this.isProcessingRoundResults = false;
     this.backgroundMatchTimeouts = [];
+    this.ensureSingleTimerInstance();
     this.setupTimer();
   }
 
@@ -338,7 +339,9 @@ export class RoundsManager {
   }
 
   processRoundResults() {
+    console.log('Timer Debug: Processing round results, stopping timer');
     this.timer.stopTimer();
+    this.clearBackgroundMatchTimeouts();
     
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
@@ -481,7 +484,9 @@ export class RoundsManager {
   }
 
   setupTimer() {
+    console.log('Timer Debug: Setting up timer callbacks');
     this.timer.setOnTimerUpdate((timerData) => {
+      console.log('Timer Debug: Timer update callback triggered with time:', timerData?.time);
       this.updateTimerDisplay(timerData);
       if (this.combat && timerData.damageMultiplier) {
         this.combat.setDamageMultiplier(timerData.damageMultiplier);
@@ -489,6 +494,7 @@ export class RoundsManager {
     });
 
     this.timer.setOnRoundEnd(() => {
+      console.log('Timer Debug: Round end callback triggered');
       if (this.combat) {
         this.combat.endBattle('timeout');
       } else {
@@ -496,12 +502,20 @@ export class RoundsManager {
       }
     });
 
-
     this.timer.setOnDamageEscalation((isActive) => {
+      console.log(`Timer Debug: Damage escalation ${isActive ? 'activated' : 'deactivated'}`);
     });
   }
 
   updateTimerDisplay(timerData) {
+    console.log('Timer Debug: updateTimerDisplay called with:', {
+      time: timerData?.time,
+      isBuffer: timerData?.isBuffer,
+      damageMultiplier: timerData?.damageMultiplier,
+      userBattleCompleted: this.userBattleCompleted,
+      currentRound: this.currentRound
+    });
+    
     const timerElement = this.container.querySelector('#round-timer');
     if (timerElement) {
       const minutes = Math.floor(timerData.time / 60);
@@ -517,6 +531,7 @@ export class RoundsManager {
         const multiplierText = timerData.damageMultiplier > 1 ? ` (${(timerData.damageMultiplier * 100).toFixed(0)}% damage)` : '';
         
         if (this.userBattleCompleted) {
+          console.log('Timer Debug: Displaying "Others Fighting" with time:', timeString);
           timerElement.innerHTML = `<div class="timer-display completed">Your Battle Complete - Others Fighting: ${timeString}${multiplierText}</div>`;
         } else {
           timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
@@ -749,5 +764,15 @@ export class RoundsManager {
       clearTimeout(timeoutId);
     });
     this.backgroundMatchTimeouts = [];
+  }
+
+  ensureSingleTimerInstance() {
+    console.log('Timer Debug: Ensuring single timer instance');
+    if (this.timer && this.timer.isRunning) {
+      console.log('Timer Debug: Stopping existing running timer');
+      this.timer.stopTimer();
+    }
+    console.log('Timer Debug: Creating new Timer instance');
+    this.timer = new Timer();
   }
 }
