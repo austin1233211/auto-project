@@ -31,6 +31,7 @@ export class RoundsManager {
     this.artifactSystem = new ArtifactSystem();
     this.isSpecialRound = false;
     this.artifactSelectionShown = false;
+    this.isArtifactSelectionActive = false;
     this.isProcessingRoundResults = false;
     this.setupTimer();
   }
