@@ -127,9 +127,17 @@ export class CombatShop extends AbilitiesShop {
     if (this.onGoldChange) {
       this.onGoldChange(this.playerGold);
     }
+    
+    if (this.onAbilityPurchased) {
+      this.onAbilityPurchased();
+    }
   }
 
   setOnGoldChange(callback) {
     this.onGoldChange = callback;
+  }
+
+  setOnAbilityPurchased(callback) {
+    this.onAbilityPurchased = callback;
   }
 }

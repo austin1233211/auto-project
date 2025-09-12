@@ -517,8 +517,14 @@ export class RoundsManager {
       this.roundsShop.setOnGoldChange((newGold) => {
         if (userPlayer) {
           userPlayer.gold = newGold;
-          userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayersList();
+          this.updatePlayerHero();
+        }
+      });
+      
+      this.roundsShop.setOnAbilityPurchased(() => {
+        if (userPlayer) {
+          userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayerHero();
         }
       });
