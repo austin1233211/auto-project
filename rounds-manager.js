@@ -99,6 +99,12 @@ export class RoundsManager {
 
   startRound() {
     console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+    console.log('startRound() called from:', new Error().stack);
+    
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startRound()');
+      return;
+    }
     
     if (this.activePlayers.length <= 1) {
       this.endTournament();
@@ -123,6 +129,11 @@ export class RoundsManager {
   }
 
   startSimultaneousMatches() {
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startSimultaneousMatches()');
+      return;
+    }
+    
     const userMatch = this.currentMatches.find(match => 
       match.player1.name === "You" || match.player2.name === "You"
     );
@@ -259,6 +270,16 @@ export class RoundsManager {
     if (isUserMatch) {
       this.userBattleCompleted = true;
       this.currentMatchIndex++;
+      
+      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+        console.log(`User battle completed on artifact round ${this.currentRound}, showing artifact selection`);
+        this.artifactSelectionShown = true;
+        setTimeout(() => {
+          this.startArtifactRound();
+        }, 2000);
+        return; // Don't check round completion yet, artifact selection will handle progression
+      }
+      
       setTimeout(() => {
         this.checkRoundCompletion();
       }, 2000);
@@ -271,6 +292,11 @@ export class RoundsManager {
     const completedMatches = this.currentMatches.filter(match => match.completed).length;
     const totalMatches = this.currentMatches.length;
     console.log(`Round ${this.currentRound} completion check: ${completedMatches}/${totalMatches} matches completed`);
+    
+    if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
+      console.log(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
+      return;
+    }
     
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
@@ -302,13 +328,6 @@ export class RoundsManager {
     this.activePlayers = this.activePlayers.filter(player => player.playerHealth.currentHealth > 0);
 
     if (this.activePlayers.length > 1) {
-      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-        console.log(`Round ${this.currentRound} completed, showing artifact selection`);
-        this.artifactSelectionShown = true;
-        this.startArtifactRound();
-        return; // Don't increment round yet, artifact selection will handle it
-      }
-      
       this.currentRound++;
       this.artifactSelectionShown = false; // Reset for next artifact round
       
@@ -539,6 +558,11 @@ export class RoundsManager {
   }
 
   startInterRoundTimer() {
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startInterRoundTimer()');
+      return;
+    }
+    
     this.showRoundsShop();
     this.updateRoundsShopMoney();
     
@@ -580,6 +604,7 @@ export class RoundsManager {
 
   startArtifactRound() {
     this.isSpecialRound = true;
+    this.isArtifactSelectionActive = true;
     this.updateRoundDisplay();
     
     const combatContainer = this.container.querySelector('#battle-area');
@@ -625,6 +650,7 @@ export class RoundsManager {
     
     this.currentRound++;
     this.artifactSelectionShown = false;
+    this.isArtifactSelectionActive = false;
     
     setTimeout(() => {
       this.startInterRoundTimer();
