@@ -5,6 +5,10 @@ import { PlayerHealth } from './player-health.js';
 import { Timer } from './timer.js';
 import { Economy } from './economy.js';
 import { CombatShop } from './combat-shop-v2.js';
+import { MinionCombat } from './minion-combat.js';
+import { ArtifactsShop } from './artifacts-shop.js';
+import { EquipmentReward } from './equipment-reward.js';
+import { ArtifactSystem } from './artifacts.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -24,6 +28,9 @@ export class RoundsManager {
     this.roundsShop = null;
     this.roundsShopContainer = null;
     this.userBattleCompleted = false;
+    this.artifactSystem = new ArtifactSystem();
+    this.isSpecialRound = false;
+    this.artifactSelectionShown = false;
     this.setupTimer();
   }
 
@@ -91,11 +98,26 @@ export class RoundsManager {
   }
 
   startRound() {
+    console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+    console.log('startRound() called from:', new Error().stack);
+    
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startRound()');
+      return;
+    }
+    
     if (this.activePlayers.length <= 1) {
       this.endTournament();
       return;
     }
     
+    if ([5, 10, 15].includes(this.currentRound)) {
+      console.log(`Triggering minion round for round ${this.currentRound}`);
+      this.startMinionRound();
+      return;
+    }
+    
+    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.userBattleCompleted = false;
@@ -107,6 +129,11 @@ export class RoundsManager {
   }
 
   startSimultaneousMatches() {
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startSimultaneousMatches()');
+      return;
+    }
+    
     const userMatch = this.currentMatches.find(match => 
       match.player1.name === "You" || match.player2.name === "You"
     );
@@ -127,11 +154,15 @@ export class RoundsManager {
   }
 
   simulateBackgroundMatches(matches) {
-    matches.forEach(match => {
+    console.log(`Starting ${matches.length} background matches for round ${this.currentRound}`);
+    matches.forEach((match, index) => {
+      const delay = Math.random() * 2000 + 1000;
+      console.log(`Background match ${index + 1}: ${match.player1.name} vs ${match.player2.name} - delay: ${delay.toFixed(0)}ms`);
       setTimeout(() => {
+        console.log(`Completing background match: ${match.player1.name} vs ${match.player2.name}`);
         const result = this.simulateBattle(match.player1, match.player2);
         this.processBattleResult(match.player1, match.player2, result, false);
-      }, Math.random() * 2000 + 1000);
+      }, delay);
     });
   }
 
@@ -163,7 +194,7 @@ export class RoundsManager {
     this.combat = new Combat(combatContainer, this.heroStatsCard);
     
     this.combat.setOnBattleEnd((result) => {
-      this.processBattleResult(player1, player2, result);
+      this.endBattle(result, player1, player2);
     });
 
     this.combat.setOnMoneyChange((newMoney) => {
@@ -179,6 +210,15 @@ export class RoundsManager {
     if (this.heroStatsCard && player1.name === "You") {
       this.heroStatsCard.updateHero(player1.hero);
     }
+  }
+
+  endBattle(result, player1, player2) {
+    if ([5, 10, 15].includes(this.currentRound)) {
+      this.handleSpecialRoundResult(result);
+      return;
+    }
+    
+    this.processBattleResult(player1, player2, result);
   }
 
   processBattleResult(player1, player2, result, isUserMatch = true) {
@@ -230,6 +270,16 @@ export class RoundsManager {
     if (isUserMatch) {
       this.userBattleCompleted = true;
       this.currentMatchIndex++;
+      
+      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+        console.log(`User battle completed on artifact round ${this.currentRound}, showing artifact selection`);
+        this.artifactSelectionShown = true;
+        setTimeout(() => {
+          this.startArtifactRound();
+        }, 2000);
+        return; // Don't check round completion yet, artifact selection will handle progression
+      }
+      
       setTimeout(() => {
         this.checkRoundCompletion();
       }, 2000);
@@ -239,11 +289,23 @@ export class RoundsManager {
   }
 
   checkRoundCompletion() {
+    const completedMatches = this.currentMatches.filter(match => match.completed).length;
+    const totalMatches = this.currentMatches.length;
+    console.log(`Round ${this.currentRound} completion check: ${completedMatches}/${totalMatches} matches completed`);
+    
+    if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
+      console.log(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
+      return;
+    }
+    
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
+      console.log(`All matches completed for round ${this.currentRound}, processing results`);
       setTimeout(() => {
         this.processRoundResults();
       }, 1000);
+    } else {
+      console.log(`Still waiting for ${totalMatches - completedMatches} matches to complete`);
     }
   }
 
@@ -267,6 +329,7 @@ export class RoundsManager {
 
     if (this.activePlayers.length > 1) {
       this.currentRound++;
+      this.artifactSelectionShown = false; // Reset for next artifact round
       
       setTimeout(() => {
         this.startInterRoundTimer();
@@ -440,6 +503,10 @@ export class RoundsManager {
 
 
   initRoundsShop() {
+    if ([3, 8, 13].includes(this.currentRound)) {
+      return;
+    }
+    
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
     if (this.roundsShopContainer) {
       const userPlayer = this.players.find(p => p.name === "You");
@@ -451,9 +518,14 @@ export class RoundsManager {
         if (userPlayer) {
           userPlayer.gold = newGold;
           this.updatePlayersList();
-          if (this.heroStatsCard) {
-            this.heroStatsCard.refresh();
-          }
+          this.updatePlayerHero();
+        }
+      });
+      
+      this.roundsShop.setOnAbilityPurchased(() => {
+        if (userPlayer) {
+          userPlayer.hero = this.roundsShop.applyItemsToHero(userPlayer.hero);
+          this.updatePlayerHero();
         }
       });
       this.roundsShop.init();
@@ -461,6 +533,10 @@ export class RoundsManager {
   }
 
   showRoundsShop() {
+    if ([3, 8, 13].includes(this.currentRound)) {
+      return;
+    }
+    
     const shopToggle = this.container.querySelector('#rounds-shop-toggle');
     if (shopToggle) {
       shopToggle.style.display = 'block';
@@ -488,6 +564,11 @@ export class RoundsManager {
   }
 
   startInterRoundTimer() {
+    if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startInterRoundTimer()');
+      return;
+    }
+    
     this.showRoundsShop();
     this.updateRoundsShopMoney();
     
@@ -499,5 +580,131 @@ export class RoundsManager {
       this.hideRoundsShop();
       this.startRound();
     });
+  }
+
+  startMinionRound() {
+    console.log(`Starting minion round ${this.currentRound}`);
+    this.isSpecialRound = true;
+    this.updateRoundDisplay();
+    
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      console.log('Combat container found, creating MinionCombat');
+      const minionCombat = new MinionCombat(combatContainer, this.heroStatsCard);
+      
+      minionCombat.setOnBattleEnd((result) => {
+        this.handleMinionBattleResult(result);
+      });
+      
+      const userPlayer = this.players.find(p => p.name === "You");
+      if (userPlayer) {
+        console.log('User player found, initializing minion combat');
+        minionCombat.init(userPlayer.hero, userPlayer.gold, this.currentRound);
+      } else {
+        console.log('User player not found!');
+      }
+    } else {
+      console.log('Combat container not found!');
+    }
+  }
+
+  startArtifactRound() {
+    this.isSpecialRound = true;
+    this.isArtifactSelectionActive = true;
+    this.updateRoundDisplay();
+    
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      if (this.combat) {
+        this.combat.clearTimers();
+        this.combat = null;
+      }
+      
+      combatContainer.innerHTML = '';
+      
+      setTimeout(() => {
+        const artifactsShop = new ArtifactsShop(combatContainer, this.currentRound);
+        
+        artifactsShop.setOnArtifactSelected((artifact) => {
+          this.handleArtifactSelection(artifact);
+        });
+        
+        artifactsShop.init();
+      }, 100);
+    }
+  }
+
+  handleMinionBattleResult(result) {
+    const combatContainer = this.container.querySelector('#battle-area');
+    if (combatContainer) {
+      const equipmentReward = new EquipmentReward(combatContainer);
+      
+      equipmentReward.setOnEquipmentSelected((equipment) => {
+        this.handleEquipmentSelection(equipment);
+      });
+      
+      equipmentReward.init(result.playerWon);
+    }
+  }
+
+  handleArtifactSelection(artifact) {
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer) {
+      userPlayer.hero = this.artifactSystem.applyArtifactToHero(userPlayer.hero, artifact);
+      this.updatePlayerHero();
+    }
+    
+    this.currentRound++;
+    this.artifactSelectionShown = false;
+    this.isArtifactSelectionActive = false;
+    
+    setTimeout(() => {
+      this.startInterRoundTimer();
+    }, 3000);
+  }
+
+  handleEquipmentSelection(equipment) {
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer) {
+      if (!userPlayer.hero.equipment) {
+        userPlayer.hero.equipment = [];
+      }
+      userPlayer.hero.equipment.push(equipment);
+      
+      if (equipment.stat === 'health') {
+        userPlayer.hero.stats.health += equipment.value;
+      } else if (equipment.stat === 'attack') {
+        userPlayer.hero.stats.attack += equipment.value;
+      } else if (equipment.stat === 'speed') {
+        userPlayer.hero.stats.speed += equipment.value;
+      } else if (equipment.stat === 'armor') {
+        userPlayer.hero.stats.armor += equipment.value;
+      } else if (equipment.stat === 'magicDamageReduction') {
+        userPlayer.hero.stats.magicDamageReduction = (userPlayer.hero.stats.magicDamageReduction || 0) + equipment.value;
+      } else if (equipment.stat === 'physicalDamageAmplification') {
+        userPlayer.hero.stats.physicalDamageAmplification = (userPlayer.hero.stats.physicalDamageAmplification || 0) + equipment.value;
+      } else if (equipment.stat === 'magicDamageAmplification') {
+        userPlayer.hero.stats.magicDamageAmplification = (userPlayer.hero.stats.magicDamageAmplification || 0) + equipment.value;
+      } else if (equipment.stat === 'critChance') {
+        userPlayer.hero.stats.critChance = (userPlayer.hero.stats.critChance || 0) + equipment.value;
+      } else if (equipment.stat === 'evasionChance') {
+        userPlayer.hero.stats.evasionChance = (userPlayer.hero.stats.evasionChance || 0) + equipment.value;
+      }
+      
+      this.updatePlayerHero();
+    }
+    
+    this.processRoundResults();
+  }
+
+  handleSpecialRoundResult(result) {
+    this.processRoundResults();
+  }
+
+  updatePlayerHero() {
+    const userPlayer = this.players.find(p => p.name === "You");
+    if (userPlayer && this.heroStatsCard) {
+      this.heroStatsCard.updateHero(userPlayer.hero);
+    }
   }
 }

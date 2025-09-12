@@ -1,6 +1,6 @@
-import { ItemShop } from './item-shop.js';
+import { AbilitiesShop } from './abilities-shop.js';
 
-export class CombatShop extends ItemShop {
+export class CombatShop extends AbilitiesShop {
   constructor(container, combat, roundNumber = 1) {
     super(container, roundNumber);
     this.combat = combat;
@@ -18,7 +18,7 @@ export class CombatShop extends ItemShop {
     this.container.innerHTML = `
       <div class="combat-shop-widget">
         <div class="shop-header-mini">
-          <h3>🏪 Combat Shop</h3>
+          <h3>🏪 Abilities Shop</h3>
           <div class="player-gold-mini">💰 ${this.playerGold}</div>
           <button class="close-shop-btn" id="close-combat-shop">×</button>
         </div>
@@ -127,9 +127,17 @@ export class CombatShop extends ItemShop {
     if (this.onGoldChange) {
       this.onGoldChange(this.playerGold);
     }
+    
+    if (this.onAbilityPurchased) {
+      this.onAbilityPurchased();
+    }
   }
 
   setOnGoldChange(callback) {
     this.onGoldChange = callback;
+  }
+
+  setOnAbilityPurchased(callback) {
+    this.onAbilityPurchased = callback;
   }
 }
