@@ -26,6 +26,8 @@ io.on('connection', (socket) => {
   socket.on('requestTournament', (playerData) => {
     socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
     waitingQueueTournament.push(socket);
+    socket.emit('queueStatus', { mode: 'tournament', queued: waitingQueueTournament.length, needed: 8 });
+    broadcastQueueStatusTournament();
     tryCreateTournament();
   });
 
@@ -75,8 +77,8 @@ io.on('connection', (socket) => {
 
   socket.on('confirmRules', () => {});
 
-  socket.on('leaveRoom', () => leaveRoom(socket));
-  socket.on('disconnect', () => leaveRoom(socket));
+  socket.on('leaveRoom', () => { leaveRoom(socket); broadcastQueueStatusTournament(); });
+  socket.on('disconnect', () => { leaveRoom(socket); broadcastQueueStatusTournament(); });
 });
 
 function tryMatch1v1() {
@@ -117,6 +119,12 @@ function getPhase1v1(room) {
   const ready = players.every(p => p.isReady);
   if (!heroSelected || !ready) return 'waiting_for_ready';
   return 'starting_game';
+}
+function broadcastQueueStatusTournament() {
+  const payload = { mode: 'tournament', queued: waitingQueueTournament.length, needed: 8 };
+  waitingQueueTournament.forEach(s => {
+    s.emit('queueStatus', payload);
+  });
 }
 
 function checkStart1v1(roomId) {

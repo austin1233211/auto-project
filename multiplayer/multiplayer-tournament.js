@@ -29,6 +29,7 @@ export class MultiplayerTournament {
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
     this.client.on('tournamentEnd', (payload) => this.handleTournamentEnd(payload));
+    this.client.on('queueStatus', (qs) => this.updateQueueStatus(qs));
   }
 
   renderLobby() {
@@ -108,6 +109,13 @@ export class MultiplayerTournament {
     const phase = this.container.querySelector('#mt-phase');
     if (phase) {
       phase.textContent = payload.phase ? `Phase: ${payload.phase}` : '';
+    }
+  }
+ 
+  updateQueueStatus(qs) {
+    const phase = this.container.querySelector('#mt-phase');
+    if (phase && this.currentPhase === 'lobby') {
+      phase.textContent = `Waiting for players: ${qs.queued}/${qs.needed}`;
     }
   }
 

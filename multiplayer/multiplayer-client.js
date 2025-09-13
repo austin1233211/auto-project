@@ -19,6 +19,7 @@ export class MultiplayerClient {
     this.socket.on('matchAssign', (data) => this._emit('matchAssign', data));
     this.socket.on('roundComplete', (data) => this._emit('roundComplete', data));
     this.socket.on('tournamentEnd', (data) => this._emit('tournamentEnd', data));
+    this.socket.on('queueStatus', (data) => this._emit('queueStatus', data));
     this.socket.on('errorMessage', (msg) => this._emit('error', msg));
     this.socket.on('disconnect', () => this._emit('disconnected'));
   }
