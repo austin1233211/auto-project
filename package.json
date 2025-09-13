@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint *.js"
+    "lint": "eslint *.js",
+    "start:server": "npm --prefix server install && npm --prefix server run start"
   },
   "keywords": [],
   "author": "",

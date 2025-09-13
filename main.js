@@ -3,6 +3,8 @@ import { HeroSelection } from './hero-selection.js';
 import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
 import { HeroStatsCard } from './hero-stats-card.js';
+import { MultiplayerLobby } from './multiplayer/multiplayer-lobby.js';
+import { heroes } from './heroes.js';
 
 class AutoGladiators {
   constructor() {
@@ -20,6 +22,7 @@ class AutoGladiators {
     this.initPlayerHealth();
     this.initRounds();
     this.initHeroStatsCard();
+    this.multiplayerLobbyInitialized = false;
   }
 
   initGameModeSelection() {
@@ -28,7 +31,14 @@ class AutoGladiators {
 
     gameModeSelection.setOnModeSelected((mode) => {
       this.selectedMode = mode;
-      this.switchScreen('hero-selection');
+      if (mode.id === 'multiplayer') {
+        this.switchScreen('multiplayer-lobby');
+        if (!this.multiplayerLobbyInitialized) {
+          this.initMultiplayerLobby();
+        }
+      } else {
+        this.switchScreen('hero-selection');
+      }
     });
   }
 
@@ -94,6 +104,35 @@ class AutoGladiators {
 
   initHeroStatsCard() {
     this.heroStatsCard.init();
+  }
+
+  initMultiplayerLobby() {
+    const lobbyContainer = document.getElementById('multiplayer-lobby');
+    if (this.multiplayerLobbyInitialized) return;
+    const lobby = new MultiplayerLobby(lobbyContainer, ({ me, opponent }) => {
+      const myHero = heroes.find(h => h.id === (me.hero && me.hero.id ? me.hero.id : me.heroId || me.hero));
+      const oppHero = heroes.find(h => h.id === (opponent.hero && opponent.hero.id ? opponent.hero.id : opponent.heroId || opponent.hero));
+      const roundsContainer = document.getElementById('rounds-screen');
+      this.switchScreen('rounds-screen');
+      const rm = new RoundsManager(roundsContainer, this.playerHealth, this.heroStatsCard);
+      rm.players = [
+        { id: 1, name: 'You', hero: myHero, playerHealth: this.playerHealth, isEliminated: false, wins:0, losses:0, gold:300, consecutiveWins:0, consecutiveLosses:0 },
+        { id: 2, name: opponent.name || 'Opponent', hero: oppHero, playerHealth: new PlayerHealth(), isEliminated: false, wins:0, losses:0, gold:300, consecutiveWins:0, consecutiveLosses:0 }
+      ];
+      rm.activePlayers = [...rm.players];
+      rm.ghostPlayers = [];
+      rm.currentRound = 1;
+      rm.render();
+      rm.startBattle(rm.players[0], rm.players[1]);
+      rm.combat.setOnBattleEnd((result) => {
+        rm.endBattle(result, rm.players[0], rm.players[1]);
+        setTimeout(() => {
+          this.switchScreen('game-mode-selection');
+        }, 3000);
+      });
+    });
+    lobby.init();
+    this.multiplayerLobbyInitialized = true;
   }
 
   startTournament() {

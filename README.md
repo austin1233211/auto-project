@@ -136,6 +136,23 @@ The game is built with mobile-first responsive design:
 
 ## 🚀 Deployment
 
+### Multiplayer (1v1) Setup
+
+Server:
+- cd server
+- npm install
+- npm start
+
+Client:
+- From repo root, serve the static files:
+  - npx serve . (or) python3 -m http.server 8080
+- Open two browser tabs to the served URL
+- Select Multiplayer mode, pick a hero in both tabs, click Ready
+- Battle will start when both players are ready
+
+Config:
+- To point to a different server URL, set window.GAME_SERVER_URL in the browser console before entering Multiplayer.
+
 The project is deployment-ready with a build system:
 
 ```bash

@@ -19,9 +19,10 @@ export class GameModeSelection {
         <h1 class="game-mode-selection-title">Choose Game Mode</h1>
         
         <div class="game-modes-grid">
-          ${this.renderGameModeCard('casual', '⚔️', 'Casual', 'Relaxed gameplay with no ranking pressure', true)}
-          ${this.renderGameModeCard('ranked', '🏆', 'Ranked', 'Competitive matches that affect your ranking', false)}
-          ${this.renderGameModeCard('practice', '🎯', 'Practice', 'Train against AI opponents', false)}
+          ${this.renderGameModeCard('casual', '⚔️', 'Single Player', 'Play tournament vs AI opponents', true)}
+          ${this.renderGameModeCard('multiplayer', '👥', 'Multiplayer (1v1)', 'Play against a real player', true)}
+          ${this.renderGameModeCard('ranked', '🏆', 'Ranked', 'Competitive matches (coming soon)', false)}
+          ${this.renderGameModeCard('practice', '🎯', 'Practice', 'Train against AI opponents (coming soon)', false)}
         </div>
         
         <div class="game-mode-details empty">
