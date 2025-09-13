@@ -19,9 +19,11 @@ export class GameModeSelection {
         <h1 class="game-mode-selection-title">Choose Game Mode</h1>
         
         <div class="game-modes-grid">
-          ${this.renderGameModeCard('casual', '⚔️', 'Casual', 'Relaxed gameplay with no ranking pressure', true)}
-          ${this.renderGameModeCard('ranked', '🏆', 'Ranked', 'Competitive matches that affect your ranking', false)}
-          ${this.renderGameModeCard('practice', '🎯', 'Practice', 'Train against AI opponents', false)}
+          ${this.renderGameModeCard('casual', '⚔️', 'Single Player', 'Play tournament vs AI opponents', true)}
+          ${this.renderGameModeCard('multiplayer', '👥', 'Multiplayer (1v1)', 'Play against a real player', true)}
+          ${this.renderGameModeCard('multiplayer-tournament', '👥', 'Multiplayer Tournament', '8 players, synchronized rounds', true)}
+          ${this.renderGameModeCard('ranked', '🏆', 'Ranked', 'Competitive matches (coming soon)', false)}
+          ${this.renderGameModeCard('practice', '🎯', 'Practice', 'Train against AI opponents (coming soon)', false)}
         </div>
         
         <div class="game-mode-details empty">
@@ -55,10 +57,24 @@ export class GameModeSelection {
         name: 'Casual Mode',
         description: 'Perfect for learning the game mechanics and trying different strategies without pressure.',
         features: ['No ranking system', 'Relaxed gameplay', 'Great for beginners']
+      },
+      'multiplayer': {
+        name: 'Multiplayer (1v1)',
+        description: 'Face off against a single real opponent.',
+        features: ['Head-to-head battles', 'Quick matchmaking']
+      },
+      'multiplayer-tournament': {
+        name: 'Multiplayer Tournament',
+        description: '8 real players in synchronized rounds. Server-coordinated matches and timers.',
+        features: ['8-player lobby', 'Synchronized rounds', 'Server-driven pairings']
       }
     };
 
-    const details = modeDetails[mode.id];
+    const details = modeDetails[mode.id] || {
+      name: 'Mode',
+      description: 'Play this mode.',
+      features: []
+    };
     return `
       <div class="selected-mode-name">${details.name}</div>
       <div class="selected-mode-description">${details.description}</div>
