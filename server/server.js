@@ -252,7 +252,7 @@ function checkStartTournament(roomId) {
       const r = rooms.get(roomId);
       if (!r) return;
       Array.from(r.players.values()).forEach(p => {
-        if (!p.heroId) p.heroId = 1;
+        if (!p.heroId) p.heroId = 'warrior';
         if (!p.isReady) p.isReady = true;
       });
       broadcastLobby(roomId);
