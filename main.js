@@ -4,6 +4,7 @@ import { PlayerHealth } from './player-health.js';
 import { RoundsManager } from './rounds-manager.js';
 import { HeroStatsCard } from './hero-stats-card.js';
 import { MultiplayerLobby } from './multiplayer/multiplayer-lobby.js';
+import { MultiplayerTournament } from './multiplayer/multiplayer-tournament.js';
 import { heroes } from './heroes.js';
 
 class AutoGladiators {
@@ -35,6 +36,11 @@ class AutoGladiators {
         this.switchScreen('multiplayer-lobby');
         if (!this.multiplayerLobbyInitialized) {
           this.initMultiplayerLobby();
+        }
+      } else if (mode.id === 'multiplayer-tournament') {
+        this.switchScreen('multiplayer-tournament');
+        if (!this.multiplayerTournamentInitialized) {
+          this.initMultiplayerTournament();
         }
       } else {
         this.switchScreen('hero-selection');
@@ -133,6 +139,16 @@ class AutoGladiators {
     });
     lobby.init();
     this.multiplayerLobbyInitialized = true;
+  initMultiplayerTournament() {
+    const container = document.getElementById('multiplayer-tournament');
+    if (this.multiplayerTournamentInitialized) return;
+    const mt = new MultiplayerTournament(container, () => {
+      this.switchScreen('game-mode-selection');
+    });
+    mt.init();
+    this.multiplayerTournamentInitialized = true;
+  }
+
   }
 
   startTournament() {
