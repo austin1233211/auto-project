@@ -77,7 +77,7 @@ export class MultiplayerTournament {
     this.container.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-id]');
       if (btn && btn.dataset && btn.dataset.id) {
-        const heroId = parseInt(btn.dataset.id, 10);
+        const heroId = btn.dataset.id;
         this.selectedHero = heroes.find(h => h.id === heroId);
         if (this.selectedHero) {
           this.client.selectHero(this.selectedHero);
