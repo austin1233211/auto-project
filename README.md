@@ -11,31 +11,48 @@ A standalone auto-battler game inspired by Dota 2's Auto Gladiators arcade mode.
 Auto Gladiators is being built piece by piece with the following planned components:
 
 ### ✅ Completed Components
-- **Hero Selection** - Choose from 6 unique heroes with different stats and abilities
+- Hero Selection - Choose from 6 unique heroes with different stats and abilities
+- Combat System - Simultaneous auto-combat with mana, abilities, crit/evasion, and status effects
+- Tournament/Rounds Manager - Simultaneous matches with background simulation and inter-round buffer
+- Player Health System - Global HP with loss streak logic and elimination
+- Economy/Money System - Round rewards and shop spending
+- Combat Shop - Purchase abilities during combat
+- Artifacts & Equipment Rewards - Special rounds with selections that modify stats
+- Hero Stats Card - Live-updating hero stats display
+- Minion Rounds - Special PvE rounds
 
 ### 🚧 Planned Components
-- **Combat System** - Automated 1v1 battles between heroes
-- **Shop/Upgrade System** - Purchase abilities, items, and relics between rounds
-- **Economy System** - Point wagering and rewards
-- **Sects System** - Hero factions with unique bonuses
-- **Tournament Mode** - Multiple rounds with progression
+- Sects/Factions - Hero factions with unique bonuses
+- Additional abilities/items/artifacts and balance
+- Multiplayer backend integration
+- Audio/visual polish and UX refinements
 
 ## 🏗️ Architecture
 
 The project uses a modular file structure with separate components:
 
 ```
-auto-gladiators/
-├── index.html              # Main HTML entry point
-├── js/
-│   ├── main.js             # Game initialization and screen management
-│   ├── hero-selection.js   # Hero selection component
-│   └── [future components] # Combat, shop, etc.
-├── styles/
-│   └── main.css            # Responsive CSS with mobile-first design
-├── data/
-│   └── heroes.js           # Hero definitions and stats
-└── build/                  # Deployment build directory
+auto-project/
+├── index.html
+├── main.css
+├── main.js
+├── game-mode-selection.js
+├── hero-selection.js
+├── rounds-manager.js
+├── combat.js
+├── abilities.js
+├── stats-calculator.js
+├── player-health.js
+├── hero-stats-card.js
+├── economy.js
+├── combat-shop-v2.js
+├── artifacts.js
+├── artifacts-shop.js
+├── equipment-reward.js
+├── minion-combat.js
+├── timer.js
+├── debug-tools.js
+└── heroes.js
 ```
 
 ## 🦸 Heroes
@@ -62,10 +79,11 @@ Each hero has unique:
 ## 🎯 Game Mechanics (Planned)
 
 ### Combat System
-- Automated 1v1 battles
-- Turn-based with real-time animations
-- Ability cooldowns and timing
-- Damage calculations with armor/resistance
+- Automated 1v1 simultaneous combat (not turn-based)
+- Separate timers for each hero’s attacks based on speed
+- Mana system with regeneration and automatic ultimate trigger at full mana
+- Status effects processing and real-time health/mana UI updates
+- Damage calculations with armor/resistance, crit and evasion
 
 ### Progression System
 - Earn points from victories
@@ -180,9 +198,9 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Current Status**: Hero Selection Component Complete
-**Next Component**: Combat System
+**Current Status**: Hero Selection, Combat, Tournament/Rounds, Shops, Economy, Player Health, Hero Stats Card implemented
+**Next Focus**: Content expansion (abilities/items/artifacts), Sects/Factions, polish and multiplayer groundwork
 **Live Demo**: https://dota-gladius-app-l00kly3e.devinapps.com
 
 ---
-*Last updated: August 29, 2025*
+*Last updated: September 13, 2025*
