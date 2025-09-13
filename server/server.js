@@ -183,6 +183,7 @@ function tryCreateTournament() {
     }
     room.activePlayers = Array.from(room.players.values());
     broadcastLobby(roomId);
+    checkStartTournament(roomId);
   }
 }
 
