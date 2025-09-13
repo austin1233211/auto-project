@@ -102,7 +102,6 @@ export class RoundsManager {
 
   startRound() {
     console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
-    console.log('startRound() called from:', new Error().stack);
     
     if (this.isArtifactSelectionActive) {
       console.log('Artifact selection is active, preventing startRound()');
@@ -115,13 +114,11 @@ export class RoundsManager {
     }
     
     if ([5, 10, 15].includes(this.currentRound)) {
-      console.log(`Triggering minion round for round ${this.currentRound}`);
       this.startMinionRound();
       return;
     }
     
     if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-      console.log(`Triggering artifact round for round ${this.currentRound}`);
       this.artifactSelectionShown = true;
       this.startArtifactRound();
       return;
@@ -171,16 +168,13 @@ export class RoundsManager {
     }
     
     debugTools.startProcess(`bg_matches_round_${this.currentRound}`, `${matches.length} background matches for round ${this.currentRound}`, 5000);
-    console.log(`Starting ${matches.length} background matches for round ${this.currentRound}`);
     
     matches.forEach((match, index) => {
       const delay = Math.random() * 2000 + 1000;
-      console.log(`Background match ${index + 1}: ${match.player1.name} vs ${match.player2.name} - delay: ${delay.toFixed(0)}ms`);
       
       const matchId = debugTools.monitorBackgroundMatch(index, match.player1.name, match.player2.name, delay);
       
       setTimeout(() => {
-        console.log(`Completing background match: ${match.player1.name} vs ${match.player2.name}`);
         const result = this.simulateBattle(match.player1, match.player2);
         this.processBattleResult(match.player1, match.player2, result, false);
         debugTools.endProcess(matchId);
@@ -335,7 +329,6 @@ export class RoundsManager {
   checkRoundCompletion() {
     const completedMatches = this.currentMatches.filter(match => match.completed).length;
     const totalMatches = this.currentMatches.length;
-    console.log(`Round ${this.currentRound} completion check: ${completedMatches}/${totalMatches} matches completed`);
     
     if (this.isProcessingRoundResults) {
       console.log(`Already processing round results for round ${this.currentRound}, skipping`);
