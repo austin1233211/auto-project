@@ -77,11 +77,13 @@ export class MultiplayerTournament {
     this.container.addEventListener('click', (e) => {
       const btn = e.target.closest('.hero-pick');
       if (btn) {
-        const heroId = btn.dataset.id;
+        const heroId = parseInt(btn.dataset.id, 10);
         this.selectedHero = heroes.find(h => h.id === heroId);
-        this.client.selectHero(this.selectedHero);
-        const readyBtn = this.container.querySelector('#mt-ready');
-        if (readyBtn) readyBtn.disabled = false;
+        if (this.selectedHero) {
+          this.client.selectHero(this.selectedHero);
+          const readyBtn = this.container.querySelector('#mt-ready');
+          if (readyBtn) readyBtn.disabled = false;
+        }
       }
     });
     const readyBtn = this.container.querySelector('#mt-ready');
