@@ -230,13 +230,31 @@ export class Combat {
   initializeCombatTimers() {
     this.clearTimers();
     
-    this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
-    this.addToLog(`Battle begins! Both heroes attack simultaneously based on their speed.`);
+    try {
+      this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
+      this.addToLog(`Battle begins! Both heroes attack simultaneously based on their speed.`);
+    } catch (error) {
+      console.error('=== COMBAT ERROR: hero.name access in battle initialization ===');
+      console.error('Error:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('Player hero:', this.playerHero);
+      console.error('Enemy hero:', this.enemyHero);
+      throw error;
+    }
     
     const playerAttackInterval = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
     const enemyAttackInterval = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
     
-    this.addToLog(`${this.playerHero.name} attacks ${this.playerHero.effectiveStats.speed.toFixed(2)} times/sec | ${this.enemyHero.name} attacks ${this.enemyHero.effectiveStats.speed.toFixed(2)} times/sec`);
+    try {
+      this.addToLog(`${this.playerHero.name} attacks ${this.playerHero.effectiveStats.speed.toFixed(2)} times/sec | ${this.enemyHero.name} attacks ${this.enemyHero.effectiveStats.speed.toFixed(2)} times/sec`);
+    } catch (error) {
+      console.error('=== COMBAT ERROR: hero.name access in attack speed log ===');
+      console.error('Error:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('Player hero:', this.playerHero);
+      console.error('Enemy hero:', this.enemyHero);
+      throw error;
+    }
     
     this.playerAttackTimer = setInterval(() => {
       if (!this.isGameOver) {
@@ -273,7 +291,15 @@ export class Combat {
       
       if (Math.random() < target.effectiveStats.evasionChance) {
         finalDamage = Math.round(finalDamage * (1 - target.effectiveStats.evasionDamageReduction));
-        this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
+        try {
+          this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
+        } catch (error) {
+          console.error('=== COMBAT ERROR: target.name access in evasion ===');
+          console.error('Error:', error.message);
+          console.error('Stack:', error.stack);
+          console.error('Target object:', target);
+          throw error;
+        }
       }
       
       let totalCritChance = attacker.effectiveStats.critChance;
@@ -283,9 +309,25 @@ export class Combat {
       
       if (Math.random() < totalCritChance) {
         finalDamage = Math.round(finalDamage * attacker.effectiveStats.critDamage);
-        this.addToLog(`${attacker.name} attacks with a critical hit for ${finalDamage} damage!`);
+        try {
+          this.addToLog(`${attacker.name} attacks with a critical hit for ${finalDamage} damage!`);
+        } catch (error) {
+          console.error('=== COMBAT ERROR: attacker.name access in critical hit ===');
+          console.error('Error:', error.message);
+          console.error('Stack:', error.stack);
+          console.error('Attacker object:', attacker);
+          throw error;
+        }
       } else {
-        this.addToLog(`${attacker.name} attacks for ${finalDamage} damage!`);
+        try {
+          this.addToLog(`${attacker.name} attacks for ${finalDamage} damage!`);
+        } catch (error) {
+          console.error('=== COMBAT ERROR: attacker.name access in normal attack ===');
+          console.error('Error:', error.message);
+          console.error('Stack:', error.stack);
+          console.error('Attacker object:', attacker);
+          throw error;
+        }
       }
       
       damage = finalDamage;
@@ -385,9 +427,25 @@ export class Combat {
     this.clearTimers();
     
     if (result === 'victory') {
-      this.addToLog(`🎉 Victory! ${this.playerHero.name} wins the battle!`);
+      try {
+        this.addToLog(`🎉 Victory! ${this.playerHero.name} wins the battle!`);
+      } catch (error) {
+        console.error('=== COMBAT ERROR: playerHero.name access in victory ===');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Player hero:', this.playerHero);
+        throw error;
+      }
     } else {
-      this.addToLog(`💀 Defeat! ${this.enemyHero.name} wins the battle!`);
+      try {
+        this.addToLog(`💀 Defeat! ${this.enemyHero.name} wins the battle!`);
+      } catch (error) {
+        console.error('=== COMBAT ERROR: enemyHero.name access in defeat ===');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Enemy hero:', this.enemyHero);
+        throw error;
+      }
     }
 
     const battleStatus = this.container.querySelector('#battle-status');

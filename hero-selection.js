@@ -1,4 +1,3 @@
-import { heroes } from './heroes.js';
 import { Timer } from './timer.js';
 
 export class HeroSelection {
@@ -7,16 +6,67 @@ export class HeroSelection {
     this.selectedHero = null;
     this.onHeroSelected = null;
     this.displayedHeroes = [];
+    this.allHeroes = [];
     this.timer = new Timer();
     this.timerActive = false;
     this.setupTimer();
     this.init();
   }
 
-  init() {
+  async init() {
+    await this.loadHeroes();
     this.render();
     this.attachEventListeners();
     this.startSelectionTimer();
+  }
+
+  async loadHeroes() {
+    try {
+      const response = await apiClient.getHeroes();
+      this.allHeroes = response.heroes.map(hero => ({
+        id: hero.id,
+        name: hero.name,
+        class: hero.class,
+        type: hero.class,
+        avatar: hero.avatar,
+        description: `A ${hero.class} warrior with balanced combat abilities.`,
+        stats: {
+          health: hero.stats.health,
+          attack: hero.stats.attack,
+          armor: hero.stats.armor,
+          speed: hero.stats.speed,
+          critChance: hero.stats.critChance,
+          evasionChance: hero.stats.evasionChance
+        },
+        abilities: {
+          passive: {
+            name: hero.passiveAbility.name,
+            description: hero.passiveAbility.description
+          },
+          ultimate: {
+            name: hero.ultimateAbility.name,
+            description: hero.ultimateAbility.description
+          }
+        }
+      }));
+    } catch (error) {
+      console.error('Failed to load heroes:', error);
+      this.allHeroes = [];
+    }
+  }
+
+  getHeroAvatar(heroClass) {
+    const avatars = {
+      'Warrior': '⚔️',
+      'Mage': '🔮',
+      'Archer': '🏹',
+      'Assassin': '🗡️',
+      'Paladin': '🛡️',
+      'Berserker': '🪓',
+      'Necromancer': '💀',
+      'Druid': '🌿'
+    };
+    return avatars[heroClass] || '⚔️';
   }
 
   render() {
@@ -86,17 +136,27 @@ export class HeroSelection {
   }
 
   renderHeroDetails(hero) {
+    if (!hero) {
+      console.error('renderHeroDetails called with undefined hero');
+      return '<div class="error">Hero data not available</div>';
+    }
+    
+    if (!hero.name) {
+      console.error('Hero object missing name property:', hero);
+      return '<div class="error">Hero name not available</div>';
+    }
+    
     return `
       <div class="selected-hero-name">${hero.name}</div>
-      <div class="selected-hero-description">${hero.description}</div>
+      <div class="selected-hero-description">${hero.description || 'No description available'}</div>
       <div class="selected-hero-abilities">
         <div class="ability">
-          <div class="ability-name">Passive: ${hero.abilities.passive.name}</div>
-          <div class="ability-description">${hero.abilities.passive.description}</div>
+          <div class="ability-name">Passive: ${hero.abilities?.passive?.name || 'Unknown'}</div>
+          <div class="ability-description">${hero.abilities?.passive?.description || 'No description'}</div>
         </div>
         <div class="ability">
-          <div class="ability-name">Ultimate: ${hero.abilities.ultimate.name}</div>
-          <div class="ability-description">${hero.abilities.ultimate.description}</div>
+          <div class="ability-name">Ultimate: ${hero.abilities?.ultimate?.name || 'Unknown'}</div>
+          <div class="ability-description">${hero.abilities?.ultimate?.description || 'No description'}</div>
         </div>
       </div>
     `;
@@ -118,15 +178,31 @@ export class HeroSelection {
   }
 
   selectHero(heroId) {
+    console.log('=== HERO SELECTION DEBUG ===');
+    console.log('Selecting hero with ID:', heroId);
+    console.log('Available heroes:', this.displayedHeroes.map(h => ({ id: h.id, name: h.name })));
+    
     const previousSelected = this.container.querySelector('.hero-card.selected');
     if (previousSelected) {
       previousSelected.classList.remove('selected');
     }
 
     const heroCard = this.container.querySelector(`[data-hero-id="${heroId}"]`);
+    if (!heroCard) {
+      console.error('Hero card not found for ID:', heroId);
+      return;
+    }
     heroCard.classList.add('selected');
 
     this.selectedHero = this.displayedHeroes.find(hero => hero.id === heroId);
+    
+    if (!this.selectedHero) {
+      console.error('Hero not found in displayedHeroes for ID:', heroId);
+      console.error('Available hero IDs:', this.displayedHeroes.map(h => h.id));
+      return;
+    }
+    
+    console.log('Selected hero:', this.selectedHero);
 
     const detailsContainer = this.container.querySelector('.hero-details');
     detailsContainer.classList.remove('empty');
@@ -155,7 +231,7 @@ export class HeroSelection {
   }
 
   getRandomHeroes(count) {
-    const shuffled = [...heroes].sort(() => Math.random() - 0.5);
+    const shuffled = [...this.allHeroes].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count).map((hero, index) => ({
       ...hero,
       displayIndex: index,
@@ -170,7 +246,7 @@ export class HeroSelection {
 
     const currentHeroIds = this.displayedHeroes.map(h => h.id);
     
-    const availableHeroes = heroes.filter(hero => !currentHeroIds.includes(hero.id));
+    const availableHeroes = this.allHeroes.filter(hero => !currentHeroIds.includes(hero.id));
     
     if (availableHeroes.length > 0) {
       const randomHero = availableHeroes[Math.floor(Math.random() * availableHeroes.length)];
@@ -254,6 +330,12 @@ export class HeroSelection {
           notification.parentNode.removeChild(notification);
         }
       }, 3000);
+      
+      if (this.onTournamentStart) {
+        setTimeout(() => {
+          this.onTournamentStart();
+        }, 1000);
+      }
     }
     this.timerActive = false;
   }

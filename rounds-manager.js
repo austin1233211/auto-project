@@ -1,4 +1,3 @@
-import { heroes } from './heroes.js';
 import { Combat } from './combat.js';
 import { StatsCalculator } from './stats-calculator.js';
 import { PlayerHealth } from './player-health.js';
@@ -14,6 +13,8 @@ import { debugTools } from './debug-tools.js';
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
     this.container = container;
+    this.tournament = null;
+    this.currentTournament = null;
     this.players = [];
     this.currentRound = 1;
     this.activePlayers = [];
@@ -37,10 +38,114 @@ export class RoundsManager {
     this.setupTimer();
   }
 
-  init(userHero = null) {
-    this.initializePlayers(userHero);
+  async init(userHero = null, tournament = null) {
+    this.currentTournament = tournament;
+    this.userHero = userHero;
+    
+    if (this.players.length === 0) {
+      await this.loadTournamentState();
+    }
+    
     this.render();
     this.startRound();
+  }
+
+  getHeroAvatar(heroClass) {
+    const avatars = {
+      'Warrior': '⚔️',
+      'Mage': '🔮',
+      'Archer': '🏹',
+      'Assassin': '🗡️',
+      'Paladin': '🛡️',
+      'Berserker': '🪓',
+      'Necromancer': '💀',
+      'Druid': '🌿',
+      'Intelligence': '🔮',
+      'Agility': '🏹',
+      'Strength': '⚔️'
+    };
+    return avatars[heroClass] || '⚔️';
+  }
+
+  async loadTournamentState() {
+    console.log('=== loadTournamentState called ===');
+    try {
+      if (this.currentTournament) {
+        console.log('=== Current Tournament ===', this.currentTournament);
+        const tournamentData = await apiClient.getTournament(this.currentTournament.id);
+        console.log('=== Server Tournament Data ===', tournamentData);
+        this.tournament = tournamentData.tournament;
+        
+        if (tournamentData.tournament && tournamentData.tournament.players) {
+          console.log('=== Server Players Data ===', tournamentData.tournament.players);
+          console.log('=== First Player Structure ===', tournamentData.tournament.players[0]);
+        }
+        
+        this.players = (tournamentData.tournament && tournamentData.tournament.players || []).map(serverPlayer => {
+          console.log('=== Mapping Server Player ===', serverPlayer);
+          const isCurrentUser = serverPlayer.username === 'testuser'; // Mark current user
+          const mappedPlayer = {
+            id: serverPlayer.id || serverPlayer.player_id,
+            name: isCurrentUser ? 'You' : (serverPlayer.username || 'Player'), // Use "You" for current user
+            hero: {
+              name: serverPlayer.hero_name || 'Unknown Hero',
+              class: serverPlayer.hero_class || 'Unknown',
+              avatar: this.getHeroAvatar(serverPlayer.hero_class || 'Unknown'),
+              stats: {
+                health: parseFloat(serverPlayer.base_health) || 100,
+                attack: parseFloat(serverPlayer.base_attack) || 25,
+                armor: parseFloat(serverPlayer.base_armor) || 0,
+                speed: parseFloat(serverPlayer.base_speed) || 1.0,
+                critChance: 0.05,
+                critDamage: 1.5,
+                evasionChance: 0.05,
+                evasionDamageReduction: 0.5,
+                magicDamageReduction: 0,
+                physicalDamageAmplification: 0,
+                magicDamageAmplification: 0,
+                manaRegeneration: 0,
+                attackSpeed: 0
+              },
+              abilities: {
+                passive: {
+                  name: serverPlayer.passive_ability_name || 'Unknown',
+                  description: 'Passive ability'
+                },
+                ultimate: {
+                  name: serverPlayer.ultimate_ability_name || 'Unknown',
+                  description: 'Ultimate ability'
+                }
+              }
+            },
+            playerHealth: {
+              currentHealth: serverPlayer.current_health || 50,
+              maxHealth: serverPlayer.max_health || 50
+            },
+            isEliminated: serverPlayer.is_eliminated || false,
+            wins: serverPlayer.consecutive_wins || 0,
+            losses: serverPlayer.consecutive_losses || 0,
+            gold: serverPlayer.gold || 300,
+            consecutiveWins: serverPlayer.consecutive_wins || 0,
+            consecutiveLosses: serverPlayer.consecutive_losses || 0,
+            isCurrentUser: isCurrentUser
+          };
+          console.log('=== Mapped Player ===', mappedPlayer);
+          return mappedPlayer;
+        });
+        
+        console.log('=== Final Players Array ===', this.players);
+        
+        this.currentRound = this.tournament.current_round || 1;
+        this.activePlayers = this.players.filter(p => !p.isEliminated);
+        
+        const matchesData = await apiClient.getMatches(this.currentTournament.id);
+        this.currentMatches = matchesData.matches || [];
+      } else {
+        console.log('=== No current tournament ===');
+      }
+    } catch (error) {
+      console.error('Failed to load tournament state:', error);
+    }
   }
 
   initializePlayers(userHero = null) {
@@ -73,9 +178,28 @@ export class RoundsManager {
   }
 
   generateMatches() {
-    const shuffled = [...this.activePlayers].sort(() => Math.random() - 0.5);
+    console.log('=== generateMatches called ===');
+    console.log('=== this.activePlayers ===', this.activePlayers);
+    console.log('=== this.activePlayers length ===', this.activePlayers.length);
+    if (this.activePlayers.length > 0) {
+      console.log('=== First active player ===', this.activePlayers[0]);
+    }
     
-    const userPlayerIndex = shuffled.findIndex(player => player.name === "You");
+    const shuffled = [...this.activePlayers].sort(() => Math.random() - 0.5);
+    console.log('=== shuffled array ===', shuffled);
+    
+    const userPlayerIndex = shuffled.findIndex(player => {
+      console.log('=== Checking player in findIndex ===', player);
+      try {
+        return player && player.name && (player.name === "You" || player.name === "testuser" || player.isCurrentUser);
+      } catch (error) {
+        console.error('=== ERROR IN FINDINDEX PLAYER CHECK ===');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Player object:', player);
+        throw error;
+      }
+    });
     if (userPlayerIndex > 0) {
       [shuffled[0], shuffled[userPlayerIndex]] = [shuffled[userPlayerIndex], shuffled[0]];
     }
@@ -88,69 +212,128 @@ export class RoundsManager {
     }
     
     for (let i = 0; i < shuffled.length; i += 2) {
-      if (shuffled[i + 1]) {
-        matches.push({
-          player1: shuffled[i],
-          player2: shuffled[i + 1],
+      try {
+        if (shuffled[i + 1] && shuffled[i] && shuffled[i].name && shuffled[i + 1].name) {
+          matches.push({
+            player1: shuffled[i],
+            player2: shuffled[i + 1],
           winner: null,
           completed: false
         });
+        }
+      } catch (error) {
+        console.error('=== ERROR IN MATCH GENERATION LOOP ===');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('i:', i);
+        console.error('shuffled[i]:', shuffled[i]);
+        console.error('shuffled[i + 1]:', shuffled[i + 1]);
+        throw error;
       }
     }
     return matches;
   }
 
   startRound() {
-    console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
-    console.log('startRound() called from:', new Error().stack);
-    
-    if (this.isArtifactSelectionActive) {
-      console.log('Artifact selection is active, preventing startRound()');
-      return;
+    try {
+      console.log('=== START ROUND DEBUG ===');
+      console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+      console.log('startRound() called from:', new Error().stack);
+      console.log('this.activePlayers:', this.activePlayers);
+      console.log('this.players:', this.players);
+      console.log('this.isArtifactSelectionActive:', this.isArtifactSelectionActive);
+      
+      if (this.isArtifactSelectionActive) {
+        console.log('Artifact selection is active, preventing startRound()');
+        return;
+      }
+      
+      if (this.activePlayers.length <= 1) {
+        console.log('=== ENDING TOURNAMENT - NOT ENOUGH PLAYERS ===');
+        this.endTournament();
+        return;
+      }
+      
+      if ([5, 10, 15].includes(this.currentRound)) {
+        console.log(`Triggering minion round for round ${this.currentRound}`);
+        this.startMinionRound();
+        return;
+      }
+      
+      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+        console.log(`Triggering artifact round for round ${this.currentRound}`);
+        this.artifactSelectionShown = true;
+        this.startArtifactRound();
+        return;
+      }
+      
+      console.log('=== ABOUT TO SET SPECIAL ROUND FLAG ===');
+      this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+      console.log('isSpecialRound set to:', this.isSpecialRound);
+      
+      console.log('=== ABOUT TO GENERATE MATCHES ===');
+      this.currentMatches = this.generateMatches();
+      console.log('Generated matches:', this.currentMatches);
+      
+      console.log('=== ABOUT TO SET MATCH INDEX ===');
+      this.currentMatchIndex = 0;
+      this.userBattleCompleted = false;
+      this.isProcessingRoundResults = false; // Reset flag for new round
+      console.log('Match index and flags set successfully');
+      
+      console.log('=== ABOUT TO UPDATE ROUND DISPLAY ===');
+      this.updateRoundDisplay();
+      console.log('Round display updated successfully');
+      
+      console.log('=== ABOUT TO START TIMER BUFFER ===');
+      this.timer.startBuffer(() => {
+        console.log('=== TIMER BUFFER CALLBACK TRIGGERED ===');
+        this.startSimultaneousMatches();
+      });
+      console.log('Timer buffer started successfully');
+      
+      console.log('=== START ROUND COMPLETED SUCCESSFULLY ===');
+    } catch (error) {
+      console.error('=== START ROUND ERROR ===');
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('Current round:', this.currentRound);
+      console.error('Active players:', this.activePlayers);
+      console.error('All players:', this.players);
+      console.error('Current matches:', this.currentMatches);
+      console.error('Timer object:', this.timer);
+      throw error;
     }
-    
-    if (this.activePlayers.length <= 1) {
-      this.endTournament();
-      return;
-    }
-    
-    if ([5, 10, 15].includes(this.currentRound)) {
-      console.log(`Triggering minion round for round ${this.currentRound}`);
-      this.startMinionRound();
-      return;
-    }
-    
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-      console.log(`Triggering artifact round for round ${this.currentRound}`);
-      this.artifactSelectionShown = true;
-      this.startArtifactRound();
-      return;
-    }
-    
-    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
-    this.currentMatches = this.generateMatches();
-    this.currentMatchIndex = 0;
-    this.userBattleCompleted = false;
-    this.isProcessingRoundResults = false; // Reset flag for new round
-    this.updateRoundDisplay();
-    
-    this.timer.startBuffer(() => {
-      this.startSimultaneousMatches();
-    });
   }
 
   startSimultaneousMatches() {
+    console.log('=== startSimultaneousMatches called ===');
+    console.log('=== this.currentMatches ===', this.currentMatches);
+    
     if (this.isArtifactSelectionActive) {
       console.log('Artifact selection is active, preventing startSimultaneousMatches()');
       return;
     }
     
-    const userMatch = this.currentMatches.find(match => 
-      match.player1.name === "You" || match.player2.name === "You"
-    );
+    const userMatch = this.currentMatches.find(match => {
+      console.log('=== Checking match in find ===', match);
+      console.log('=== match.player1 ===', match.player1);
+      console.log('=== match.player2 ===', match.player2);
+      try {
+        return (match.player1 && match.player1.name === "You") || (match.player2 && match.player2.name === "You");
+      } catch (error) {
+        console.error('=== ERROR IN USER MATCH FIND ===');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Match object:', match);
+        console.error('match.player1:', match.player1);
+        console.error('match.player2:', match.player2);
+        throw error;
+      }
+    });
     
     const backgroundMatches = this.currentMatches.filter(match => 
-      match.player1.name !== "You" && match.player2.name !== "You"
+      (match.player1 && match.player1.name !== "You") && (match.player2 && match.player2.name !== "You")
     );
 
     this.simulateBackgroundMatches(backgroundMatches);
@@ -225,7 +408,7 @@ export class RoundsManager {
       this.endBattle(result, player1, player2);
     });
     
-    const userPlayer = this.players.find(p => p.name === "You");
+    const userPlayer = this.players && Array.isArray(this.players) ? this.players.find(p => p && p.name === "You") : null;
     if (userPlayer) {
       this.combat.setOnAbilityPurchased(() => {
         if (userPlayer) {
@@ -236,7 +419,7 @@ export class RoundsManager {
     }
 
     this.combat.setOnMoneyChange((newMoney) => {
-      if (player1.name === "You") {
+      if (player1 && player1.name === "You") {
         player1.gold = newMoney;
         this.updatePlayersList();
       }
@@ -245,7 +428,7 @@ export class RoundsManager {
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
     this.combat.init(player1.hero, player1.gold || 0);
     
-    if (this.heroStatsCard && player1.name === "You") {
+    if (this.heroStatsCard && player1 && player1.name === "You") {
       this.heroStatsCard.updateHero(player1.hero);
     }
   }
@@ -449,32 +632,74 @@ export class RoundsManager {
   }
 
   renderPlayersList() {
-    const allPlayers = [...this.players, ...this.ghostPlayers];
-    return allPlayers.map(player => {
-      const currentHealth = player.playerHealth.currentHealth;
-      const maxHealth = player.playerHealth.maxHealth;
-      const healthPercentage = (currentHealth / maxHealth) * 100;
+    try {
+      console.log('=== RENDER PLAYERS LIST DEBUG ===');
+      console.log('this.players:', this.players);
+      console.log('this.ghostPlayers:', this.ghostPlayers);
       
-      return `
-        <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
-          <div class="player-info">
-            <div class="player-name">${player.name}</div>
-            <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
-          </div>
-          <div class="player-health">
-            <div class="health-bar">
-              <div class="health-fill" style="width: ${healthPercentage}%"></div>
-              <span class="health-text">${currentHealth}/${maxHealth}</span>
+      const allPlayers = [...(this.players || []), ...(this.ghostPlayers || [])];
+      console.log('allPlayers array:', allPlayers);
+      
+      return allPlayers.map((player, index) => {
+        try {
+          console.log(`=== PROCESSING PLAYER ${index} ===`, player);
+          
+          if (!player) {
+            console.error(`Player at index ${index} is null/undefined`);
+            return ''; // Skip null/undefined players
+          }
+          
+          if (!player.playerHealth) {
+            console.error(`Player at index ${index} missing playerHealth:`, player);
+            return ''; // Skip players without health data
+          }
+          
+          if (!player.hero) {
+            console.error(`Player at index ${index} missing hero:`, player);
+            return ''; // Skip players without hero data
+          }
+          
+          const currentHealth = player.playerHealth.currentHealth || 50;
+          const maxHealth = player.playerHealth.maxHealth || 50;
+          const healthPercentage = (currentHealth / maxHealth) * 100;
+          
+          const playerName = player.name || 'Unknown Player';
+          const heroName = player.hero.name || 'Unknown Hero';
+          const heroAvatar = player.hero.avatar || '⚔️';
+          const wins = player.wins || 0;
+          const losses = player.losses || 0;
+          const gold = player.gold || 0;
+          
+          return `
+            <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
+              <div class="player-info">
+                <div class="player-name">${playerName}</div>
+                <div class="player-hero">${heroAvatar} ${heroName}</div>
+              </div>
+              <div class="player-health">
+                <div class="health-bar">
+                  <div class="health-fill" style="width: ${healthPercentage}%"></div>
+                  <span class="health-text">${currentHealth}/${maxHealth}</span>
+                </div>
+              </div>
+              <div class="player-stats">
+                <span class="wins">Wins: ${wins}</span>
+                <span class="losses">Losses: ${losses}</span>
+                <span class="gold">💰 ${gold}</span>
+              </div>
             </div>
-          </div>
-          <div class="player-stats">
-            <span class="wins">Wins: ${player.wins}</span>
-            <span class="losses">Losses: ${player.losses}</span>
-            <span class="gold">💰 ${player.gold || 0}</span>
-          </div>
-        </div>
-      `;
-    }).join('');
+          `;
+        } catch (playerError) {
+          console.error(`=== ERROR PROCESSING PLAYER ${index} ===`, playerError);
+          console.error('Player data:', player);
+          return ''; // Skip problematic players
+        }
+      }).filter(html => html !== '').join(''); // Filter out empty strings
+    } catch (error) {
+      console.error('=== RENDER PLAYERS LIST ERROR ===', error);
+      console.error('Error stack:', error.stack);
+      return '<div class="error">Error loading players list</div>';
+    }
   }
 
   updateRoundDisplay() {
@@ -519,47 +744,105 @@ export class RoundsManager {
 
   setupTimer() {
     this.timer.setOnTimerUpdate((timerData) => {
-      this.updateTimerDisplay(timerData);
-      if (this.combat && timerData.damageMultiplier) {
-        this.combat.setDamageMultiplier(timerData.damageMultiplier);
+      try {
+        console.log('=== TIMER UPDATE DEBUG ===');
+        console.log('Timer data:', timerData);
+        console.log('Players array exists:', !!this.players);
+        console.log('Players array length:', this.players ? this.players.length : 'undefined');
+        console.log('Players array content:', this.players);
+        
+        this.updateTimerDisplay(timerData);
+        if (this.combat && timerData.damageMultiplier) {
+          this.combat.setDamageMultiplier(timerData.damageMultiplier);
+        }
+        
+        console.log('=== TIMER UPDATE COMPLETED SUCCESSFULLY ===');
+      } catch (error) {
+        console.error('=== TIMER UPDATE ERROR ===', error);
+        console.error('Error stack:', error.stack);
+        console.error('Timer data at error:', timerData);
+        console.error('Players at error:', this.players);
+        throw error;
       }
     });
 
     this.timer.setOnRoundEnd(() => {
-      if (this.combat) {
-        this.combat.endBattle('timeout');
-      } else {
-        this.processRoundResults();
+      try {
+        console.log('=== ROUND END DEBUG ===');
+        if (this.combat) {
+          this.combat.endBattle('timeout');
+        } else {
+          this.processRoundResults();
+        }
+      } catch (error) {
+        console.error('=== ROUND END ERROR ===', error);
+        throw error;
       }
     });
 
-
     this.timer.setOnDamageEscalation((isActive) => {
+      try {
+        console.log('=== DAMAGE ESCALATION DEBUG ===');
+        console.log('Damage escalation active:', isActive);
+        console.log('Players array exists:', !!this.players);
+        console.log('Players array:', this.players);
+        console.log('=== DAMAGE ESCALATION COMPLETED ===');
+      } catch (error) {
+        console.error('=== DAMAGE ESCALATION ERROR ===', error);
+        throw error;
+      }
     });
   }
 
   updateTimerDisplay(timerData) {
-    const timerElement = this.container.querySelector('#round-timer');
-    if (timerElement) {
-      const minutes = Math.floor(timerData.time / 60);
-      const seconds = timerData.time % 60;
-      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    try {
+      console.log('=== UPDATE TIMER DISPLAY DEBUG ===');
+      console.log('Timer data:', timerData);
       
-      if (timerData.isBuffer) {
-        timerElement.innerHTML = `<div class="timer-display buffer">Pre-Round: ${timeString}</div>`;
-        this.showRoundsShop();
-        this.updateRoundsShopMoney();
-      } else {
-        const damageEscalationClass = timerData.damageEscalation ? ' damage-escalation' : '';
-        const multiplierText = timerData.damageMultiplier > 1 ? ` (${(timerData.damageMultiplier * 100).toFixed(0)}% damage)` : '';
+      const timerElement = this.container.querySelector('#round-timer');
+      if (timerElement) {
+        const minutes = Math.floor(timerData.time / 60);
+        const seconds = timerData.time % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         
-        if (this.userBattleCompleted) {
-          timerElement.innerHTML = `<div class="timer-display completed">Your Battle Complete - Others Fighting: ${timeString}${multiplierText}</div>`;
+        if (timerData.isBuffer) {
+          console.log('=== BUFFER PHASE ===');
+          timerElement.innerHTML = `<div class="timer-display buffer">Pre-Round: ${timeString}</div>`;
+          this.showRoundsShop();
+          this.updateRoundsShopMoney();
         } else {
-          timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
+          console.log('=== ROUND PHASE ===');
+          console.log('Damage escalation:', timerData.damageEscalation);
+          console.log('Damage multiplier:', timerData.damageMultiplier);
+          
+          if (timerData.damageEscalation) {
+            console.log('=== DAMAGE ESCALATION DETECTED IN TIMER UPDATE ===');
+            console.log('About to process damage escalation UI changes...');
+            console.log('Current players state:', this.players);
+            console.log('Current combat state:', this.combat);
+            console.log('Current roundsShop state:', this.roundsShop);
+          }
+          
+          const damageEscalationClass = timerData.damageEscalation ? ' damage-escalation' : '';
+          const multiplierText = timerData.damageMultiplier > 1 ? ` (${(timerData.damageMultiplier * 100).toFixed(0)}% damage)` : '';
+          
+          if (this.userBattleCompleted) {
+            timerElement.innerHTML = `<div class="timer-display completed">Your Battle Complete - Others Fighting: ${timeString}${multiplierText}</div>`;
+          } else {
+            timerElement.innerHTML = `<div class="timer-display round${damageEscalationClass}">Round Timer: ${timeString}${multiplierText}</div>`;
+          }
+          
+          console.log('=== ABOUT TO CALL hideRoundsShop() ===');
+          this.hideRoundsShop();
+          console.log('=== hideRoundsShop() COMPLETED ===');
         }
-        this.hideRoundsShop();
       }
+      console.log('=== UPDATE TIMER DISPLAY COMPLETED ===');
+    } catch (error) {
+      console.error('=== UPDATE TIMER DISPLAY ERROR ===', error);
+      console.error('Error stack:', error.stack);
+      console.error('Timer data at error:', timerData);
+      throw error;
     }
   }
 
@@ -574,8 +857,8 @@ export class RoundsManager {
     }
     
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
-    if (this.roundsShopContainer) {
-      const userPlayer = this.players.find(p => p.name === "You");
+    if (this.roundsShopContainer && this.players && Array.isArray(this.players)) {
+      const userPlayer = this.players.find(p => p && p.name === "You");
       const playerGold = userPlayer ? userPlayer.gold : 300;
       
       this.roundsShop = new CombatShop(this.roundsShopContainer, null, this.currentRound);
@@ -610,22 +893,71 @@ export class RoundsManager {
   }
 
   hideRoundsShop() {
-    const shopToggle = this.container.querySelector('#rounds-shop-toggle');
-    if (shopToggle) {
-      shopToggle.style.display = 'none';
-    }
-    if (this.roundsShop) {
-      this.roundsShop.hide();
+    try {
+      console.log('=== HIDE ROUNDS SHOP START ===');
+      console.log('roundsShop exists:', !!this.roundsShop);
+      
+      const shopToggle = this.container.querySelector('#rounds-shop-toggle');
+      console.log('shopToggle found:', !!shopToggle);
+      if (shopToggle) {
+        console.log('Setting shopToggle display to none...');
+        shopToggle.style.display = 'none';
+        console.log('shopToggle display set successfully');
+      }
+      
+      if (this.roundsShop) {
+        console.log('About to call this.roundsShop.hide()...');
+        console.log('roundsShop object:', this.roundsShop);
+        console.log('roundsShop.hide method exists:', typeof this.roundsShop.hide);
+        
+        if (typeof this.roundsShop.hide === 'function') {
+          this.roundsShop.hide();
+          console.log('this.roundsShop.hide() completed successfully');
+        } else {
+          console.log('roundsShop.hide() method not found, hiding shop container manually');
+          const shopContainer = this.container.querySelector('#rounds-shop-container');
+          if (shopContainer) {
+            shopContainer.style.display = 'none';
+            console.log('Shop container hidden manually');
+          }
+        }
+      }
+      
+      console.log('=== HIDE ROUNDS SHOP COMPLETED ===');
+    } catch (error) {
+      console.error('=== HIDE ROUNDS SHOP ERROR ===');
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('roundsShop object at error:', this.roundsShop);
+      throw error;
     }
   }
 
   updateRoundsShopMoney() {
-    if (this.roundsShop) {
-      const userPlayer = this.players.find(p => p.name === "You");
-      if (userPlayer) {
-        this.roundsShop.setPlayerGold(userPlayer.gold);
-        this.roundsShop.updateGoldDisplay();
+    try {
+      console.log('=== UPDATE ROUNDS SHOP MONEY DEBUG ===');
+      console.log('roundsShop exists:', !!this.roundsShop);
+      console.log('players exists:', !!this.players);
+      console.log('players is array:', Array.isArray(this.players));
+      console.log('players array:', this.players);
+      
+      if (this.roundsShop && this.players && Array.isArray(this.players)) {
+        const userPlayer = this.players.find(p => {
+          console.log('=== CHECKING PLAYER IN updateRoundsShopMoney ===', p);
+          return p && p.name && p.name === "You";
+        });
+        console.log('=== USER PLAYER FOUND ===', userPlayer);
+        if (userPlayer) {
+          this.roundsShop.setPlayerGold(userPlayer.gold);
+          this.roundsShop.updateGoldDisplay();
+        }
       }
+      console.log('=== UPDATE ROUNDS SHOP MONEY COMPLETED ===');
+    } catch (error) {
+      console.error('=== UPDATE ROUNDS SHOP MONEY ERROR ===', error);
+      console.error('Error stack:', error.stack);
+      console.error('Players at error:', this.players);
+      throw error;
     }
   }
 
@@ -654,7 +986,7 @@ export class RoundsManager {
     this.updateRoundDisplay();
     
     const combatContainer = this.container.querySelector('#battle-area');
-    if (combatContainer) {
+    if (combatContainer && this.players && Array.isArray(this.players)) {
       console.log('Combat container found, creating MinionCombat');
       const minionCombat = new MinionCombat(combatContainer, this.heroStatsCard);
       
@@ -662,7 +994,7 @@ export class RoundsManager {
         this.handleMinionBattleResult(result);
       });
       
-      const userPlayer = this.players.find(p => p.name === "You");
+      const userPlayer = this.players.find(p => p && p.name === "You");
       if (userPlayer) {
         console.log('User player found, initializing minion combat');
         const processedHero = StatsCalculator.processHeroStats(userPlayer.hero);
@@ -734,7 +1066,7 @@ export class RoundsManager {
   }
 
   handleArtifactSelection(artifact) {
-    const userPlayer = this.players.find(p => p.name === "You");
+    const userPlayer = this.players && Array.isArray(this.players) ? this.players.find(p => p && p.name === "You") : null;
     if (userPlayer) {
       userPlayer.hero = this.artifactSystem.applyArtifactToHero(userPlayer.hero, artifact);
       this.updatePlayerHero();
@@ -755,7 +1087,7 @@ export class RoundsManager {
   }
 
   handleEquipmentSelection(equipment) {
-    const userPlayer = this.players.find(p => p.name === "You");
+    const userPlayer = this.players && Array.isArray(this.players) ? this.players.find(p => p && p.name === "You") : null;
     if (userPlayer) {
       if (!userPlayer.hero.equipment) {
         userPlayer.hero.equipment = [];
@@ -799,9 +1131,202 @@ export class RoundsManager {
   }
 
   updatePlayerHero() {
-    const userPlayer = this.players.find(p => p.name === "You");
+    const userPlayer = this.players && Array.isArray(this.players) ? this.players.find(p => p && p.name === "You") : null;
     if (userPlayer && this.heroStatsCard) {
       this.heroStatsCard.updateHero(userPlayer.hero);
+    }
+  }
+
+  handleBattleCompleted(data) {
+    console.log('Battle completed:', data);
+    const { matchId, result, winner } = data;
+    
+    const match = this.currentMatches.find(m => m.id === matchId);
+    if (match) {
+      match.completed = true;
+      match.winner = winner;
+      match.result = result;
+      
+      if (match.player1_username === 'You' || match.player2_username === 'You') {
+        this.userBattleCompleted = true;
+        this.displayBattleResult(match);
+      }
+      
+      this.checkRoundCompletion();
+    }
+  }
+
+  handleTournamentUpdate(data) {
+    console.log('Tournament update:', data);
+    this.players = data.players || this.players;
+    this.currentMatches = data.currentMatches || this.currentMatches;
+    this.currentRound = data.currentRound || this.currentRound;
+    
+    this.updatePlayersList();
+    this.updateRoundDisplay();
+  }
+
+  handleTimerUpdate(data) {
+    console.log('Timer update:', data);
+    const { timeRemaining, type } = data;
+    
+    if (type === 'round_timer') {
+      this.updateTimerDisplay({ time: timeRemaining });
+    }
+  }
+
+  updateTournamentState(state) {
+    try {
+      console.log('=== WEBSOCKET UPDATE TOURNAMENT STATE DEBUG ===');
+      console.log('Tournament state update:', state);
+      console.log('Current players before update:', this.players);
+      
+      this.tournament = state.tournament;
+      
+      if (state.players && state.players.length > 0) {
+        this.players = state.players.map(serverPlayer => {
+          try {
+            console.log('=== MAPPING SERVER PLAYER IN WEBSOCKET UPDATE ===', serverPlayer);
+            
+            const isCurrentUser = serverPlayer.username === 'testuser';
+            const mappedPlayer = {
+              id: serverPlayer.id || serverPlayer.player_id,
+              name: isCurrentUser ? 'You' : (serverPlayer.username || 'Player'),
+              hero: {
+                name: serverPlayer.hero_name || 'Unknown Hero',
+                class: serverPlayer.hero_class || 'Unknown',
+                avatar: this.getHeroAvatar(serverPlayer.hero_class || 'Unknown'),
+                stats: {
+                  health: parseFloat(serverPlayer.base_health) || 100,
+                  attack: parseFloat(serverPlayer.base_attack) || 25,
+                  armor: parseFloat(serverPlayer.base_armor) || 0,
+                  speed: parseFloat(serverPlayer.base_speed) || 1.0,
+                  critChance: 0.05,
+                  critDamage: 1.5,
+                  evasionChance: 0.05,
+                  evasionDamageReduction: 0.5,
+                  magicDamageReduction: 0,
+                  physicalDamageAmplification: 0,
+                  magicDamageAmplification: 0,
+                  manaRegeneration: 0,
+                  attackSpeed: 0
+                },
+                abilities: {
+                  passive: {
+                    name: serverPlayer.passive_ability_name || 'Unknown',
+                    description: 'Passive ability'
+                  },
+                  ultimate: {
+                    name: serverPlayer.ultimate_ability_name || 'Unknown',
+                    description: 'Ultimate ability'
+                  }
+                }
+              },
+              playerHealth: {
+                currentHealth: serverPlayer.current_health || 50,
+                maxHealth: serverPlayer.max_health || 50
+              },
+              isEliminated: serverPlayer.is_eliminated || false,
+              wins: serverPlayer.consecutive_wins || 0,
+              losses: serverPlayer.consecutive_losses || 0,
+              gold: serverPlayer.gold || 300,
+              consecutiveWins: serverPlayer.consecutive_wins || 0,
+              consecutiveLosses: serverPlayer.consecutive_losses || 0,
+              isCurrentUser: isCurrentUser
+            };
+            
+            console.log('=== MAPPED PLAYER IN WEBSOCKET UPDATE ===', mappedPlayer);
+            return mappedPlayer;
+          } catch (playerError) {
+            console.error('=== ERROR MAPPING PLAYER IN WEBSOCKET UPDATE ===', playerError);
+            console.error('Server player data:', serverPlayer);
+            throw playerError;
+          }
+        });
+      }
+      
+      this.currentMatches = state.currentMatches || [];
+      this.activePlayers = state.activePlayers || (this.players ? this.players.filter(p => p && !p.isEliminated) : []);
+      
+      console.log('=== FINAL PLAYERS AFTER WEBSOCKET UPDATE ===', this.players);
+      
+      this.updatePlayersList();
+      this.updateRoundDisplay();
+      
+      console.log('=== WEBSOCKET UPDATE TOURNAMENT STATE COMPLETED ===');
+    } catch (error) {
+      console.error('=== WEBSOCKET UPDATE TOURNAMENT STATE ERROR ===', error);
+      console.error('Error stack:', error.stack);
+      console.error('State data at error:', state);
+      console.error('Players at error:', this.players);
+      throw error;
+    }
+  }
+
+  displayBattleResult(match) {
+    const isUserWinner = match.winner === 'You';
+    const resultMessage = isUserWinner ? 'Victory!' : 'Defeat!';
+    
+    const notification = document.createElement('div');
+    notification.className = `battle-result-notification ${isUserWinner ? 'victory' : 'defeat'}`;
+    notification.innerHTML = `
+      <h3>${resultMessage}</h3>
+      <p>vs ${isUserWinner ? match.player2_username : match.player1_username}</p>
+    `;
+    
+    this.container.appendChild(notification);
+    
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 3000);
+  }
+
+  async startServerBattle(matchId) {
+    try {
+      const result = await apiClient.simulateMatch(matchId);
+      console.log('Server battle result:', result);
+      return result;
+    } catch (error) {
+      console.error('Failed to start server battle:', error);
+      throw error;
+    }
+  }
+
+  async loadShopItems() {
+    try {
+      if (this.currentTournament) {
+        const shopData = await apiClient.getShop(this.currentTournament.id);
+        return shopData.shopItems || [];
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to load shop items:', error);
+      return [];
+    }
+  }
+
+  async purchaseAbility(abilityId) {
+    try {
+      if (this.currentTournament) {
+        const result = await apiClient.purchaseAbility(this.currentTournament.id, abilityId);
+        
+        if (apiClient.socket) {
+          apiClient.broadcastPurchase(this.currentTournament.id, abilityId);
+        }
+        
+        this.updateRoundsShopMoney(result.newGold);
+        
+        if (this.heroStatsCard && this.userHero) {
+          this.heroStatsCard.updateHero(this.userHero);
+        }
+        
+        return result;
+      }
+    } catch (error) {
+      console.error('Failed to purchase ability:', error);
+      throw error;
     }
   }
 }

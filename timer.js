@@ -61,7 +61,19 @@ export class Timer {
         this.damageEscalationActive = true;
         debugTools.logDebug('⏱️ Timer: Damage escalation activated');
         if (this.onDamageEscalation) {
-          this.onDamageEscalation(true);
+          try {
+            console.log('=== TIMER: About to call damage escalation callback ===');
+            console.log('=== TIMER: Callback function exists:', !!this.onDamageEscalation);
+            console.log('=== TIMER: Calling with parameter: true ===');
+            this.onDamageEscalation(true);
+            console.log('=== TIMER: Damage escalation callback completed successfully ===');
+          } catch (error) {
+            console.error('=== TIMER: ERROR IN DAMAGE ESCALATION CALLBACK ===');
+            console.error('=== TIMER: Error message:', error.message);
+            console.error('=== TIMER: Error stack:', error.stack);
+            console.error('=== TIMER: Callback function:', this.onDamageEscalation);
+            throw error;
+          }
         }
       }
       
@@ -89,7 +101,16 @@ export class Timer {
   endRound() {
     this.stopTimer();
     if (this.onDamageEscalation) {
-      this.onDamageEscalation(false);
+      try {
+        console.log('=== TIMER: About to call damage escalation callback (false) ===');
+        this.onDamageEscalation(false);
+        console.log('=== TIMER: Damage escalation callback (false) completed successfully ===');
+      } catch (error) {
+        console.error('=== TIMER: ERROR IN DAMAGE ESCALATION CALLBACK (false) ===');
+        console.error('=== TIMER: Error message:', error.message);
+        console.error('=== TIMER: Error stack:', error.stack);
+        throw error;
+      }
     }
     if (this.onRoundEnd) {
       this.onRoundEnd();
