@@ -200,10 +200,60 @@ function checkStartTournament(roomId) {
   if (players.length !== 8) return;
   const heroSelected = players.every(p => !!p.heroId);
   const ready = players.every(p => p.isReady);
-  if (heroSelected && ready && room.phase === 'lobby') {
+
+  if (room.phase !== 'lobby') return;
+
+  if (heroSelected && ready) {
     room.phase = 'buffer';
     io.to(roomId).emit('tournamentStart', {});
     startBuffer(roomId);
+    return;
+  }
+
+  if (heroSelected && !ready && !room.lobbyAutoStartTimer) {
+    room.lobbyAutoStartTimer = setTimeout(() => {
+      const stillLobby = rooms.has(roomId) && rooms.get(roomId)?.phase === 'lobby';
+      if (!stillLobby) return;
+      const r = rooms.get(roomId);
+      if (!r) return;
+      Array.from(r.players.values()).forEach(p => {
+        if (!p.isReady) p.isReady = true;
+      });
+      broadcastLobby(roomId);
+      if (r.phase === 'lobby') {
+        r.phase = 'buffer';
+        io.to(roomId).emit('tournamentStart', {});
+        startBuffer(roomId);
+      }
+    }, 15000);
+    io.to(roomId).emit('lobbyUpdate', {
+      phase: 'lobby',
+      players: players.map(p => ({
+        id: p.id,
+        name: p.name,
+        isReady: !!p.isReady,
+        heroSelected: !!p.heroId
+      }))
+    });
+  }
+
+  if (!heroSelected && !room.lobbyHeroAutoSelectTimer) {
+    room.lobbyHeroAutoSelectTimer = setTimeout(() => {
+      const stillLobby = rooms.has(roomId) && rooms.get(roomId)?.phase === 'lobby';
+      if (!stillLobby) return;
+      const r = rooms.get(roomId);
+      if (!r) return;
+      Array.from(r.players.values()).forEach(p => {
+        if (!p.heroId) p.heroId = 1;
+        if (!p.isReady) p.isReady = true;
+      });
+      broadcastLobby(roomId);
+      if (r.phase === 'lobby') {
+        r.phase = 'buffer';
+        io.to(roomId).emit('tournamentStart', {});
+        startBuffer(roomId);
+      }
+    }, 15000);
   }
 }
 
@@ -406,6 +456,14 @@ function cleanupRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
   if (room.timer) clearInterval(room.timer);
+  if (room.lobbyAutoStartTimer) {
+    clearTimeout(room.lobbyAutoStartTimer);
+    room.lobbyAutoStartTimer = null;
+  }
+  if (room.lobbyHeroAutoSelectTimer) {
+    clearTimeout(room.lobbyHeroAutoSelectTimer);
+    room.lobbyHeroAutoSelectTimer = null;
+  }
   rooms.delete(roomId);
 }
 
@@ -423,7 +481,10 @@ function leaveRoom(socket) {
       cleanupRoom(roomId);
     } else {
       if (room.mode === '1v1') broadcastRoomStatus1v1(roomId);
-      if (room.mode === 'tournament') broadcastLobby(roomId);
+      if (room.mode === 'tournament') {
+        broadcastLobby(roomId);
+        checkStartTournament(roomId);
+      }
     }
   }
   socket.data.roomId = null;
