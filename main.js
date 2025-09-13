@@ -139,6 +139,8 @@ class AutoGladiators {
     });
     lobby.init();
     this.multiplayerLobbyInitialized = true;
+  }
+
   initMultiplayerTournament() {
     const container = document.getElementById('multiplayer-tournament');
     if (this.multiplayerTournamentInitialized) return;
@@ -147,8 +149,6 @@ class AutoGladiators {
     });
     mt.init();
     this.multiplayerTournamentInitialized = true;
-  }
-
   }
 
   startTournament() {
