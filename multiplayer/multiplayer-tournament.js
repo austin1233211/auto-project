@@ -30,6 +30,9 @@ export class MultiplayerTournament {
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
     this.client.on('tournamentEnd', (payload) => this.handleTournamentEnd(payload));
+    this.client.on('queueStatus', (qs) => this.updateQueueStatus(qs));
+  }
+
   getRandomHeroes(count) {
     const shuffled = [...heroes].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count).map((hero, index) => ({
