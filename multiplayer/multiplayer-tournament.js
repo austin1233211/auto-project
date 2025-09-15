@@ -122,7 +122,7 @@ export class MultiplayerTournament {
   }
 
   updateHeroCard(displayIndex) {
-    const heroCard = this.container.querySelector(\`[data-display-index="\${displayIndex}"]\`);
+    const heroCard = this.container.querySelector(`[data-display-index="${displayIndex}"]`);
     if (heroCard) {
       heroCard.outerHTML = this.renderHeroCard(this.displayedHeroes[displayIndex], displayIndex);
       this.reattachHeroCardListeners();
@@ -168,7 +168,7 @@ export class MultiplayerTournament {
   selectHero(heroId) {
     const prev = this.container.querySelector('.hero-card.selected');
     if (prev) prev.classList.remove('selected');
-    const heroCard = this.container.querySelector(\`[data-hero-id="\${heroId}"]\`);
+    const heroCard = this.container.querySelector(`[data-hero-id="${heroId}"]`);
     if (heroCard) heroCard.classList.add('selected');
 
     this.selectedHero = this.displayedHeroes.find(h => h.id === heroId);

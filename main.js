@@ -7,6 +7,7 @@ import { MultiplayerLobby } from './multiplayer/multiplayer-lobby.js';
 import { MultiplayerTournament } from './multiplayer/multiplayer-tournament.js';
 import { heroes } from './heroes.js';
 
+console.log('MAIN_BOOT');
 class AutoGladiators {
   constructor() {
     this.currentScreen = 'game-mode-selection';
@@ -169,6 +170,11 @@ class AutoGladiators {
     if (targetScreen) {
       targetScreen.classList.add('active');
       this.currentScreen = screenId;
+    }
+
+    const hpEl = document.getElementById('player-health-display');
+    if (hpEl) {
+      hpEl.style.display = screenId === 'rounds-screen' ? 'block' : 'none';
     }
   }
 }
