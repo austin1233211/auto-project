@@ -63,8 +63,6 @@ export class MultiplayerTournament {
       `).join('');
     }
   }
-    this.client.on('queueStatus', (qs) => this.updateQueueStatus(qs));
-  }
 
   renderLobby() {
     this.displayedHeroes = this.getRandomHeroes(3);
