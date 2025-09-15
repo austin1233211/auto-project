@@ -40,6 +40,111 @@ export class MultiplayerTournament {
       displayIndex: index,
       hasBeenRerolled: false
     }));
+  renderHeroCard(hero, displayIndex) {
+    return `
+      <div class="hero-card" data-hero-id="${hero.id}" data-display-index="${displayIndex}">
+        <div class="hero-avatar">${hero.avatar}</div>
+        <div class="hero-name">${hero.name}</div>
+        <div class="hero-type">${hero.type}</div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-label">HP</span>
+            <span class="stat-value">${hero.stats.health}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">ATK</span>
+            <span class="stat-value">${hero.stats.attack}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">ARM</span>
+            <span class="stat-value">${hero.stats.armor}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">SPD</span>
+            <span class="stat-value">${hero.stats.speed}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">CRIT</span>
+            <span class="stat-value">${(hero.stats.critChance * 100).toFixed(1)}%</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">EVA</span>
+            <span class="stat-value">${(hero.stats.evasionChance * 100).toFixed(1)}%</span>
+          </div>
+        </div>
+        <button class="reroll-btn" data-display-index="${displayIndex}" ${hero.hasBeenRerolled ? 'disabled' : ''}>
+          ${hero.hasBeenRerolled ? 'Re-rolled' : 'Re-roll'}
+        </button>
+      </div>
+    `;
+  }
+
+  updateHeroCard(displayIndex) {
+    const heroCard = this.container.querySelector(\`[data-display-index="\${displayIndex}"]\`);
+    if (heroCard) {
+      heroCard.outerHTML = this.renderHeroCard(this.displayedHeroes[displayIndex], displayIndex);
+      this.reattachHeroCardListeners();
+    }
+  }
+
+  reattachHeroCardListeners() {
+    this.container.removeEventListener('click', this.heroClickHandler);
+    this.heroClickHandler = (e) => {
+      const card = e.target.closest('.hero-card');
+      const rerollBtn = e.target.closest('.reroll-btn');
+      if (rerollBtn) {
+        e.stopPropagation();
+        const idx = parseInt(rerollBtn.dataset.displayIndex);
+        this.rerollHero(idx);
+        return;
+      }
+      if (card) {
+        const heroId = card.dataset.heroId;
+        this.selectHero(heroId);
+      }
+    };
+    this.container.addEventListener('click', this.heroClickHandler);
+  }
+
+  renderHeroDetails(hero) {
+    return `
+      <div class="selected-hero-name">${hero.name}</div>
+      <div class="selected-hero-description">${hero.description}</div>
+      <div class="selected-hero-abilities">
+        <div class="ability">
+          <div class="ability-name">Passive: ${hero.abilities.passive.name}</div>
+          <div class="ability-description">${hero.abilities.passive.description}</div>
+        </div>
+        <div class="ability">
+          <div class="ability-name">Ultimate: ${hero.abilities.ultimate.name}</div>
+          <div class="ability-description">${hero.abilities.ultimate.description}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  selectHero(heroId) {
+    const prev = this.container.querySelector('.hero-card.selected');
+    if (prev) prev.classList.remove('selected');
+    const heroCard = this.container.querySelector(\`[data-hero-id="\${heroId}"]\`);
+    if (heroCard) heroCard.classList.add('selected');
+
+    this.selectedHero = this.displayedHeroes.find(h => h.id === heroId);
+    const details = this.container.querySelector('.hero-details');
+    if (details && this.selectedHero) {
+      details.classList.remove('empty');
+      details.innerHTML = this.renderHeroDetails(this.selectedHero);
+    }
+    if (this.selectedHero) {
+      this.client.selectHero(this.selectedHero);
+      const readyBtn = this.container.querySelector('#mt-ready');
+      if (readyBtn) {
+        readyBtn.disabled = false;
+        readyBtn.classList.add('enabled');
+      }
+    }
+  }
+
   }
 
   rerollHero(displayIndex) {
@@ -70,38 +175,33 @@ export class MultiplayerTournament {
   renderLobby() {
     this.displayedHeroes = this.getRandomHeroes(3);
     this.container.innerHTML = `
-      <div class="lobby-container">
-        <h1>Multiplayer Tournament Lobby</h1>
-        <div class="lobby-grid">
-          <div class="lobby-left">
-            <div class="name-entry">
-              <label>Your name</label>
-              <input id="mt-name" value="${this.player.name}" />
-              <button id="mt-apply-name">Apply</button>
-            </div>
-            <div class="hero-select">
-              <h3>Select your hero</h3>
-              <div class="heroes-grid">
-                ${this.displayedHeroes.map(h => `
-                  <div class="hero-card" data-hero-id="${h.id}" data-display-index="${h.displayIndex}">
-                    <button class="hero-pick" data-id="${h.id}">${h.avatar} ${h.name}</button>
-                    <button class="reroll-btn" data-display-index="${h.displayIndex}" ${h.hasBeenRerolled ? 'disabled' : ''}>
-                      ${h.hasBeenRerolled ? 'Re-rolled' : 'Re-roll'}
-                    </button>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-            <div class="actions">
-              <button id="mt-ready" disabled>Ready</button>
-            </div>
-          </div>
-          <div class="lobby-right">
-            <h3>Players (need 8)</h3>
+      <div class="hero-selection-container">
+        <h1 class="hero-selection-title">Choose Your Gladiator</h1>
+
+        <div class="heroes-grid">
+          ${this.displayedHeroes.map((hero, index) => this.renderHeroCard(hero, index)).join('')}
+        </div>
+
+        <div class="hero-details empty">
+          <p>Select a hero to view details</p>
+        </div>
+
+        <button class="start-button play-btn" id="mt-ready" disabled>Ready</button>
+
+        <div class="game-mode-details" style="margin-top:1rem;">
+          <div class="selected-mode-name">Multiplayer Tournament</div>
+          <div class="selected-mode-description">8 players, synchronized rounds</div>
+          <div class="selected-mode-features">
+            <div class="feature"><span class="feature-text">Waiting room: <span id="mt-phase"></span></span></div>
+            <div class="feature"><span class="feature-text">Players:</span></div>
             <div id="mt-players"></div>
           </div>
         </div>
-        <div id="mt-phase"></div>
+
+        <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+          <input id="mt-name" value="${this.player.name}" style="flex:1;"/>
+          <button class="action-button secondary" id="mt-apply-name" style="flex:0 0 auto;">Apply</button>
+        </div>
       </div>
     `;
   }
@@ -115,24 +215,7 @@ export class MultiplayerTournament {
         this.client.updateName({ name: this.player.name });
       });
     }
-    this.container.addEventListener('click', (e) => {
-      const rerollBtn = e.target.closest('.reroll-btn');
-      if (rerollBtn) {
-        const idx = parseInt(rerollBtn.dataset.displayIndex);
-        this.rerollHero(idx);
-        return;
-      }
-      const btn = e.target.closest('[data-id]');
-      if (btn && btn.dataset && btn.dataset.id) {
-        const heroId = btn.dataset.id;
-        this.selectedHero = heroes.find(h => h.id === heroId);
-        if (this.selectedHero) {
-          this.client.selectHero(this.selectedHero);
-          const readyBtn = this.container.querySelector('#mt-ready');
-          if (readyBtn) readyBtn.disabled = false;
-        }
-      }
-    });
+    this.reattachHeroCardListeners();
     const readyBtn = this.container.querySelector('#mt-ready');
     if (readyBtn) {
       readyBtn.addEventListener('click', () => {
