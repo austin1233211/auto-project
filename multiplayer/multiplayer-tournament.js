@@ -2,6 +2,7 @@ import { heroes } from '../heroes.js';
 import { Combat } from '../combat.js';
 import { HeroStatsCard } from '../hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
+import { Timer } from '../timer.js';
 
 export class MultiplayerTournament {
   constructor(container, onExitToMenu) {
@@ -15,11 +16,51 @@ export class MultiplayerTournament {
     this.currentPhase = 'lobby';
     this.players = [];
     this.displayedHeroes = [];
+    this.timer = new Timer();
+    this.timerActive = false;
+  }
+
+  setupTimer() {
+    this.timer.setOnTimerUpdate((timerData) => this.updateTimerDisplay(timerData));
+    this.timer.setOnRoundEnd(() => this.handleTimerExpired());
+  }
+
+  startSelectionTimer() {
+    this.timerActive = true;
+    const el = this.container.querySelector('#selection-timer');
+    if (el) el.style.display = 'block';
+    this.timer.startRound();
+  }
+
+  updateTimerDisplay(timerData) {
+    const el = this.container.querySelector('#selection-timer .timer-display');
+    if (el) {
+      const minutes = Math.floor(timerData.time / 60);
+      const seconds = timerData.time % 60;
+      el.textContent = `Selection Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+  }
+
+  handleTimerExpired() {
+    if (!this.selectedHero && this.timerActive) {
+      const randomIndex = Math.floor(Math.random() * this.displayedHeroes.length);
+      this.selectHero(this.displayedHeroes[randomIndex].id);
+      const note = document.createElement('div');
+      note.className = 'auto-select-notification';
+      note.textContent = 'Time expired! Hero auto-selected.';
+      this.container.appendChild(note);
+      setTimeout(() => {
+        if (note.parentNode) note.parentNode.removeChild(note);
+      }, 3000);
+    }
+    this.timerActive = false;
   }
 
   init() {
+    this.setupTimer();
     this.renderLobby();
     this.attachLobbyEvents();
+    this.startSelectionTimer();
     this.client.connect();
     this.client.on('connected', () => {
       this.client.requestTournament({ name: this.player.name });
@@ -40,6 +81,7 @@ export class MultiplayerTournament {
       displayIndex: index,
       hasBeenRerolled: false
     }));
+  }
   renderHeroCard(hero, displayIndex) {
     return `
       <div class="hero-card" data-hero-id="${hero.id}" data-display-index="${displayIndex}">
@@ -142,9 +184,13 @@ export class MultiplayerTournament {
         readyBtn.disabled = false;
         readyBtn.classList.add('enabled');
       }
+      if (this.timerActive) {
+        this.timer.stopTimer();
+        this.timerActive = false;
+        const el = this.container.querySelector('#selection-timer');
+        if (el) el.style.display = 'none';
+      }
     }
-  }
-
   }
 
   rerollHero(displayIndex) {
@@ -161,14 +207,8 @@ export class MultiplayerTournament {
     };
     const grid = this.container.querySelector('.heroes-grid');
     if (grid) {
-      grid.innerHTML = this.displayedHeroes.map(h => `
-        <div class="hero-card" data-hero-id="${h.id}" data-display-index="${h.displayIndex}">
-          <button class="hero-pick" data-id="${h.id}">${h.avatar} ${h.name}</button>
-          <button class="reroll-btn" data-display-index="${h.displayIndex}" ${h.hasBeenRerolled ? 'disabled' : ''}>
-            ${h.hasBeenRerolled ? 'Re-rolled' : 'Re-roll'}
-          </button>
-        </div>
-      `).join('');
+      grid.innerHTML = this.displayedHeroes.map((h, i) => this.renderHeroCard(h, i)).join('');
+      this.reattachHeroCardListeners();
     }
   }
 
@@ -177,6 +217,10 @@ export class MultiplayerTournament {
     this.container.innerHTML = `
       <div class="hero-selection-container">
         <h1 class="hero-selection-title">Choose Your Gladiator</h1>
+
+        <div id="selection-timer" class="selection-timer">
+          <div class="timer-display">Selection Time: 0:50</div>
+        </div>
 
         <div class="heroes-grid">
           ${this.displayedHeroes.map((hero, index) => this.renderHeroCard(hero, index)).join('')}
