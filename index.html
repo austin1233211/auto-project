@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auto Gladiators</title>
     <link rel="stylesheet" href="main.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" defer></script>
+    <script>
+        window.GAME_SERVER_URL = 'https://user:5ac2092636857c9175f7f8c0408ae39e@multiplayer-game-app-tunnel-7k5ipyzj.devinapps.com';
+    </script>
+
 </head>
 <body>
     <div class="game-container">
@@ -18,6 +23,10 @@
         
         <div id="rounds-screen" class="screen">
             <!-- Rounds screen will be loaded here -->
+        </div>
+        <div id="multiplayer-lobby" class="screen">
+        </div>
+        <div id="multiplayer-tournament" class="screen">
         </div>
     </div>
 

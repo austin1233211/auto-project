@@ -136,6 +136,23 @@ The game is built with mobile-first responsive design:
 
 ## 🚀 Deployment
 
+### Multiplayer (1v1) Setup
+
+Server:
+- cd server
+- npm install
+- npm start
+
+Client:
+- From repo root, serve the static files:
+  - npx serve . (or) python3 -m http.server 8080
+- Open two browser tabs to the served URL
+- Select Multiplayer mode, pick a hero in both tabs, click Ready
+- Battle will start when both players are ready
+
+Config:
+- To point to a different server URL, set window.GAME_SERVER_URL in the browser console before entering Multiplayer.
+
 The project is deployment-ready with a build system:
 
 ```bash
@@ -146,6 +163,26 @@ cp -r js styles data build/
 
 # Deploy build/ directory to any static hosting service
 ```
+
+### Multiplayer Tournament (8 players)
+
+Server:
+- cd server
+- npm install
+- npm start
+
+Client:
+- Serve the repo root (for example: `npx serve .` or `python3 -m http.server 8080`)
+- Open 8 tabs to the served URL
+- Choose "Multiplayer Tournament", optionally enter a name, pick a hero, click Ready in each tab
+- When all 8 are ready, the server starts buffer → round; each tab receives a match assignment
+- Play your battle; results sync; round advances when all matches complete or the round timer expires
+- The tournament continues until one winner remains
+
+Notes:
+- Global timer is server-authoritative and only ends a round when all matches are resolved
+- Artifacts/minion rounds are simplified in the tournament MVP
+- Single-player remains unchanged
 
 ## 🔄 Development Roadmap
 
