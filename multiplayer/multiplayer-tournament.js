@@ -14,6 +14,7 @@ export class MultiplayerTournament {
     this.onExitToMenu = onExitToMenu;
     this.currentPhase = 'lobby';
     this.players = [];
+    this.displayedHeroes = [];
   }
 
   init() {
@@ -29,10 +30,44 @@ export class MultiplayerTournament {
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
     this.client.on('tournamentEnd', (payload) => this.handleTournamentEnd(payload));
+  getRandomHeroes(count) {
+    const shuffled = [...heroes].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count).map((hero, index) => ({
+      ...hero,
+      displayIndex: index,
+      hasBeenRerolled: false
+    }));
+  }
+
+  rerollHero(displayIndex) {
+    if (!this.displayedHeroes.length) return;
+    if (this.displayedHeroes[displayIndex]?.hasBeenRerolled) return;
+    const currentIds = this.displayedHeroes.map(h => h.id);
+    const pool = heroes.filter(h => !currentIds.includes(h.id));
+    if (!pool.length) return;
+    const replacement = pool[Math.floor(Math.random() * pool.length)];
+    this.displayedHeroes[displayIndex] = {
+      ...replacement,
+      displayIndex,
+      hasBeenRerolled: true
+    };
+    const grid = this.container.querySelector('.heroes-grid');
+    if (grid) {
+      grid.innerHTML = this.displayedHeroes.map(h => `
+        <div class="hero-card" data-hero-id="${h.id}" data-display-index="${h.displayIndex}">
+          <button class="hero-pick" data-id="${h.id}">${h.avatar} ${h.name}</button>
+          <button class="reroll-btn" data-display-index="${h.displayIndex}" ${h.hasBeenRerolled ? 'disabled' : ''}>
+            ${h.hasBeenRerolled ? 'Re-rolled' : 'Re-roll'}
+          </button>
+        </div>
+      `).join('');
+    }
+  }
     this.client.on('queueStatus', (qs) => this.updateQueueStatus(qs));
   }
 
   renderLobby() {
+    this.displayedHeroes = this.getRandomHeroes(3);
     this.container.innerHTML = `
       <div class="lobby-container">
         <h1>Multiplayer Tournament Lobby</h1>
@@ -46,8 +81,13 @@ export class MultiplayerTournament {
             <div class="hero-select">
               <h3>Select your hero</h3>
               <div class="heroes-grid">
-                ${heroes.map(h => `
-                  <button class="hero-pick" data-id="${h.id}">${h.avatar} ${h.name}</button>
+                ${this.displayedHeroes.map(h => `
+                  <div class="hero-card" data-hero-id="${h.id}" data-display-index="${h.displayIndex}">
+                    <button class="hero-pick" data-id="${h.id}">${h.avatar} ${h.name}</button>
+                    <button class="reroll-btn" data-display-index="${h.displayIndex}" ${h.hasBeenRerolled ? 'disabled' : ''}>
+                      ${h.hasBeenRerolled ? 'Re-rolled' : 'Re-roll'}
+                    </button>
+                  </div>
                 `).join('')}
               </div>
             </div>
@@ -75,6 +115,12 @@ export class MultiplayerTournament {
       });
     }
     this.container.addEventListener('click', (e) => {
+      const rerollBtn = e.target.closest('.reroll-btn');
+      if (rerollBtn) {
+        const idx = parseInt(rerollBtn.dataset.displayIndex);
+        this.rerollHero(idx);
+        return;
+      }
       const btn = e.target.closest('[data-id]');
       if (btn && btn.dataset && btn.dataset.id) {
         const heroId = btn.dataset.id;
