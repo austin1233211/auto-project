@@ -7,7 +7,7 @@ export class MultiplayerClient {
 
   connect() {
     if (this.socket) return;
-    this.socket = window.io(this.url, { transports: ['websocket'] });
+    this.socket = window.io(this.url, { transports: ['polling', 'websocket'] });
     this.socket.on('connect', () => this._emit('connected'));
     this.socket.on('roomStatusUpdate', (status) => this._emit('roomStatusUpdate', status));
     this.socket.on('proceedToRules', (data) => this._emit('proceedToRules', data));
