@@ -3,6 +3,7 @@ import { Combat } from '../combat.js';
 import { HeroStatsCard } from '../hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { Timer } from '../timer.js';
+import { PlayerCounter } from '../player-counter.js';
 
 export class MultiplayerTournament {
   constructor(container, onExitToMenu) {
@@ -238,6 +239,7 @@ export class MultiplayerTournament {
           <div class="selected-mode-features">
             <div class="feature"><span class="feature-text">Waiting room: <span id="mt-phase"></span></span></div>
             <div class="feature"><span class="feature-text">Players:</span></div>
+            <div id="mt-player-counter" class="player-counter"></div>
             <div id="mt-players"></div>
           </div>
         </div>
@@ -268,6 +270,12 @@ export class MultiplayerTournament {
         readyBtn.textContent = 'Ready ✓';
       });
     }
+    const counterHost = this.container.querySelector('#mt-player-counter');
+    if (counterHost && !this.playerCounter) {
+      this.playerCounter = new PlayerCounter(counterHost);
+      this.playerCounter.mount();
+      this.playerCounter.setCounts(0, 8);
+    }
   }
 
   updateLobby(payload) {
@@ -286,12 +294,18 @@ export class MultiplayerTournament {
     if (phase) {
       phase.textContent = payload.phase ? `Phase: ${payload.phase}` : '';
     }
+    if (this.playerCounter && this.currentPhase === 'lobby') {
+      this.playerCounter.setCounts(this.players.length, 8);
+    }
   }
  
   updateQueueStatus(qs) {
     const phase = this.container.querySelector('#mt-phase');
     if (phase && this.currentPhase === 'lobby') {
       phase.textContent = `Waiting for players: ${qs.queued}/${qs.needed}`;
+    }
+    if (this.playerCounter && this.currentPhase === 'lobby') {
+      this.playerCounter.setCounts(qs.queued, qs.needed);
     }
   }
 
