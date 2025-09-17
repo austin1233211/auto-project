@@ -292,17 +292,19 @@ export class MultiplayerTournament {
     this.currentPhase = 'waiting';
     this.container.innerHTML = `
       <div class="waiting-room-container">
-        <h1 class="waiting-room-title">Multiplayer Tournament</h1>
+        <h1 class="waiting-room-title">🏆 Multiplayer Tournament</h1>
         <div class="waiting-room-status">
           <h2 id="player-count">Waiting for players...</h2>
           <div class="player-counter" id="player-counter">0/8</div>
         </div>
         <div class="waiting-room-players">
-          <h3>Players in lobby:</h3>
-          <div id="waiting-players-list"></div>
+          <h3>👥 Players in lobby:</h3>
+          <div id="waiting-players-list">
+            <div class="waiting-player-placeholder">Waiting for players to join...</div>
+          </div>
         </div>
         <div class="waiting-room-info">
-          <p>The tournament will start automatically when all 8 players join.</p>
+          <p>🚀 The tournament will start automatically when all 8 players join!</p>
         </div>
       </div>
     `;
@@ -319,14 +321,18 @@ export class MultiplayerTournament {
     
     if (statusEl) {
       statusEl.textContent = payload.playerCount === 8 ? 
-        'All players joined! Starting in 3 seconds...' : 
-        `Waiting for players... (${payload.playerCount}/8)`;
+        '🎉 All players joined! Starting in 3 seconds...' : 
+        `⏳ Waiting for players... (${payload.playerCount}/8)`;
     }
     
     if (listEl && payload.players) {
-      listEl.innerHTML = payload.players.map(p => `
-        <div class="waiting-player">${p.name}</div>
-      `).join('');
+      if (payload.players.length === 0) {
+        listEl.innerHTML = '<div class="waiting-player-placeholder">Waiting for players to join...</div>';
+      } else {
+        listEl.innerHTML = payload.players.map(p => `
+          <div class="waiting-player">👤 ${p.name}</div>
+        `).join('');
+      }
     }
   }
 
