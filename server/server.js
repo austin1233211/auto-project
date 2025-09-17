@@ -4,10 +4,17 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://game-test-app-mfkdhfhi.devinapps.com', 'http://localhost:8080'],
+  credentials: true
+}));
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET','POST'] }
+  cors: { 
+    origin: ['https://game-test-app-mfkdhfhi.devinapps.com', 'http://localhost:8080'], 
+    methods: ['GET','POST'],
+    credentials: true
+  }
 });
 
 const waitingQueue1v1 = [];
