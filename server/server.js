@@ -157,7 +157,7 @@ function tryCreateTournament() {
       ghostPlayers: [],
       currentMatches: [],
       timer: null,
-      phase: 'lobby'
+      phase: 'waiting'
     };
     rooms.set(roomId, room);
     for (let i = 0; i < 8; i++) {
@@ -182,8 +182,31 @@ function tryCreateTournament() {
       room.players.set(s.id, ps);
     }
     room.activePlayers = Array.from(room.players.values());
-    broadcastLobby(roomId);
-    checkStartTournament(roomId);
+    broadcastWaitingRoom(roomId);
+  }
+}
+
+function broadcastWaitingRoom(roomId) {
+  const room = rooms.get(roomId);
+  if (!room || room.mode !== 'tournament') return;
+  const playerCount = room.players.size;
+  const payload = {
+    phase: 'waiting',
+    playerCount: playerCount,
+    maxPlayers: 8,
+    players: Array.from(room.players.values()).map(p => ({
+      id: p.id,
+      name: p.name
+    }))
+  };
+  io.to(roomId).emit('waitingRoomUpdate', payload);
+  
+  if (playerCount === 8 && !room.startCountdownTimer) {
+    room.startCountdownTimer = setTimeout(() => {
+      room.phase = 'lobby';
+      broadcastLobby(roomId);
+      io.to(roomId).emit('startHeroSelection', {});
+    }, 3000); // 3 second countdown
   }
 }
 
@@ -216,53 +239,6 @@ function checkStartTournament(roomId) {
     room.phase = 'buffer';
     io.to(roomId).emit('tournamentStart', {});
     startBuffer(roomId);
-    return;
-  }
-
-  if (heroSelected && !ready && !room.lobbyAutoStartTimer) {
-    room.lobbyAutoStartTimer = setTimeout(() => {
-      const stillLobby = rooms.has(roomId) && rooms.get(roomId)?.phase === 'lobby';
-      if (!stillLobby) return;
-      const r = rooms.get(roomId);
-      if (!r) return;
-      Array.from(r.players.values()).forEach(p => {
-        if (!p.isReady) p.isReady = true;
-      });
-      broadcastLobby(roomId);
-      if (r.phase === 'lobby') {
-        r.phase = 'buffer';
-        io.to(roomId).emit('tournamentStart', {});
-        startBuffer(roomId);
-      }
-    }, 15000);
-    io.to(roomId).emit('lobbyUpdate', {
-      phase: 'lobby',
-      players: players.map(p => ({
-        id: p.id,
-        name: p.name,
-        isReady: !!p.isReady,
-        heroSelected: !!p.heroId
-      }))
-    });
-  }
-
-  if (!heroSelected && !room.lobbyHeroAutoSelectTimer) {
-    room.lobbyHeroAutoSelectTimer = setTimeout(() => {
-      const stillLobby = rooms.has(roomId) && rooms.get(roomId)?.phase === 'lobby';
-      if (!stillLobby) return;
-      const r = rooms.get(roomId);
-      if (!r) return;
-      Array.from(r.players.values()).forEach(p => {
-        if (!p.heroId) p.heroId = 'warrior';
-        if (!p.isReady) p.isReady = true;
-      });
-      broadcastLobby(roomId);
-      if (r.phase === 'lobby') {
-        r.phase = 'buffer';
-        io.to(roomId).emit('tournamentStart', {});
-        startBuffer(roomId);
-      }
-    }, 15000);
   }
 }
 
@@ -472,6 +448,10 @@ function cleanupRoom(roomId) {
   if (room.lobbyHeroAutoSelectTimer) {
     clearTimeout(room.lobbyHeroAutoSelectTimer);
     room.lobbyHeroAutoSelectTimer = null;
+  }
+  if (room.startCountdownTimer) {
+    clearTimeout(room.startCountdownTimer);
+    room.startCountdownTimer = null;
   }
   rooms.delete(roomId);
 }
