@@ -321,7 +321,7 @@ export class MultiplayerTournament {
     
     if (statusEl) {
       statusEl.textContent = payload.playerCount === 8 ? 
-        '🎉 All players joined! Starting in 3 seconds...' : 
+        '🎉 All players joined! Starting in 10 seconds...' : 
         `⏳ Waiting for players... (${payload.playerCount}/8)`;
     }
     
