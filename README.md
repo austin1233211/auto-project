@@ -4,7 +4,7 @@ A standalone auto-battler game inspired by Dota 2's Auto Gladiators arcade mode.
 
 ## 🎮 Live Demo
 
-**Hero Selection Component:** https://dota-gladius-app-l00kly3e.devinapps.com
+**Full Game with Multiplayer:** https://game-test-app-mfkdhfhi.devinapps.com
 
 ## 📋 Project Overview
 
@@ -136,6 +136,57 @@ The game is built with mobile-first responsive design:
 
 ## 🚀 Deployment
 
+### Railway Backend Deployment (Recommended)
+
+The multiplayer backend is deployed on Railway for stable WebSocket connections and external access.
+
+**Current Deployment:**
+- Railway Project: `auto-gladiators-backend`
+- Backend URL: `https://auto-gladiators-backend-production.up.railway.app`
+- Frontend URL: `https://game-test-app-mfkdhfhi.devinapps.com`
+
+**Railway Setup Instructions:**
+
+1. **Install Railway CLI:**
+   ```bash
+   npm install -g @railway/cli
+   ```
+
+2. **Login to Railway:**
+   ```bash
+   railway login
+   ```
+
+3. **Deploy Backend:**
+   ```bash
+   cd server
+   railway deploy
+   ```
+
+4. **Update Frontend Configuration:**
+   - Edit `index.html` and `dist/index.html`
+   - Set `window.GAME_SERVER_URL` to your Railway backend URL
+   - Example: `window.GAME_SERVER_URL = 'https://your-app-production.up.railway.app';`
+
+5. **Deploy Frontend:**
+   - Use any static hosting service (Devin's deploy_frontend, Netlify, Vercel, etc.)
+   - Deploy the `dist/` directory
+
+**Railway Project Configuration:**
+- Runtime: Node.js
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Port: Automatically assigned by Railway
+- Environment: Production
+
+**For Future Devin Sessions:**
+- Railway project is already set up and configured
+- Backend auto-deploys from the `server/` directory
+- Frontend configuration points to Railway URL
+- WebSocket authentication works correctly with Railway deployment
+
+### Local Development Setup
+
 ### Multiplayer (1v1) Setup
 
 Server:
@@ -237,7 +288,7 @@ This project is open source and available under the MIT License.
 
 **Current Status**: Hero Selection, Combat, Tournament/Rounds, Shops, Economy, Player Health, Hero Stats Card implemented
 **Next Focus**: Content expansion (abilities/items/artifacts), Sects/Factions, polish and multiplayer groundwork
-**Live Demo**: https://dota-gladius-app-l00kly3e.devinapps.com
+**Live Demo**: https://game-test-app-mfkdhfhi.devinapps.com
 
 ---
-*Last updated: September 13, 2025*
+*Last updated: September 17, 2025*
