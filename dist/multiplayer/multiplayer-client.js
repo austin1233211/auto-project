@@ -25,8 +25,11 @@ export class MultiplayerClient {
     }
     
     const socketOptions = { 
-      transports: ['websocket'],
-      auth: auth
+      transports: ['websocket', 'polling'],
+      auth: auth,
+      extraHeaders: auth.username && auth.password ? {
+        'Authorization': 'Basic ' + btoa(auth.username + ':' + auth.password)
+      } : {}
     };
     
     this.socket = window.io(socketUrl, socketOptions);
