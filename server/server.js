@@ -17,6 +17,8 @@ const rooms = new Map();
 function makeRoomId(prefix='room') { return prefix + '_' + Math.random().toString(36).slice(2,8); }
 
 io.on('connection', (socket) => {
+  console.log('New WebSocket connection established:', socket.id, new Date().toISOString());
+  
   socket.on('requestMatch', (playerData) => {
     socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
     waitingQueue1v1.push(socket);
@@ -24,11 +26,41 @@ io.on('connection', (socket) => {
   });
 
   socket.on('requestTournament', (playerData) => {
+    console.log('Tournament request received from:', socket.id, playerData);
     socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
-    waitingQueueTournament.push(socket);
-    socket.emit('queueStatus', { mode: 'tournament', queued: waitingQueueTournament.length, needed: 8 });
-    broadcastQueueStatusTournament();
-    tryCreateTournament();
+    
+    let joinedExistingRoom = false;
+    for (const [roomId, room] of rooms.entries()) {
+      if (room.mode === 'tournament' && room.phase === 'waiting' && room.players.size < 8) {
+        console.log('Adding player to existing waiting room:', roomId);
+        socket.join(roomId);
+        socket.data.roomId = roomId;
+        const ps = {
+          sid: socket.id,
+          id: room.players.size + 1,
+          name: socket.data.name,
+          heroId: null,
+          isReady: false,
+          hp: { current: 50, max: 50 },
+          isEliminated: false,
+          isGhost: false,
+          wins: 0,
+          losses: 0,
+          gold: 300,
+          consecutiveWins: 0,
+          consecutiveLosses: 0
+        };
+        room.players.set(socket.id, ps);
+        broadcastWaitingRoom(roomId);
+        joinedExistingRoom = true;
+        break;
+      }
+    }
+    
+    if (!joinedExistingRoom) {
+      console.log('No existing waiting room found, creating new one');
+      createWaitingRoom(socket);
+    }
   });
 
   socket.on('updateName', ({ name }) => {
@@ -146,49 +178,54 @@ function checkStart1v1(roomId) {
   }
 }
 
+function createWaitingRoom(socket) {
+  const roomId = makeRoomId('t8');
+  const room = {
+    mode: 'tournament',
+    players: new Map(),
+    currentRound: 1,
+    activePlayers: [],
+    ghostPlayers: [],
+    currentMatches: [],
+    timer: null,
+    phase: 'waiting'
+  };
+  rooms.set(roomId, room);
+  
+  socket.join(roomId);
+  socket.data.roomId = roomId;
+  const ps = {
+    sid: socket.id,
+    id: 1,
+    name: socket.data.name,
+    heroId: null,
+    isReady: false,
+    hp: { current: 50, max: 50 },
+    isEliminated: false,
+    isGhost: false,
+    wins: 0,
+    losses: 0,
+    gold: 300,
+    consecutiveWins: 0,
+    consecutiveLosses: 0
+  };
+  room.players.set(socket.id, ps);
+  
+  console.log('Created new waiting room:', roomId, 'with first player:', socket.data.name);
+  broadcastWaitingRoom(roomId);
+}
+
 function tryCreateTournament() {
-  while (waitingQueueTournament.length >= 8) {
-    const roomId = makeRoomId('t8');
-    const room = {
-      mode: 'tournament',
-      players: new Map(),
-      currentRound: 1,
-      activePlayers: [],
-      ghostPlayers: [],
-      currentMatches: [],
-      timer: null,
-      phase: 'waiting'
-    };
-    rooms.set(roomId, room);
-    for (let i = 0; i < 8; i++) {
-      const s = waitingQueueTournament.shift();
-      s.join(roomId);
-      s.data.roomId = roomId;
-      const ps = {
-        sid: s.id,
-        id: i + 1,
-        name: s.data.name,
-        heroId: null,
-        isReady: false,
-        hp: { current: 50, max: 50 },
-        isEliminated: false,
-        isGhost: false,
-        wins: 0,
-        losses: 0,
-        gold: 300,
-        consecutiveWins: 0,
-        consecutiveLosses: 0
-      };
-      room.players.set(s.id, ps);
-    }
-    room.activePlayers = Array.from(room.players.values());
-    broadcastWaitingRoom(roomId);
-  }
+  console.log('tryCreateTournament called but no longer needed');
 }
 
 function broadcastWaitingRoom(roomId) {
+  console.log('broadcastWaitingRoom called for room:', roomId);
   const room = rooms.get(roomId);
-  if (!room || room.mode !== 'tournament') return;
+  if (!room || room.mode !== 'tournament') {
+    console.log('Room not found or not tournament mode:', room?.mode);
+    return;
+  }
   const playerCount = room.players.size;
   const payload = {
     phase: 'waiting',
@@ -199,9 +236,11 @@ function broadcastWaitingRoom(roomId) {
       name: p.name
     }))
   };
+  console.log('Broadcasting waitingRoomUpdate with payload:', payload);
   io.to(roomId).emit('waitingRoomUpdate', payload);
   
   if (playerCount === 8 && !room.startCountdownTimer) {
+    console.log('Starting countdown timer for 8 players');
     room.startCountdownTimer = setTimeout(() => {
       room.phase = 'lobby';
       broadcastLobby(roomId);
