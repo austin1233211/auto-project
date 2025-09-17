@@ -252,7 +252,7 @@ function broadcastWaitingRoom(roomId) {
       room.phase = 'lobby';
       broadcastLobby(roomId);
       io.to(roomId).emit('startHeroSelection', {});
-    }, 3000); // 3 second countdown
+    }, 10000); // 10 second countdown
   }
 }
 

@@ -9,7 +9,9 @@ export class MultiplayerClient {
     if (this.socket) return;
     
     const socketOptions = { 
-      transports: ['websocket', 'polling']
+      transports: ['polling'],
+      upgrade: false,
+      rememberUpgrade: false
     };
     
     this.socket = window.io(this.url, socketOptions);
