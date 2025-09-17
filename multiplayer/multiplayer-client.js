@@ -8,31 +8,11 @@ export class MultiplayerClient {
   connect() {
     if (this.socket) return;
     
-    let socketUrl = this.url;
-    let auth = {};
-    
-    try {
-      const url = new URL(this.url);
-      if (url.username && url.password) {
-        auth = {
-          username: url.username,
-          password: url.password
-        };
-        socketUrl = `${url.protocol}//${url.host}${url.pathname}`;
-      }
-    } catch (e) {
-      console.warn('Failed to parse URL for authentication:', e);
-    }
-    
     const socketOptions = { 
-      transports: ['websocket', 'polling'],
-      auth: auth,
-      extraHeaders: auth.username && auth.password ? {
-        'Authorization': 'Basic ' + btoa(auth.username + ':' + auth.password)
-      } : {}
+      transports: ['websocket', 'polling']
     };
     
-    this.socket = window.io(socketUrl, socketOptions);
+    this.socket = window.io(this.url, socketOptions);
     this.socket.on('connect', () => this._emit('connected'));
     this.socket.on('roomStatusUpdate', (status) => this._emit('roomStatusUpdate', status));
     this.socket.on('proceedToRules', (data) => this._emit('proceedToRules', data));
