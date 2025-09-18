@@ -1,8 +1,8 @@
-import { heroes } from '../heroes.js';
-import { Combat } from '../combat.js';
-import { HeroStatsCard } from '../hero-stats-card.js';
+import { heroes } from '../src/core/heroes.js';
+import { Combat } from '../src/systems/combat.js';
+import { HeroStatsCard } from '../src/ui/hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
-import { Timer } from '../timer.js';
+import { Timer } from '../src/systems/timer.js';
 
 export class MultiplayerTournament {
   constructor(container, onExitToMenu) {

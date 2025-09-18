@@ -1,11 +1,11 @@
-import { GameModeSelection } from './game-mode-selection.js';
-import { HeroSelection } from './hero-selection.js';
-import { PlayerHealth } from './player-health.js';
-import { RoundsManager } from './rounds-manager.js';
-import { HeroStatsCard } from './hero-stats-card.js';
-import { MultiplayerLobby } from './multiplayer/multiplayer-lobby.js';
-import { MultiplayerTournament } from './multiplayer/multiplayer-tournament.js';
-import { heroes } from './heroes.js';
+import { GameModeSelection } from '../ui/game-mode-selection.js';
+import { HeroSelection } from '../ui/hero-selection.js';
+import { PlayerHealth } from '../ui/player-health.js';
+import { RoundsManager } from '../systems/rounds-manager.js';
+import { HeroStatsCard } from '../ui/hero-stats-card.js';
+import { MultiplayerLobby } from '../../multiplayer/multiplayer-lobby.js';
+import { MultiplayerTournament } from '../../multiplayer/multiplayer-tournament.js';
+import { heroes } from '../core/heroes.js';
 
 console.log('MAIN_BOOT');
 class AutoGladiators {

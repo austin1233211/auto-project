@@ -1,15 +1,15 @@
-import { heroes } from './heroes.js';
+import { heroes } from '../core/heroes.js';
 import { Combat } from './combat.js';
-import { StatsCalculator } from './stats-calculator.js';
-import { PlayerHealth } from './player-health.js';
+import { StatsCalculator } from '../core/stats-calculator.js';
+import { PlayerHealth } from '../ui/player-health.js';
 import { Timer } from './timer.js';
-import { Economy } from './economy.js';
-import { CombatShop } from './combat-shop-v2.js';
+import { Economy } from '../shops/economy.js';
+import { CombatShop } from '../shops/combat-shop-v2.js';
 import { MinionCombat } from './minion-combat.js';
-import { ArtifactsShop } from './artifacts-shop.js';
-import { EquipmentReward } from './equipment-reward.js';
-import { ArtifactSystem } from './artifacts.js';
-import { debugTools } from './debug-tools.js';
+import { ArtifactsShop } from '../shops/artifacts-shop.js';
+import { EquipmentReward } from '../components/equipment-reward.js';
+import { ArtifactSystem } from '../core/artifacts.js';
+import { debugTools } from '../components/debug-tools.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {

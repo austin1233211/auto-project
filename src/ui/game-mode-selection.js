@@ -1,4 +1,4 @@
-import { heroes } from './heroes.js';
+import { heroes } from '../core/heroes.js';
 
 export class GameModeSelection {
   constructor(container) {

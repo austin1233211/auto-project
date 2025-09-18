@@ -1,5 +1,5 @@
-import { heroes } from './heroes.js';
-import { Timer } from './timer.js';
+import { heroes } from '../core/heroes.js';
+import { Timer } from '../systems/timer.js';
 
 export class HeroSelection {
   constructor(container) {

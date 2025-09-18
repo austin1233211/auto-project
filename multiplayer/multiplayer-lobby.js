@@ -1,4 +1,4 @@
-import { heroes } from '../heroes.js';
+import { heroes } from '../src/core/heroes.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 
 export class MultiplayerLobby {

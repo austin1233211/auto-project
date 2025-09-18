@@ -1,8 +1,8 @@
-import { heroes } from './heroes.js';
-import { StatsCalculator } from './stats-calculator.js';
-import { AbilitySystem } from './abilities.js';
-import { CombatShop } from './combat-shop-v2.js';
-import { debugTools } from './debug-tools.js';
+import { heroes } from '../core/heroes.js';
+import { StatsCalculator } from '../core/stats-calculator.js';
+import { AbilitySystem } from '../core/abilities.js';
+import { CombatShop } from '../shops/combat-shop-v2.js';
+import { debugTools } from '../components/debug-tools.js';
 
 export class Combat {
   constructor(container, heroStatsCard = null) {
