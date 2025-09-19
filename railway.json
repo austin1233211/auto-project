@@ -3,7 +3,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "buildCommand": "npm install --prefix server",
-    "startCommand": "cd server && npm start"
+    "buildCommand": "cd server && npm ci --only=production",
+    "startCommand": "cd server && npm start",
+    "watchPatterns": ["server/**"]
   }
 }
