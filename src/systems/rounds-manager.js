@@ -222,7 +222,7 @@ export class RoundsManager {
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer) {
       this.combat.setOnAbilityPurchased(() => {
-        if (userPlayer) {
+        if (userPlayer && this.combat && this.combat.combatShop) {
           userPlayer.hero = this.combat.combatShop.applyItemsToHero(userPlayer.hero);
           this.updatePlayerHero();
         }
