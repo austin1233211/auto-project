@@ -8,6 +8,10 @@ app.use(cors({
   origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080'],
   credentials: true
 }));
+
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Auto Gladiators Server is running' });
+});
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { 
