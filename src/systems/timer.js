@@ -1,4 +1,4 @@
-import { debugTools } from './debug-tools.js';
+import { debugTools } from '../components/debug-tools.js';
 
 export class Timer {
   constructor() {

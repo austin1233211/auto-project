@@ -1,4 +1,4 @@
-import { ArtifactSystem } from './artifacts.js';
+import { ArtifactSystem } from '../core/artifacts.js';
 
 export class ArtifactsShop {
   constructor(container, roundNumber) {

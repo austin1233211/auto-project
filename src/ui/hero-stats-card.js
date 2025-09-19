@@ -1,4 +1,4 @@
-import { StatsCalculator } from './stats-calculator.js';
+import { StatsCalculator } from '../core/stats-calculator.js';
 
 export class HeroStatsCard {
   constructor() {
