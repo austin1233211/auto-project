@@ -5,13 +5,13 @@ import cors from 'cors';
 
 const app = express();
 app.use(cors({
-  origin: ['https://game-test-app-mfkdhfhi.devinapps.com', 'http://localhost:8080'],
+  origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080'],
   credentials: true
 }));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { 
-    origin: ['https://game-test-app-mfkdhfhi.devinapps.com', 'http://localhost:8080'], 
+    origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080'], 
     methods: ['GET','POST'],
     credentials: true
   }
