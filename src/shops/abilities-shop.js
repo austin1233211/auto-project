@@ -5,6 +5,7 @@ import { CRIT_SECT_ABILITIES } from '../abilities/crit-sect.js';
 import { HEALTH_SECT_ABILITIES } from '../abilities/health-sect.js';
 import { REGEN_SECT_ABILITIES } from '../abilities/regen-sect.js';
 import { POISON_SECT_ABILITIES } from '../abilities/poison-sect.js';
+import { FROST_SECT_ABILITIES } from '../abilities/frost-sect.js';
 
 export class AbilitiesShop extends ItemShop {
   constructor(container, roundNumber = 1) {
@@ -34,7 +35,8 @@ export class AbilitiesShop extends ItemShop {
         ...CRIT_SECT_ABILITIES[1],
         ...HEALTH_SECT_ABILITIES[1],
         ...REGEN_SECT_ABILITIES[1],
-        ...POISON_SECT_ABILITIES[1]
+        ...POISON_SECT_ABILITIES[1],
+        ...FROST_SECT_ABILITIES[1]
       ]),
       2: combineAndDeduplicate([
         ...ATTACK_SECT_ABILITIES[2],
@@ -42,7 +44,8 @@ export class AbilitiesShop extends ItemShop {
         ...CRIT_SECT_ABILITIES[2],
         ...HEALTH_SECT_ABILITIES[2],
         ...REGEN_SECT_ABILITIES[2],
-        ...POISON_SECT_ABILITIES[2]
+        ...POISON_SECT_ABILITIES[2],
+        ...FROST_SECT_ABILITIES[2]
       ]),
       3: combineAndDeduplicate([
         ...ATTACK_SECT_ABILITIES[3],
@@ -50,7 +53,8 @@ export class AbilitiesShop extends ItemShop {
         ...CRIT_SECT_ABILITIES[3],
         ...HEALTH_SECT_ABILITIES[3],
         ...REGEN_SECT_ABILITIES[3],
-        ...POISON_SECT_ABILITIES[3]
+        ...POISON_SECT_ABILITIES[3],
+        ...FROST_SECT_ABILITIES[3]
       ])
     };
     
