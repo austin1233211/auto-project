@@ -1,6 +1,7 @@
 import { ItemShop } from './item-shop.js';
 import { ATTACK_SECT_ABILITIES } from '../abilities/attack-sect.js';
 import { EVADE_SECT_ABILITIES } from '../abilities/evade-sect.js';
+import { CRIT_SECT_ABILITIES } from '../abilities/crit-sect.js';
 
 export class AbilitiesShop extends ItemShop {
   constructor(container, roundNumber = 1) {
@@ -15,15 +16,18 @@ export class AbilitiesShop extends ItemShop {
     const abilityTemplates = {
       1: [
         ...ATTACK_SECT_ABILITIES[1],
-        ...EVADE_SECT_ABILITIES[1]
+        ...EVADE_SECT_ABILITIES[1],
+        ...CRIT_SECT_ABILITIES[1]
       ],
       2: [
         ...ATTACK_SECT_ABILITIES[2],
-        ...EVADE_SECT_ABILITIES[2]
+        ...EVADE_SECT_ABILITIES[2],
+        ...CRIT_SECT_ABILITIES[2]
       ],
       3: [
         ...ATTACK_SECT_ABILITIES[3],
-        ...EVADE_SECT_ABILITIES[3]
+        ...EVADE_SECT_ABILITIES[3],
+        ...CRIT_SECT_ABILITIES[3]
       ]
     };
     
