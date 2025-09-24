@@ -4,6 +4,7 @@ import { EVADE_SECT_ABILITIES } from '../abilities/evade-sect.js';
 import { CRIT_SECT_ABILITIES } from '../abilities/crit-sect.js';
 import { HEALTH_SECT_ABILITIES } from '../abilities/health-sect.js';
 import { REGEN_SECT_ABILITIES } from '../abilities/regen-sect.js';
+import { POISON_SECT_ABILITIES } from '../abilities/poison-sect.js';
 
 export class AbilitiesShop extends ItemShop {
   constructor(container, roundNumber = 1) {
@@ -15,28 +16,42 @@ export class AbilitiesShop extends ItemShop {
     const tierCosts = { 1: 100, 2: 200, 3: 300 };
     const cost = tierCosts[tier];
     
+    const combineAndDeduplicate = (abilities) => {
+      const seen = new Set();
+      return abilities.filter(ability => {
+        if (seen.has(ability.name)) {
+          return false;
+        }
+        seen.add(ability.name);
+        return true;
+      });
+    };
+
     const abilityTemplates = {
-      1: [
+      1: combineAndDeduplicate([
         ...ATTACK_SECT_ABILITIES[1],
         ...EVADE_SECT_ABILITIES[1],
         ...CRIT_SECT_ABILITIES[1],
         ...HEALTH_SECT_ABILITIES[1],
-        ...REGEN_SECT_ABILITIES[1]
-      ],
-      2: [
+        ...REGEN_SECT_ABILITIES[1],
+        ...POISON_SECT_ABILITIES[1]
+      ]),
+      2: combineAndDeduplicate([
         ...ATTACK_SECT_ABILITIES[2],
         ...EVADE_SECT_ABILITIES[2],
         ...CRIT_SECT_ABILITIES[2],
         ...HEALTH_SECT_ABILITIES[2],
-        ...REGEN_SECT_ABILITIES[2]
-      ],
-      3: [
+        ...REGEN_SECT_ABILITIES[2],
+        ...POISON_SECT_ABILITIES[2]
+      ]),
+      3: combineAndDeduplicate([
         ...ATTACK_SECT_ABILITIES[3],
         ...EVADE_SECT_ABILITIES[3],
         ...CRIT_SECT_ABILITIES[3],
         ...HEALTH_SECT_ABILITIES[3],
-        ...REGEN_SECT_ABILITIES[3]
-      ]
+        ...REGEN_SECT_ABILITIES[3],
+        ...POISON_SECT_ABILITIES[3]
+      ])
     };
     
     const templates = abilityTemplates[tier];
