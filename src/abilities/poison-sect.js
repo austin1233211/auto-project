@@ -13,7 +13,12 @@ export const POISON_SECT_ABILITIES = {
     { name: 'Venom Sacs', effect: 'poison_stack_bonus', value: 1, emoji: '🟢', description: 'All poison applications gain +1 additional stack' },
     { name: 'Corrosive Touch', effect: 'crit_poison_chance', value: 40, emoji: '💥', description: '40% chance to apply 3 poison stacks on critical hits' },
     { name: 'Toxic Immunity', effect: 'poison_status_immunity', value: 50, emoji: '✨', description: '50% chance to be immune to poison effects' },
-    { name: 'Plague Bearer', effect: 'poison_spread_chance', value: 15, emoji: '🦠', description: '15% chance for poison to spread additional stacks to opponent' }
+    { name: 'Plague Bearer', effect: 'poison_spread_chance', value: 15, emoji: '🦠', description: '15% chance for poison to spread additional stacks to opponent' },
+    { name: 'Venom Strike', effect: 'attack_poison', value: 4, emoji: '☠️', description: '60% chance to apply 4 poison stacks with each attack' },
+    { name: 'Unseen Toxin', effect: 'evade_poison', value: 4, emoji: '☠️', description: 'Applies 4 poison stacks with each evade' },
+    { name: 'Burst Toxin', effect: 'crit_poison', value: 4, emoji: '☠️', description: 'Each crit applies 4 stacks of poison' },
+    { name: 'Blood of Toxin', effect: 'hp_loss_poison', value: 0.3, emoji: '☠️', description: 'Every 1.5s apply poison stacks equal to 0.3% of HP lost, minimum 3 to opponent' },
+    { name: 'Poisonous Medicine', effect: 'heal_poison_chance', value: 35, emoji: '☠️', description: '35% chance to apply 4 stacks of poison to opponent when you restore HP' }
   ],
   2: [
     { name: 'Corrosive Toxin', effect: 'damage_poison_chance', value: 30, emoji: '🧪', description: '30% chance to apply 8 stacks of poison when taking damage' },
