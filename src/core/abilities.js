@@ -942,6 +942,40 @@ export class AbilitySystem {
             this.combat.addToLog(`${hero.name}'s ${ability.name} grants ${ability.value} shield stacks from high damage!`);
           }
           break;
+        case 'hp_magic_damage_growth':
+          if (triggerType === 'drums_tick') {
+            const damage = Math.round(hero.stats.health * (ability.value / 100));
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            hero.stats.health = Math.min(hero.stats.health + 200, hero.stats.health + 1000);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} magic damage and grows stronger!`);
+          }
+          break;
+        case 'frost_nova_damage':
+          if (triggerType === 'frost_nova_tick') {
+            const frostStacks = target.statusEffects?.find(e => e.type === 'frost_stacks')?.stacks || 0;
+            const damage = ability.value + frostStacks;
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} frost damage!`);
+          }
+          break;
+        case 'shield_loss_damage':
+          if (triggerType === 'shield_loss_tick') {
+            if (!hero.shieldLossTracker) hero.shieldLossTracker = { lastShield: 0 };
+            const currentShield = hero.statusEffects?.find(e => e.type === 'shield_stacks')?.stacks || 0;
+            const shieldLost = Math.max(0, hero.shieldLossTracker.lastShield - currentShield);
+            
+            if (shieldLost > 0) {
+              const damage = Math.round(shieldLost * (ability.value / 100));
+              const shieldGain = Math.round(shieldLost * 0.15);
+              
+              target.currentHealth = Math.max(0, target.currentHealth - damage);
+              this.applyShieldStacks(hero, shieldGain);
+              this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage and grants ${shieldGain} shield!`);
+            }
+            
+            hero.shieldLossTracker.lastShield = currentShield;
+          }
+          break;
       }
     }
     
