@@ -976,6 +976,41 @@ export class AbilitySystem {
             hero.shieldLossTracker.lastShield = currentShield;
           }
           break;
+        case 'coup_de_grace':
+          if (triggerType === 'battle_start') {
+            if (!hero.coupDeGraceState) {
+              hero.coupDeGraceState = { critsRemaining: 3, originalCritChance: hero.effectiveStats.critChance };
+              hero.effectiveStats.critChance = 1.0;
+              this.combat.addToLog(`${hero.name}'s ${ability.name} grants temporary 100% crit chance!`);
+            }
+          } else if (triggerType === 'on_crit' && hero.coupDeGraceState && hero.coupDeGraceState.critsRemaining > 0) {
+            hero.coupDeGraceState.critsRemaining--;
+            if (hero.coupDeGraceState.critsRemaining <= 0) {
+              hero.effectiveStats.critChance = hero.coupDeGraceState.originalCritChance;
+              hero.coupDeGraceState = null;
+              this.combat.addToLog(`${hero.name}'s ${ability.name} effect expires!`);
+            }
+          }
+          break;
+        case 'blade_dance':
+          if (triggerType === 'on_crit') {
+            const now = Date.now();
+            if (!hero.bladeDanceLastUse || now - hero.bladeDanceLastUse >= 1500) {
+              const hpDamage = Math.round(target.stats.health * (ability.value / 100));
+              target.currentHealth = Math.max(0, target.currentHealth - hpDamage);
+              
+              if (!target.statusEffects) target.statusEffects = [];
+              target.statusEffects.push({
+                type: 'stun',
+                duration: 500,
+                startTime: now
+              });
+              
+              hero.bladeDanceLastUse = now;
+              this.combat.addToLog(`${hero.name}'s ${ability.name} stuns and deals ${hpDamage} HP damage!`);
+            }
+          }
+          break;
       }
     }
     
