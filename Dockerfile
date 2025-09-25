@@ -33,41 +33,10 @@ COPY multiplayer/ ./multiplayer/
 
 # Create nginx configuration
 RUN mkdir -p /etc/nginx/conf.d
-RUN echo 'server {\
-    listen 8080;\
-    server_name localhost;\
-    \
-    # Serve static files\
-    location / {\
-        root /app;\
-        try_files $uri $uri/ /index.html;\
-        add_header Cache-Control "public, max-age=3600";\
-    }\
-    \
-    # Proxy API requests to Node.js server\
-    location /socket.io/ {\
-        proxy_pass http://localhost:3001;\
-        proxy_http_version 1.1;\
-        proxy_set_header Upgrade $http_upgrade;\
-        proxy_set_header Connection "upgrade";\
-        proxy_set_header Host $host;\
-        proxy_cache_bypass $http_upgrade;\
-    }\
-}' > /etc/nginx/conf.d/default.conf
+RUN printf 'server {\n    listen 8080;\n    server_name localhost;\n    \n    location / {\n        root /app;\n        try_files $uri $uri/ /index.html;\n        add_header Cache-Control "public, max-age=3600";\n    }\n    \n    location /socket.io/ {\n        proxy_pass http://localhost:3001;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection "upgrade";\n        proxy_set_header Host $host;\n        proxy_cache_bypass $http_upgrade;\n    }\n}\n' > /etc/nginx/conf.d/default.conf
 
 # Create startup script
-RUN echo '#!/bin/sh\
-# Start nginx in background\
-nginx -g "daemon off;" &\
-\
-# Start Node.js server\
-cd /app/server && node server.js &\
-\
-# Wait for any process to exit\
-wait -n\
-\
-# Exit with status of process that exited first\
-exit $?' > /app/start.sh
+RUN printf '#!/bin/sh\n# Start nginx in background\nnginx -g "daemon off;" &\n\n# Start Node.js server\ncd /app/server && node server.js &\n\n# Wait for any process to exit\nwait -n\n\n# Exit with status of process that exited first\nexit $?\n' > /app/start.sh
 
 RUN chmod +x /app/start.sh
 
