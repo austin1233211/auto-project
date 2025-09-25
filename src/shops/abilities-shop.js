@@ -1,4 +1,12 @@
 import { ItemShop } from './item-shop.js';
+import { ATTACK_SECT_ABILITIES } from '../abilities/attack-sect.js';
+import { EVADE_SECT_ABILITIES } from '../abilities/evade-sect.js';
+import { CRIT_SECT_ABILITIES } from '../abilities/crit-sect.js';
+import { HEALTH_SECT_ABILITIES } from '../abilities/health-sect.js';
+import { REGEN_SECT_ABILITIES } from '../abilities/regen-sect.js';
+import { POISON_SECT_ABILITIES } from '../abilities/poison-sect.js';
+import { FROST_SECT_ABILITIES } from '../abilities/frost-sect.js';
+import { SHIELD_SECT_ABILITIES } from '../abilities/shield-sect.js';
 
 export class AbilitiesShop extends ItemShop {
   constructor(container, roundNumber = 1) {
@@ -10,33 +18,48 @@ export class AbilitiesShop extends ItemShop {
     const tierCosts = { 1: 100, 2: 200, 3: 300 };
     const cost = tierCosts[tier];
     
+    const combineAndDeduplicate = (abilities) => {
+      const seen = new Set();
+      return abilities.filter(ability => {
+        if (seen.has(ability.name)) {
+          return false;
+        }
+        seen.add(ability.name);
+        return true;
+      });
+    };
+
     const abilityTemplates = {
-      1: [
-        { name: 'Power Strike', effect: 'attack_boost', value: 15, emoji: '⚔️', description: '+15 Attack Power' },
-        { name: 'Swift Reflexes', effect: 'speed_boost', value: 10, emoji: '💨', description: '+10 Speed' },
-        { name: 'Iron Will', effect: 'health_boost', value: 50, emoji: '❤️', description: '+50 Health' },
-        { name: 'Thick Skin', effect: 'armor_boost', value: 8, emoji: '🛡️', description: '+8 Armor' },
-        { name: 'Battle Focus', effect: 'crit_chance', value: 15, emoji: '🎯', description: '+15% Critical Hit Chance' },
-        { name: 'Evasive Maneuvers', effect: 'evasion_chance', value: 12, emoji: '👻', description: '+12% Evasion Chance' },
-        { name: 'Mana Efficiency', effect: 'mana_regen', value: 20, emoji: '💙', description: '+20% Mana Regeneration' },
-        { name: 'Combat Training', effect: 'physical_amp', value: 10, emoji: '💪', description: '+10% Physical Damage' },
-        { name: 'Arcane Studies', effect: 'magic_amp', value: 10, emoji: '🔮', description: '+10% Magic Damage' },
-        { name: 'Defensive Stance', effect: 'magic_resist', value: 15, emoji: '🌟', description: '+15% Magic Resistance' },
-        { name: 'Berserker Training', effect: 'attack_speed', value: 12, emoji: '⚡', description: '+12% Attack Speed' },
-        { name: 'Lucky Strike', effect: 'gold_bonus', value: 25, emoji: '💰', description: '+25% Gold from Victories' },
-        { name: 'Veteran Experience', effect: 'stat_boost', value: 5, emoji: '⭐', description: '+5 to All Stats' },
-        { name: 'Combat Reflexes', effect: 'counter_chance', value: 20, emoji: '🔄', description: '20% Chance to Counter Attack' }
-      ],
-      2: [
-        { name: 'Berserker Rage', effect: 'low_health_damage', value: 30, emoji: '🔥', description: '+30% Damage when below 50% HP' },
-        { name: 'Divine Protection', effect: 'damage_immunity', value: 15, emoji: '✨', description: '15% Chance to Ignore Damage' },
-        { name: 'Master Tactician', effect: 'ability_cooldown', value: 25, emoji: '🧠', description: '-25% Ability Cooldowns' }
-      ],
-      3: [
-        { name: 'Divine Ascension', effect: 'ultimate_power', value: 25, emoji: '👑', description: '+25% to All Stats' },
-        { name: 'Legendary Prowess', effect: 'crit_multiplier', value: 50, emoji: '💥', description: '+50% Critical Hit Damage' },
-        { name: 'Immortal Spirit', effect: 'death_save', value: 1, emoji: '🛡️', description: 'Survive Fatal Damage Once Per Battle' }
-      ]
+      1: combineAndDeduplicate([
+        ...ATTACK_SECT_ABILITIES[1],
+        ...EVADE_SECT_ABILITIES[1],
+        ...CRIT_SECT_ABILITIES[1],
+        ...HEALTH_SECT_ABILITIES[1],
+        ...REGEN_SECT_ABILITIES[1],
+        ...POISON_SECT_ABILITIES[1],
+        ...FROST_SECT_ABILITIES[1],
+        ...SHIELD_SECT_ABILITIES[1]
+      ]),
+      2: combineAndDeduplicate([
+        ...ATTACK_SECT_ABILITIES[2],
+        ...EVADE_SECT_ABILITIES[2],
+        ...CRIT_SECT_ABILITIES[2],
+        ...HEALTH_SECT_ABILITIES[2],
+        ...REGEN_SECT_ABILITIES[2],
+        ...POISON_SECT_ABILITIES[2],
+        ...FROST_SECT_ABILITIES[2],
+        ...SHIELD_SECT_ABILITIES[2]
+      ]),
+      3: combineAndDeduplicate([
+        ...ATTACK_SECT_ABILITIES[3],
+        ...EVADE_SECT_ABILITIES[3],
+        ...CRIT_SECT_ABILITIES[3],
+        ...HEALTH_SECT_ABILITIES[3],
+        ...REGEN_SECT_ABILITIES[3],
+        ...POISON_SECT_ABILITIES[3],
+        ...FROST_SECT_ABILITIES[3],
+        ...SHIELD_SECT_ABILITIES[3]
+      ])
     };
     
     const templates = abilityTemplates[tier];
