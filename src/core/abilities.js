@@ -429,9 +429,21 @@ export class AbilitySystem {
 
   executeHeal(caster, target) {
     const config = ABILITY_CONFIG.HEAL;
-    const healAmount = Math.round(caster.stats.health * config.healPercent);
+    let healAmount = Math.round(caster.stats.health * config.healPercent);
+    
+    if (caster.lowHpHealActive && Date.now() - caster.lowHpHealTimer < 5000) {
+      healAmount *= 2;
+    }
     
     caster.currentHealth = Math.min(caster.stats.health, caster.currentHealth + healAmount);
+    
+    this.triggerAbilities(caster, target, 'on_heal');
+    this.triggerAbilities(caster, target, 'heal_threshold_check', { healAmount: healAmount });
+    
+    if (!caster.healingDoneThisSecond) caster.healingDoneThisSecond = 0;
+    if (!caster.healingDoneThisRound) caster.healingDoneThisRound = 0;
+    caster.healingDoneThisSecond += healAmount;
+    caster.healingDoneThisRound += healAmount;
     
     this.combat.addToLog(`${config.emoji} ${caster.name} ${config.message} and restores ${healAmount} health!`);
     
@@ -669,9 +681,34 @@ export class AbilitySystem {
     if (!hero.statusEffects) return;
     
     const activeEffects = [];
+    const now = Date.now();
     
     for (const effect of hero.statusEffects) {
-      if (effect.ticksRemaining > 0) {
+      if (effect.type === 'poison_stacks') {
+        if (!effect.lastTick) effect.lastTick = now;
+        
+        if (now - effect.lastTick >= 1000) {
+          const damage = Math.max(1, Math.floor(effect.stacks));
+          hero.currentHealth = Math.max(0, hero.currentHealth - damage);
+          this.combat.addToLog(`☠️ ${hero.name} takes ${damage} poison damage from ${effect.stacks} stacks!`);
+          
+          effect.stacks = Math.floor(effect.stacks * 0.7);
+          effect.lastTick = now;
+        }
+        
+        if (effect.stacks >= 1) activeEffects.push(effect);
+      } else if (effect.type === 'frost_stacks') {
+        if (!effect.lastTick) effect.lastTick = now;
+        
+        if (now - effect.lastTick >= 1000) {
+          effect.stacks = Math.floor(effect.stacks * 0.7);
+          effect.lastTick = now;
+        }
+        
+        if (effect.stacks >= 1) activeEffects.push(effect);
+      } else if (effect.type === 'shield_stacks') {
+        if (effect.stacks >= 1) activeEffects.push(effect);
+      } else if (effect.ticksRemaining > 0) {
         if (effect.type === 'burn') {
           const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
           hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
@@ -698,5 +735,448 @@ export class AbilitySystem {
     }
     
     hero.statusEffects = activeEffects;
+  }
+
+  applyPoisonStacks(target, stacks) {
+    if (!target.statusEffects) target.statusEffects = [];
+    
+    let existingPoison = target.statusEffects.find(e => e.type === 'poison_stacks');
+    if (existingPoison) {
+      existingPoison.stacks += stacks;
+    } else {
+      target.statusEffects.push({
+        type: 'poison_stacks',
+        stacks: stacks,
+        lastTick: Date.now()
+      });
+    }
+  }
+
+  applyFrostStacks(target, stacks) {
+    if (!target.statusEffects) target.statusEffects = [];
+    
+    let existingFrost = target.statusEffects.find(e => e.type === 'frost_stacks');
+    if (existingFrost) {
+      existingFrost.stacks += stacks;
+    } else {
+      target.statusEffects.push({
+        type: 'frost_stacks',
+        stacks: stacks,
+        lastTick: Date.now()
+      });
+    }
+  }
+
+  applyShieldStacks(target, stacks) {
+    if (!target.statusEffects) target.statusEffects = [];
+    
+    let existingShield = target.statusEffects.find(e => e.type === 'shield_stacks');
+    if (existingShield) {
+      existingShield.stacks += stacks;
+    } else {
+      target.statusEffects.push({
+        type: 'shield_stacks',
+        stacks: stacks
+      });
+    }
+  }
+
+  triggerAbilities(hero, target, triggerType) {
+    if (!hero.purchasedAbilities) return;
+    
+    for (const ability of hero.purchasedAbilities) {
+      switch (ability.effect) {
+        case 'attack_poison':
+          if (triggerType === 'on_attack' && Math.random() < 0.6) {
+            this.applyPoisonStacks(target, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies poison!`);
+          }
+          break;
+        case 'attack_frost':
+          if (triggerType === 'on_attack' && Math.random() < 0.6) {
+            this.applyFrostStacks(target, 5);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies frost!`);
+          }
+          break;
+        case 'attack_shield':
+          if (triggerType === 'on_attack' && Math.random() < 0.6) {
+            this.applyShieldStacks(hero, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants shield!`);
+          }
+          break;
+        case 'attack_heal_chance':
+          if (triggerType === 'on_attack' && Math.random() < 0.6) {
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + 10);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores 10 HP!`);
+          }
+          break;
+        case 'attack_mana_restore':
+          if (triggerType === 'on_attack' && Math.random() < 0.6) {
+            hero.currentMana = Math.min(hero.maxMana, hero.currentMana + 3);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores 3 mana!`);
+          }
+          break;
+        case 'evade_poison':
+          if (triggerType === 'on_evade') {
+            this.applyPoisonStacks(target, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies poison on evade!`);
+          }
+          break;
+        case 'evade_frost':
+          if (triggerType === 'on_evade') {
+            this.applyFrostStacks(target, 5);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies frost on evade!`);
+          }
+          break;
+        case 'evade_mana':
+          if (triggerType === 'on_evade') {
+            hero.currentMana = Math.min(hero.maxMana, hero.currentMana + 3);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores mana on evade!`);
+          }
+          break;
+        case 'evade_heal':
+          if (triggerType === 'on_evade') {
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + 10);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores HP on evade!`);
+          }
+          break;
+        case 'evade_shield':
+          if (triggerType === 'on_evade') {
+            this.applyShieldStacks(hero, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants shield on evade!`);
+          }
+          break;
+        case 'crit_poison':
+          if (triggerType === 'on_crit') {
+            this.applyPoisonStacks(target, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies poison on crit!`);
+          }
+          break;
+        case 'crit_frost':
+          if (triggerType === 'on_crit') {
+            this.applyFrostStacks(target, 5);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies frost on crit!`);
+          }
+          break;
+        case 'crit_shield':
+          if (triggerType === 'on_crit') {
+            this.applyShieldStacks(hero, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants shield on crit!`);
+          }
+          break;
+        case 'crit_heal':
+          if (triggerType === 'on_crit') {
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + 20);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores HP on crit!`);
+          }
+          break;
+        case 'crit_mana':
+          if (triggerType === 'on_crit') {
+            hero.currentMana = Math.min(hero.maxMana, hero.currentMana + 3);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores mana on crit!`);
+          }
+          break;
+        case 'heal_poison_chance':
+          if (triggerType === 'on_heal' && Math.random() < 0.35) {
+            this.applyPoisonStacks(target, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies poison on heal!`);
+          }
+          break;
+        case 'heal_frost_chance':
+          if (triggerType === 'on_heal' && Math.random() < 0.35) {
+            this.applyFrostStacks(target, 5);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies frost on heal!`);
+          }
+          break;
+        case 'heal_shield_chance':
+          if (triggerType === 'on_heal' && Math.random() < 0.35) {
+            this.applyShieldStacks(hero, 4);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants shield on heal!`);
+          }
+          break;
+        case 'battle_start_poison':
+          if (triggerType === 'battle_start') {
+            this.applyPoisonStacks(target, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies ${ability.value} poison stacks at battle start!`);
+          }
+          break;
+        case 'battle_start_frost':
+          if (triggerType === 'battle_start') {
+            this.applyFrostStacks(target, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies ${ability.value} frost stacks at battle start!`);
+          }
+          break;
+        case 'battle_start_shield':
+          if (triggerType === 'battle_start') {
+            this.applyShieldStacks(hero, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants ${ability.value} shield stacks at battle start!`);
+          }
+          break;
+        case 'ultimate_poison':
+          if (triggerType === 'on_ultimate') {
+            this.applyPoisonStacks(target, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies ${ability.value} poison stacks!`);
+          }
+          break;
+        case 'ultimate_frost':
+          if (triggerType === 'on_ultimate') {
+            this.applyFrostStacks(target, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies ${ability.value} frost stacks!`);
+          }
+          break;
+        case 'ultimate_shield':
+          if (triggerType === 'on_ultimate') {
+            this.applyShieldStacks(hero, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants ${ability.value} shield stacks!`);
+          }
+          break;
+        case 'ultimate_heal':
+          if (triggerType === 'on_ultimate') {
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} restores ${ability.value} HP!`);
+          }
+          break;
+        case 'poison_aura':
+          if (triggerType === 'status_tick') {
+            this.applyPoisonStacks(target, ability.value);
+          }
+          break;
+        case 'frost_aura':
+          if (triggerType === 'status_tick') {
+            this.applyFrostStacks(target, ability.value);
+          }
+          break;
+        case 'shield_aura':
+          if (triggerType === 'status_tick') {
+            this.applyShieldStacks(hero, ability.value);
+          }
+          break;
+        case 'health_regen_flat':
+          if (triggerType === 'status_tick') {
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+          }
+          break;
+        case 'health_regen_percent':
+          if (triggerType === 'status_tick') {
+            const healAmount = Math.round(hero.stats.health * (ability.value / 100));
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + healAmount);
+          }
+          break;
+        case 'enhanced_regen':
+          if (triggerType === 'enhanced_tick') {
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+          }
+          break;
+        case 'hp_loss_poison':
+          if (triggerType === 'hp_loss_tick') {
+            const hpLost = hero.stats.health - hero.currentHealth;
+            const poisonStacks = Math.max(3, Math.floor(hpLost * (ability.value / 100)));
+            this.applyPoisonStacks(target, poisonStacks);
+          }
+          break;
+        case 'hp_loss_frost':
+          if (triggerType === 'hp_loss_tick') {
+            const hpLost = hero.stats.health - hero.currentHealth;
+            const frostStacks = Math.max(3, Math.floor(hpLost * (ability.value / 100)));
+            this.applyFrostStacks(target, frostStacks);
+          }
+          break;
+        case 'hp_loss_shield':
+          if (triggerType === 'hp_loss_tick') {
+            const hpLost = hero.stats.health - hero.currentHealth;
+            const shieldStacks = Math.max(3, Math.floor(hpLost * (ability.value / 100)));
+            this.applyShieldStacks(hero, shieldStacks);
+          }
+          break;
+        case 'blood_strike':
+          if (triggerType === 'enhanced_tick') {
+            const damage = Math.round(hero.stats.health * (ability.value / 100));
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage!`);
+          }
+          break;
+        case 'life_break':
+          if (triggerType === 'battle_start') {
+            const damage = Math.round(hero.currentHealth * (ability.value / 100));
+            hero.currentHealth = Math.max(1, hero.currentHealth - damage);
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage to both heroes!`);
+          }
+          break;
+        case 'drums_of_slom':
+          if (triggerType === 'drums_tick') {
+            const damage = Math.round(hero.stats.health * (ability.value / 100));
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            hero.stats.health = Math.min(hero.stats.health + 200, hero.stats.health + 1000);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage and increases max HP!`);
+          }
+          break;
+        case 'heal_damage_chance':
+          if (triggerType === 'on_heal' && Math.random() < (ability.value / 100)) {
+            target.currentHealth = Math.max(0, target.currentHealth - 100);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals 100 damage on heal!`);
+          }
+          break;
+        case 'heal_threshold_damage':
+          if (triggerType === 'heal_threshold_check') {
+            if (!hero.healThresholdCounter) hero.healThresholdCounter = 0;
+            hero.healThresholdCounter += ability.healAmount || 0;
+            if (hero.healThresholdCounter >= 400) {
+              target.currentHealth = Math.max(0, target.currentHealth - ability.value);
+              hero.healThresholdCounter -= 400;
+              this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${ability.value} damage after healing 400 HP!`);
+            }
+          }
+          break;
+        case 'low_hp_heal_double':
+          if (triggerType === 'low_hp_check' && hero.currentHealth / hero.stats.health < 0.2) {
+            if (!hero.lowHpHealActive) {
+              hero.lowHpHealActive = true;
+              hero.lowHpHealTimer = Date.now();
+              this.combat.addToLog(`${hero.name}'s ${ability.name} activates - healing doubled for 5 seconds!`);
+            }
+          }
+          break;
+        case 'heal_to_damage_aura':
+          if (triggerType === 'heal_to_damage_tick') {
+            const damage = Math.round((hero.healingDoneThisSecond || 0) * (ability.value / 100));
+            if (damage > 0) {
+              target.currentHealth = Math.max(0, target.currentHealth - damage);
+              this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage based on healing!`);
+            }
+          }
+          break;
+        case 'heal_to_attack_boost':
+          if (triggerType === 'heal_to_attack_tick') {
+            const attackBoost = Math.round((hero.healingDoneThisRound || 0) * (ability.value / 100));
+            if (attackBoost > 0 && hero.nextAttackBoost !== attackBoost) {
+              hero.nextAttackBoost = attackBoost;
+              this.combat.addToLog(`${hero.name}'s ${ability.name} boosts next attack by ${attackBoost}!`);
+            }
+          }
+          break;
+        case 'damage_poison_chance':
+          if (triggerType === 'on_damage_taken' && Math.random() < (ability.value / 100)) {
+            this.applyPoisonStacks(target, 8);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies poison when taking damage!`);
+          }
+          break;
+        case 'deal_damage_poison_chance':
+          if (triggerType === 'on_damage_dealt' && Math.random() < (ability.value / 100)) {
+            this.applyPoisonStacks(target, 8);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies poison when dealing damage!`);
+          }
+          break;
+        case 'low_hp_poison_burst':
+          if (triggerType === 'low_hp_check' && hero.currentHealth / hero.stats.health < 0.4) {
+            if (!hero.lowHpPoisonUsed) {
+              hero.lowHpPoisonUsed = true;
+              this.applyPoisonStacks(target, ability.value);
+              this.combat.addToLog(`${hero.name}'s ${ability.name} applies ${ability.value} poison stacks at low HP!`);
+            }
+          }
+          break;
+        case 'self_poison_reflect':
+          if (triggerType === 'battle_start') {
+            this.applyPoisonStacks(hero, ability.value);
+            hero.selfPoisonReflect = true;
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies ${ability.value} poison stacks to self!`);
+          }
+          break;
+        case 'frost_damage_chance':
+          if (triggerType === 'frost_applied' && Math.random() < (ability.value / 100)) {
+            target.currentHealth = Math.max(0, target.currentHealth - 30);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals 30 magic damage on frost application!`);
+          }
+          break;
+        case 'damage_frost_chance':
+          if (triggerType === 'on_damage_taken' && Math.random() < (ability.value / 100)) {
+            this.applyFrostStacks(target, 12);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} applies frost when taking damage!`);
+          }
+          break;
+        case 'frost_nova_damage':
+          if (triggerType === 'frost_nova_tick') {
+            const frostStacks = target.statusEffects?.find(e => e.type === 'frost_stacks')?.stacks || 0;
+            const damage = ability.value + frostStacks;
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage!`);
+          }
+          break;
+        case 'frostbite_stun':
+          if (triggerType === 'battle_start') {
+            this.applyStunEffect(target, 1.2);
+            hero.frostbiteTimer = setInterval(() => {
+              target.currentHealth = Math.max(0, target.currentHealth - ability.value);
+              this.applyFrostStacks(target, 20);
+              this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${ability.value} damage and applies frost!`);
+            }, 800);
+            setTimeout(() => {
+              if (hero.frostbiteTimer) {
+                clearInterval(hero.frostbiteTimer);
+                hero.frostbiteTimer = null;
+              }
+            }, 5000);
+          }
+          break;
+        case 'cold_embrace_defense':
+          if (triggerType === 'low_hp_check' && hero.currentHealth / hero.stats.health < 0.25) {
+            if (!hero.coldEmbraceActive) {
+              hero.coldEmbraceActive = true;
+              hero.coldEmbraceTimer = Date.now();
+              this.combat.addToLog(`${hero.name}'s ${ability.name} activates - massive damage reduction and healing!`);
+            }
+          }
+          break;
+        case 'shield_damage_chance':
+          if (triggerType === 'shield_gained' && Math.random() < (ability.value / 100)) {
+            target.currentHealth = Math.max(0, target.currentHealth - 40);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} deals 40 damage when gaining shield!`);
+          }
+          break;
+        case 'high_damage_shield':
+          if (triggerType === 'high_damage_taken' && ability.damageAmount > 80) {
+            this.applyShieldStacks(hero, ability.value);
+            this.combat.addToLog(`${hero.name}'s ${ability.name} grants ${ability.value} shield stacks from high damage!`);
+          }
+          break;
+        case 'death_immunity_shield':
+          if (triggerType === 'death_save') {
+            if (!hero.deathImmunityUsed) {
+              hero.deathImmunityUsed = true;
+              hero.currentHealth = 1;
+              this.applyShieldStacks(hero, ability.value);
+              hero.finalDefenseTimer = Date.now();
+              this.combat.addToLog(`${hero.name}'s ${ability.name} activates - immune to death with massive shield!`);
+              return true;
+            }
+          }
+          break;
+        case 'status_shield_cleanse':
+          if (triggerType === 'shield_lost') {
+            const shieldLost = ability.shieldLostAmount || 0;
+            if (shieldLost >= 200) {
+              const poisonEffect = hero.statusEffects?.find(e => e.type === 'poison_stacks');
+              const frostEffect = hero.statusEffects?.find(e => e.type === 'frost_stacks');
+              if (poisonEffect) poisonEffect.stacks = Math.floor(poisonEffect.stacks * 0.9);
+              if (frostEffect) frostEffect.stacks = Math.floor(frostEffect.stacks * 0.9);
+              this.combat.addToLog(`${hero.name}'s ${ability.name} cleanses status effects!`);
+            }
+          }
+          break;
+        case 'shield_loss_damage':
+          if (triggerType === 'shield_loss_tick') {
+            const shieldLost = hero.shieldLostThisPeriod || 0;
+            const damage = Math.round(shieldLost * (ability.value / 100));
+            const shieldGain = Math.round(shieldLost * 0.15);
+            if (damage > 0) {
+              target.currentHealth = Math.max(0, target.currentHealth - damage);
+              this.applyShieldStacks(hero, shieldGain);
+              this.combat.addToLog(`${hero.name}'s ${ability.name} deals ${damage} damage and grants ${shieldGain} shield!`);
+            }
+          }
+          break;
+      }
+    }
   }
 }

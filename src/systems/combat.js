@@ -175,10 +175,61 @@ export class Combat {
       if (!this.isGameOver) {
         this.abilitySystem.processStatusEffects(this.playerHero);
         this.abilitySystem.processStatusEffects(this.enemyHero);
+        
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'status_tick');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'status_tick');
+        
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'low_hp_check');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'low_hp_check');
+        
         this.updateHealthBars();
       }
     }, 1000);
     debugTools.registerTimer('combat_status_effects', 'combat_effects', 1000, 'Status effects processing');
+    
+    this.enhancedRegenTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'enhanced_tick');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'enhanced_tick');
+        this.updateHealthBars();
+      }
+    }, 800);
+    debugTools.registerTimer('combat_enhanced_regen', 'combat_effects', 800, 'Enhanced regeneration processing');
+    
+    this.hpLossTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'hp_loss_tick');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'hp_loss_tick');
+      }
+    }, 1500);
+    debugTools.registerTimer('combat_hp_loss', 'combat_effects', 1500, 'HP loss abilities processing');
+    
+    this.drumsTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'drums_tick');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'drums_tick');
+        this.updateHealthBars();
+      }
+    }, 2000);
+    debugTools.registerTimer('combat_drums', 'combat_effects', 2000, 'Drums of Slom processing');
+    
+    this.frostNovaTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'frost_nova_tick');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'frost_nova_tick');
+        this.updateHealthBars();
+      }
+    }, 2000);
+    debugTools.registerTimer('combat_frost_nova', 'combat_effects', 2000, 'Frost Nova processing');
+    
+    this.shieldLossTimer = setInterval(() => {
+      if (!this.isGameOver) {
+        this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'shield_loss_tick');
+        this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'shield_loss_tick');
+        this.updateHealthBars();
+      }
+    }, 1800);
+    debugTools.registerTimer('combat_shield_loss', 'combat_effects', 1800, 'Shield loss damage processing');
   }
 
   clearTimers() {
@@ -214,12 +265,40 @@ export class Combat {
       debugTools.unregisterTimer('combat_status_effects');
       this.statusEffectsTimer = null;
     }
+    if (this.enhancedRegenTimer) {
+      clearInterval(this.enhancedRegenTimer);
+      debugTools.unregisterTimer('combat_enhanced_regen');
+      this.enhancedRegenTimer = null;
+    }
+    if (this.hpLossTimer) {
+      clearInterval(this.hpLossTimer);
+      debugTools.unregisterTimer('combat_hp_loss');
+      this.hpLossTimer = null;
+    }
+    if (this.drumsTimer) {
+      clearInterval(this.drumsTimer);
+      debugTools.unregisterTimer('combat_drums');
+      this.drumsTimer = null;
+    }
+    if (this.frostNovaTimer) {
+      clearInterval(this.frostNovaTimer);
+      debugTools.unregisterTimer('combat_frost_nova');
+      this.frostNovaTimer = null;
+    }
+    if (this.shieldLossTimer) {
+      clearInterval(this.shieldLossTimer);
+      debugTools.unregisterTimer('combat_shield_loss');
+      this.shieldLossTimer = null;
+    }
   }
 
   startBattle() {
     this.isGameOver = false;
     this.playerHero.currentMana = 0;
     this.enemyHero.currentMana = 0;
+    
+    this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'battle_start');
+    this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'battle_start');
     
     this.updateHealthBars();
     this.updateManaBars();
@@ -260,6 +339,10 @@ export class Combat {
     if (this.isGameOver) return;
 
     let damage;
+    let wasEvaded = false;
+    let wasCrit = false;
+
+    this.abilitySystem.triggerAbilities(attacker, target, 'on_attack');
 
     const passiveResult = this.abilitySystem.processPassiveAbility(attacker, target);
     
@@ -268,12 +351,16 @@ export class Combat {
       const abilityResult = this.abilitySystem.executeAbility(attacker, target, ultimateAbility.name);
       damage = abilityResult.damage;
       attacker.currentMana = 0;
+      
+      this.abilitySystem.triggerAbilities(attacker, target, 'on_ultimate');
     } else {
       let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical');
       
       if (Math.random() < target.effectiveStats.evasionChance) {
-        finalDamage = Math.round(finalDamage * (1 - target.effectiveStats.evasionDamageReduction));
+        wasEvaded = true;
+        finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
         this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
+        this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
       }
       
       let totalCritChance = attacker.effectiveStats.critChance;
@@ -282,8 +369,10 @@ export class Combat {
       }
       
       if (Math.random() < totalCritChance) {
-        finalDamage = Math.round(finalDamage * attacker.effectiveStats.critDamage);
+        wasCrit = true;
+        finalDamage = Math.round(finalDamage * (attacker.effectiveStats.critDamage || 1.5));
         this.addToLog(`${attacker.name} attacks with a critical hit for ${finalDamage} damage!`);
+        this.abilitySystem.triggerAbilities(attacker, target, 'on_crit');
       } else {
         this.addToLog(`${attacker.name} attacks for ${finalDamage} damage!`);
       }
@@ -291,7 +380,31 @@ export class Combat {
       damage = finalDamage;
     }
 
+    if (target.currentHealth - damage <= 0) {
+      if (target.effectiveStats.deathSaveCharges > 0) {
+        target.effectiveStats.deathSaveCharges--;
+        target.currentHealth = 1;
+        this.addToLog(`${target.name} survives fatal damage!`);
+        return;
+      }
+      
+      const deathSaved = this.abilitySystem.triggerAbilities(target, attacker, 'death_save');
+      if (deathSaved) {
+        return;
+      }
+    }
+
+    const oldHealth = target.currentHealth;
     target.currentHealth = Math.max(0, target.currentHealth - damage);
+    
+    if (damage > 0) {
+      this.abilitySystem.triggerAbilities(target, attacker, 'on_damage_taken');
+      this.abilitySystem.triggerAbilities(attacker, target, 'on_damage_dealt');
+      
+      if (damage > 80) {
+        this.abilitySystem.triggerAbilities(target, attacker, 'high_damage_taken', { damageAmount: damage });
+      }
+    }
     
     this.updateHealthBars();
 
@@ -322,6 +435,19 @@ export class Combat {
     }
     
     finalDamage = finalDamage * (1 + damageAmplification / 100);
+    
+    const shieldEffect = target.statusEffects?.find(e => e.type === 'shield_stacks');
+    if (shieldEffect && shieldEffect.stacks > 0) {
+      const shieldReduction = Math.min(finalDamage, shieldEffect.stacks);
+      finalDamage -= shieldReduction;
+      shieldEffect.stacks -= shieldReduction;
+      
+      shieldEffect.stacks = Math.floor(shieldEffect.stacks * 0.7);
+      
+      if (shieldReduction > 0) {
+        this.addToLog(`Shield absorbs ${shieldReduction} damage!`);
+      }
+    }
     
     finalDamage = finalDamage * this.damageMultiplier;
     
