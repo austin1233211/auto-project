@@ -32,11 +32,40 @@ COPY src/ ./src/
 COPY multiplayer/ ./multiplayer/
 
 # Create nginx configuration
-RUN mkdir -p /etc/nginx/conf.d
-RUN printf 'server {\n    listen 8080;\n    server_name localhost;\n    \n    location / {\n        root /app;\n        try_files $uri $uri/ /index.html;\n        add_header Cache-Control "public, max-age=3600";\n    }\n    \n    location /socket.io/ {\n        proxy_pass http://localhost:3001;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection "upgrade";\n        proxy_set_header Host $host;\n        proxy_cache_bypass $http_upgrade;\n    }\n}\n' > /etc/nginx/conf.d/default.conf
+RUN mkdir -p /etc/nginx/conf.d && \
+    echo 'server {' > /etc/nginx/conf.d/default.conf && \
+    echo '    listen 8080;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    server_name localhost;' >> /etc/nginx/conf.d/default.conf && \
+    echo '' >> /etc/nginx/conf.d/default.conf && \
+    echo '    location / {' >> /etc/nginx/conf.d/default.conf && \
+    echo '        root /app;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        try_files $uri $uri/ /index.html;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        add_header Cache-Control "public, max-age=3600";' >> /etc/nginx/conf.d/default.conf && \
+    echo '    }' >> /etc/nginx/conf.d/default.conf && \
+    echo '' >> /etc/nginx/conf.d/default.conf && \
+    echo '    location /socket.io/ {' >> /etc/nginx/conf.d/default.conf && \
+    echo '        proxy_pass http://localhost:3001;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        proxy_http_version 1.1;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        proxy_set_header Upgrade $http_upgrade;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        proxy_set_header Connection "upgrade";' >> /etc/nginx/conf.d/default.conf && \
+    echo '        proxy_set_header Host $host;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        proxy_cache_bypass $http_upgrade;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    }' >> /etc/nginx/conf.d/default.conf && \
+    echo '}' >> /etc/nginx/conf.d/default.conf
 
 # Create startup script
-RUN printf '#!/bin/sh\n# Start nginx in background\nnginx -g "daemon off;" &\n\n# Start Node.js server\ncd /app/server && node server.js &\n\n# Wait for any process to exit\nwait -n\n\n# Exit with status of process that exited first\nexit $?\n' > /app/start.sh
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo '# Start nginx in background' >> /app/start.sh && \
+    echo 'nginx -g "daemon off;" &' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Start Node.js server' >> /app/start.sh && \
+    echo 'cd /app/server && node server.js &' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Wait for any process to exit' >> /app/start.sh && \
+    echo 'wait -n' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Exit with status of process that exited first' >> /app/start.sh && \
+    echo 'exit $?' >> /app/start.sh
 
 RUN chmod +x /app/start.sh
 
