@@ -22,7 +22,7 @@ export const CRIT_SECT_ABILITIES = {
   ],
   3: [
     { name: 'Source Detonation', effect: 'crit_ignore_shield', value: 60, emoji: '💥', description: 'Each crit has 60% chance to ignore shield stacks on opponent' },
-    { name: 'Coup de Grace', effect: 'crit_ultimate_burst', value: 80, emoji: '👑', description: 'Increase critical damage by 80%, at round start temporarily raises crit chance to 100% for 3 critical strikes' },
-    { name: 'Blade Dance', effect: 'crit_stun_execute', value: 5, emoji: '🗡️', description: 'Critical strikes stun opponent for 0.5s, dealing 5% of opponent HP ignoring shield, 1.5s cooldown' }
+    { name: 'Coup de Grace', effect: 'coup_de_grace', value: 80, emoji: '👑', description: 'Increase critical damage by 80%, at round start temporarily raises crit chance to 100% for 3 critical strikes' },
+    { name: 'Blade Dance', effect: 'blade_dance', value: 5, emoji: '🗡️', description: 'Critical strikes stun opponent for 0.5s, dealing 5% of opponent HP ignoring shield, 1.5s cooldown' }
   ]
 };

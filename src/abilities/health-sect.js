@@ -22,7 +22,7 @@ export const HEALTH_SECT_ABILITIES = {
   ],
   3: [
     { name: 'Life Break', effect: 'hp_sacrifice_damage', value: 20, emoji: '💀', description: 'When round starts, deal 20% of your HP to opponent and deal that damage to yourself' },
-    { name: 'Drums of Slom', effect: 'hp_magic_damage_growth', value: 6, emoji: '🥁', description: 'Every 2s, deal magic damage equal to 6% of max HP to opponent, increase own max HP by 200 every 2s up to 1000 HP max' },
+    { name: 'Drums of Slom', effect: 'drums_of_slom', value: 6, emoji: '🥁', description: 'Every 2s, deal magic damage equal to 6% of max HP to opponent, increase own max HP by 200 every 2s up to 1000 HP max' },
     { name: 'Immortal Essence', effect: 'health_death_immunity', value: 5, emoji: '✨', description: 'Immune to death for 5 seconds, heal to full when immunity ends' }
   ]
 };
