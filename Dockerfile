@@ -1,29 +1,26 @@
-# Use Node.js 18 LTS (alpine)
-FROM node:18-alpine
-
-# Install curl for container healthcheck
-RUN apk add --no-cache curl
-
-# Set working directory
+# Builder stage
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy only the server manifests for better layer caching
+# Install production dependencies
 COPY server/package.json server/package-lock.json ./
-
-# Install production deps
 ENV NODE_ENV=production
 RUN npm ci --only=production
 
 # Copy server source
 COPY server/ ./
 
-# Expose a default port (informational)
+# Runtime stage - distroless Node.js 18
+FROM gcr.io/distroless/nodejs18
+WORKDIR /app
+
+# Copy node_modules and server files from builder
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app /app
+
+# Informational port; Railway sets PORT env
 ENV PORT=3001
 EXPOSE 3001
 
-# Container-level healthcheck for faster feedback
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=10 \
-  CMD curl -fsS http://127.0.0.1:${PORT}/ || exit 1
-
-# Start server directly
-CMD ["node", "server.js"]
+# Start server with distroless node runtime
+CMD ["server.js"]
