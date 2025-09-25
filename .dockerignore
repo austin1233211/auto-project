@@ -1,25 +1,28 @@
-# Ignore everything by default
-**
-
-# But keep Dockerfile and server sources needed by the Dockerfile
-!Dockerfile
-!server/**
-!server/package.json
-!server/package-lock.json
-
-# Still exclude node_modules and logs anywhere
+# Node modules and build artifacts
 **/node_modules
 **/.pnpm-store
 **/.yarn
-**/.yarn/*
 **/.cache
 **/dist
 **/build
 **/.next
+
+# Logs and temporary files
 **/*.log
+**/.DS_Store
+**/Thumbs.db
+
+# Git and development files
 **/.git
 **/.git/**
 **/.github
+**/.vscode
+**/.idea
+
+# Environment and config files
 **/.env
 **/.env.*
-**/.DS_Store
+!server/.env.example
+
+# Documentation
+README.md

@@ -9,7 +9,10 @@
     "lint": "eslint *.js",
     "start:server": "npm --prefix server install && npm --prefix server run start",
     "railway:build": "cd server && npm ci",
-    "railway:start": "cd server && npm start"
+    "railway:start": "cd server && npm start",
+    "docker:build": "docker build -t auto-gladiators .",
+    "docker:run": "docker run -p 8080:8080 -p 3001:3001 auto-gladiators",
+    "docker:dev": "docker-compose up --build"
   },
   "keywords": [],
   "author": "",

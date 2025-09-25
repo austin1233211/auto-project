@@ -184,6 +184,26 @@ Notes:
 - Artifacts/minion rounds are simplified in the tournament MVP
 - Single-player remains unchanged
 
+### Docker Deployment
+
+The entire game can be run in a single Docker container:
+
+```bash
+# Build the container
+docker build -t auto-gladiators .
+
+# Run locally
+docker run -p 8080:8080 auto-gladiators
+
+# Or use docker-compose
+docker-compose up
+```
+
+The container includes:
+- Nginx serving static client files on port 8080
+- Node.js server handling WebSocket connections on port 3001
+- Automatic health checks and process management
+
 ## 🔄 Development Roadmap
 
 ### Phase 1: Foundation ✅
