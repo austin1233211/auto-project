@@ -43,8 +43,15 @@ io.on('connection', (socket) => {
   console.log('New WebSocket connection established:', socket.id, new Date().toISOString());
   
   socket.on('requestMatch', (playerData) => {
+    console.log('[1v1] requestMatch from', socket.id, 'name=', playerData?.name, 'existingRoom=', socket.data?.roomId);
     socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
-    waitingQueue1v1.push(socket);
+    if (socket.data.roomId) {
+      leaveRoom(socket);
+    }
+    if (!waitingQueue1v1.includes(socket)) {
+      waitingQueue1v1.push(socket);
+    }
+    console.log('[1v1] queue length =', waitingQueue1v1.length);
     tryMatch1v1();
   });
 
@@ -98,27 +105,37 @@ io.on('connection', (socket) => {
 
   socket.on('selectHero', ({ heroId }) => {
     const roomId = socket.data.roomId;
+    console.log('[1v1] selectHero from', socket.id, 'room=', roomId, 'heroId=', heroId);
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (player) {
       player.heroId = heroId;
-      broadcastLobby(roomId);
-      checkStart1v1(roomId);
-      checkStartTournament(roomId);
+      if (room.mode === '1v1') {
+        broadcastRoomStatus1v1(roomId);
+        checkStart1v1(roomId);
+      } else {
+        broadcastLobby(roomId);
+        checkStartTournament(roomId);
+      }
     }
   });
 
   socket.on('playerReady', () => {
     const roomId = socket.data.roomId;
+    console.log('[1v1] playerReady from', socket.id, 'room=', roomId);
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (player) {
       player.isReady = true;
-      broadcastLobby(roomId);
-      checkStart1v1(roomId);
-      checkStartTournament(roomId);
+      if (room.mode === '1v1') {
+        broadcastRoomStatus1v1(roomId);
+        checkStart1v1(roomId);
+      } else {
+        broadcastLobby(roomId);
+        checkStartTournament(roomId);
+      }
     }
   });
 
@@ -137,9 +154,16 @@ io.on('connection', (socket) => {
 });
 
 function tryMatch1v1() {
+  console.log('[1v1] tryMatch1v1 called. queue length =', waitingQueue1v1.length);
   while (waitingQueue1v1.length >= 2) {
-    const a = waitingQueue1v1.shift();
-    const b = waitingQueue1v1.shift();
+    let a = waitingQueue1v1.shift();
+    let b = waitingQueue1v1.shift();
+    if (!a?.connected) a = null;
+    if (!b?.connected) b = null;
+    if (!a || !b) {
+      console.log('[1v1] skipped pairing due to disconnected socket(s)');
+      continue;
+    }
     const roomId = makeRoomId('duo');
     const room = { mode: '1v1', players: new Map() };
     rooms.set(roomId, room);
@@ -148,6 +172,7 @@ function tryMatch1v1() {
       s.data.roomId = roomId;
       room.players.set(s.id, { id: s.id, name: s.data.name, isReady: false, heroId: null });
     });
+    console.log('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
     broadcastRoomStatus1v1(roomId);
   }
 }
@@ -161,9 +186,15 @@ function broadcastRoomStatus1v1(roomId) {
     heroSelected: !!p.heroId
   }));
   const phase = getPhase1v1(room);
+  console.log('[1v1]', roomId, 'broadcast status phase=', phase, players);
   io.to(roomId).emit('roomStatusUpdate', { players, phase });
-  if (phase === 'waiting_for_ready' && players.length === 2) {
-    io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
+  if (players.length === 2) {
+    const allHeroes = players.every(p => p.heroSelected);
+    const allReady = players.every(p => p.isReady);
+    if (allHeroes && !allReady) {
+      console.log('[1v1]', roomId, 'proceedToRules');
+      io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
+    }
   }
 }
 
@@ -189,13 +220,16 @@ function checkStart1v1(roomId) {
   if (players.length !== 2) return;
   const heroSelected = players.every(p => !!p.heroId);
   const ready = players.every(p => p.isReady);
+  console.log('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
   if (heroSelected && ready) {
+    console.log('[1v1]', roomId, 'EMIT gameStarting');
     io.to(roomId).emit('gameStarting', { countdown: 3 });
     setTimeout(() => {
       const payload = {
-        players: players.map(p => ({ name: p.name, hero: { id: p.heroId } })),
+        players: players.map(p => ({ name: p.name, heroId: p.heroId })),
         gameMode: '1v1'
       };
+      console.log('[1v1]', roomId, 'EMIT gameStart', payload);
       io.to(roomId).emit('gameStart', payload);
     }, 3000);
   }

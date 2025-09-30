@@ -17,12 +17,18 @@ export class MultiplayerLobby {
     this.client.on('connected', () => {
       this.client.requestMatch({ name: this.player.name });
     });
+    if (this.client.socket && this.client.socket.connected) {
+      this.client.requestMatch({ name: this.player.name });
+    }
     this.client.on('roomStatusUpdate', (status) => this.updateStatus(status));
     this.client.on('proceedToRules', (data) => this.showRules());
     this.client.on('gameStarting', (data) => this.showCountdown(data.countdown));
     this.client.on('gameStart', (data) => {
-      const me = data.players.find(p => p.name === this.player.name) || data.players[0];
-      const opponent = data.players.find(p => p.name !== this.player.name) || data.players[1];
+      const meRaw = data.players.find(p => p.name === this.player.name) || data.players[0];
+      const opponentRaw = data.players.find(p => p.name !== this.player.name) || data.players[1];
+      const normalize = (p) => ({ ...p, heroId: p.heroId ?? (p.hero && p.hero.id) ?? p.hero });
+      const me = normalize(meRaw);
+      const opponent = normalize(opponentRaw);
       if (this.onStartBattle) this.onStartBattle({ me, opponent });
     });
   }
@@ -88,7 +94,7 @@ export class MultiplayerLobby {
 
   showRules() {
     const phase = this.container.querySelector('#phaseInfo');
-    if (phase) phase.textContent = 'Both players ready. Starting soon...';
+    if (phase) phase.textContent = 'Both heroes selected. Click Ready to start.';
     this.client.confirmRules();
   }
 
