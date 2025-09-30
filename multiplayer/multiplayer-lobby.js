@@ -32,23 +32,64 @@ export class MultiplayerLobby {
       if (this.onStartBattle) this.onStartBattle({ me, opponent });
     });
   }
+  renderHeroCard(hero) {
+    return `
+      <div class="hero-card" data-hero-id="${hero.id}">
+        <div class="hero-avatar">${hero.avatar}</div>
+        <div class="hero-name">${hero.name}</div>
+        <div class="hero-type">${hero.type}</div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-label">HP</span><span class="stat-value">${hero.stats.health}</span></div>
+          <div class="stat"><span class="stat-label">ATK</span><span class="stat-value">${hero.stats.attack}</span></div>
+          <div class="stat"><span class="stat-label">ARM</span><span class="stat-value">${hero.stats.armor}</span></div>
+          <div class="stat"><span class="stat-label">SPD</span><span class="stat-value">${hero.stats.speed}</span></div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderHeroDetails(hero) {
+    return `
+      <div class="selected-hero-name">${hero.name}</div>
+      <div class="selected-hero-abilities">
+        <div class="ability">
+          <div class="ability-name">Passive: ${hero.abilities.passive.name}</div>
+          <div class="ability-description">${hero.abilities.passive.description}</div>
+        </div>
+        <div class="ability">
+          <div class="ability-name">Ultimate: ${hero.abilities.ultimate.name}</div>
+          <div class="ability-description">${hero.abilities.ultimate.description}</div>
+        </div>
+      </div>
+    `;
+  }
+
 
   render() {
     this.container.innerHTML = `
-      <div class="lobby-container">
-        <h1>Multiplayer Lobby</h1>
-        <div id="roomStatus"></div>
-        <div class="hero-select">
-          <h3>Select your hero</h3>
-          <div class="heroes-grid">
-            ${heroes.map(h => `
-              <button class="hero-pick" data-id="${h.id}">${h.avatar} ${h.name}</button>
-            `).join('')}
+      <div class="hero-selection-container">
+        <h1 class="hero-selection-title">Choose Your Gladiator</h1>
+
+        <div class="heroes-grid">
+          ${heroes.map(h => this.renderHeroCard(h)).join('')}
+        </div>
+
+        <div class="hero-details empty">
+          <p>Select a hero to view details</p>
+        </div>
+
+        <button class="start-button play-btn" id="mt-ready" disabled>Ready</button>
+
+        <div class="game-mode-details" style="margin-top:1rem;">
+          <div class="selected-mode-name">Multiplayer 1v1</div>
+          <div class="selected-mode-description">Select a hero, then click Ready. Game starts when both are ready.</div>
+          <div class="selected-mode-features">
+            <div class="feature"><span class="feature-text">Status: <span id="mt-phase"></span></span></div>
+            <div class="feature"><span class="feature-text">Players:</span></div>
+            <div id="mt-players"></div>
           </div>
         </div>
-        <div class="actions">
-          <button id="readyButton" disabled>Ready</button>
-        </div>
+
         <div id="phaseInfo"></div>
       </div>
     `;
@@ -56,16 +97,30 @@ export class MultiplayerLobby {
 
   attachEvents() {
     this.container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.hero-pick');
-      if (btn) {
-        const heroId = btn.dataset.id;
+      const card = e.target.closest('.hero-card');
+      if (card) {
+        const prev = this.container.querySelector('.hero-card.selected');
+        if (prev) prev.classList.remove('selected');
+        card.classList.add('selected');
+
+        const heroId = card.dataset.heroId;
         this.selectedHero = heroes.find(h => h.id === heroId);
         this.client.selectHero(this.selectedHero);
-        const readyBtn = this.container.querySelector('#readyButton');
-        if (readyBtn) readyBtn.disabled = false;
+
+        const details = this.container.querySelector('.hero-details');
+        if (details && this.selectedHero) {
+          details.classList.remove('empty');
+          details.innerHTML = this.renderHeroDetails(this.selectedHero);
+        }
+
+        const readyBtn = this.container.querySelector('#mt-ready');
+        if (readyBtn) {
+          readyBtn.disabled = false;
+          readyBtn.classList.add('enabled');
+        }
       }
     });
-    const readyBtn = this.container.querySelector('#readyButton');
+    const readyBtn = this.container.querySelector('#mt-ready');
     if (readyBtn) {
       readyBtn.addEventListener('click', () => {
         this.client.setReady();
@@ -76,20 +131,20 @@ export class MultiplayerLobby {
   }
 
   updateStatus(status) {
-    const statusDiv = this.container.querySelector('#roomStatus');
-    if (!statusDiv) return;
-    statusDiv.innerHTML = `
-      <h3>Room Status: ${status.phase.replace(/_/g,' ').toUpperCase()}</h3>
-      <div class="players-status">
-        ${status.players.map(p => `
-          <div class="player-status">
-            <span class="player-name">${p.name}</span>
-            <span class="ready-status">${p.isReady ? '✓ Ready' : '⏳ Not Ready'}</span>
-            <span class="hero-status">${p.heroSelected ? '✓ Hero' : '⏳ Hero'}</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
+    const div = this.container.querySelector('#mt-players');
+    if (div) {
+      div.innerHTML = status.players.map(p => `
+        <div class="player-status">
+          <span>${p.name}</span>
+          <span>${p.heroSelected ? '🛡️' : '⏳'}</span>
+          <span>${p.isReady ? '✓' : '…'}</span>
+        </div>
+      `).join('');
+    }
+    const phase = this.container.querySelector('#mt-phase');
+    if (phase) {
+      phase.textContent = status.phase ? `Phase: ${status.phase}` : '';
+    }
   }
 
   showRules() {
