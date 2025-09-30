@@ -16,8 +16,8 @@ export class MultiplayerClient {
     this.url = this.url || (typeof window !== 'undefined' ? (window.GAME_SERVER_URL || 'http://localhost:3001') : undefined);
     
     const socketOptions = { 
-      transports: ['polling'],
-      upgrade: false,
+      transports: ['websocket', 'polling'],
+      upgrade: true,
       rememberUpgrade: false
     };
     
