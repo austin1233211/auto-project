@@ -39,9 +39,47 @@ export class MultiplayerLobby {
     const shuffled = [...heroes].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count).map((hero, index) => ({ ...hero, displayIndex: index }));
   }
+
+  renderGrid() {
+    const grid = this.container.querySelector('.heroes-grid');
+    if (grid) {
+      grid.innerHTML = this.displayedHeroes.map(h => this.renderHeroCard(h)).join('');
+    }
+  }
+
+  rerollHero(index) {
+    const currentIds = new Set(this.displayedHeroes.map(h => h.id));
+    const candidates = heroes.filter(h => !currentIds.has(h.id));
+    if (candidates.length === 0) return;
+    const newHero = candidates[Math.floor(Math.random() * candidates.length)];
+    this.displayedHeroes[index] = { ...newHero, displayIndex: index, rerolled: true };
+    const selectedCard = this.container.querySelector('.hero-card.selected');
+    if (selectedCard) {
+      const selId = selectedCard.dataset.heroId;
+      if (selId === newHero.id || selId === (this.selectedHero && this.selectedHero.id)) {
+        selectedCard.classList.remove('selected');
+      }
+    }
+    if (this.selectedHero && this.displayedHeroes[index] && this.selectedHero.id === this.displayedHeroes[index].id) {
+      this.selectedHero = null;
+    }
+    const details = this.container.querySelector('.hero-details');
+    if (details) {
+      details.classList.add('empty');
+      details.innerHTML = '<p>Select a hero to view details</p>';
+    }
+    const readyBtn = this.container.querySelector('#mt-ready');
+    if (readyBtn) {
+      readyBtn.disabled = true;
+      readyBtn.textContent = 'Ready';
+      readyBtn.classList.remove('enabled');
+    }
+    this.renderGrid();
+  }
+
   renderHeroCard(hero) {
     return `
-      <div class="hero-card" data-hero-id="${hero.id}">
+      <div class="hero-card" data-hero-id="${hero.id}" data-index="${hero.displayIndex}">
         <div class="hero-avatar">${hero.avatar}</div>
         <div class="hero-name">${hero.name}</div>
         <div class="hero-type">${hero.type}</div>
@@ -51,6 +89,7 @@ export class MultiplayerLobby {
           <div class="stat"><span class="stat-label">ARM</span><span class="stat-value">${hero.stats.armor}</span></div>
           <div class="stat"><span class="stat-label">SPD</span><span class="stat-value">${hero.stats.speed}</span></div>
         </div>
+        <button class="reroll-btn" ${hero.rerolled ? 'disabled' : ''}>Reroll</button>
       </div>
     `;
   }
@@ -104,6 +143,16 @@ export class MultiplayerLobby {
 
   attachEvents() {
     this.container.addEventListener('click', (e) => {
+      const reroll = e.target.closest('.reroll-btn');
+      if (reroll) {
+        e.stopPropagation();
+        const card = reroll.closest('.hero-card');
+        if (card) {
+          const index = parseInt(card.dataset.index, 10);
+          this.rerollHero(index);
+        }
+        return;
+      }
       const card = e.target.closest('.hero-card');
       if (card) {
         const prev = this.container.querySelector('.hero-card.selected');
