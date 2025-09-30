@@ -10,6 +10,14 @@
         // For local development you can set this to your local server:
         // window.GAME_SERVER_URL = 'http://localhost:3001';
     </script>
+    <script>
+      (function() {
+        const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const defaultLocal = 'http://localhost:3001';
+        window.GAME_SERVER_URL = isLocal ? defaultLocal : location.origin.replace(/\/$/, '');
+      })();
+    </script>
+
 
 </head>
 <body>

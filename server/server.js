@@ -27,7 +27,7 @@ app.get('*', (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { 
-    origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080'], 
+    origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080', 'https://auto-project-production.up.railway.app'], 
     methods: ['GET','POST'],
     credentials: true
   }
