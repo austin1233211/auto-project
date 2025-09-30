@@ -2,16 +2,28 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
-  origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080'],
+  origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080', 'https://auto-project-production.up.railway.app'],
   credentials: true
 }));
 
-app.get('/', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Auto Gladiators Server is running' });
 });
+
+const clientRoot = path.resolve(__dirname, '..');
+app.use(express.static(clientRoot));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientRoot, 'index.html'));
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { 
