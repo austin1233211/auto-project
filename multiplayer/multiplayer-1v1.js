@@ -14,6 +14,7 @@ export class MultiplayerDuel {
     this.onExitToMenu = onExitToMenu;
     this.currentPhase = 'lobby';
     this.players = [];
+    this.requestedReady = false;
   }
 
   init() {
@@ -103,6 +104,7 @@ export class MultiplayerDuel {
     const readyBtn = this.container.querySelector('#duel-ready');
     if (readyBtn) {
       readyBtn.addEventListener('click', () => {
+        this.requestedReady = true;
         this.client.setReady();
         readyBtn.disabled = true;
         readyBtn.textContent = 'Ready ✓';
@@ -160,6 +162,20 @@ export class MultiplayerDuel {
         <span>${p.isReady ? '✓' : '…'}</span>
       </div>
     `).join('');
+    if (status?.phase === 'waiting_for_ready') {
+      if (this.selectedHero) {
+        console.log('[1v1 client] re-emitting selectHero', this.selectedHero?.id || this.selectedHero);
+        this.client.selectHero(this.selectedHero);
+        const readyBtn = this.container.querySelector('#duel-ready');
+        if (readyBtn) readyBtn.disabled = false;
+      } else {
+        console.log('[1v1 client] no selectedHero yet when waiting_for_ready');
+      }
+      if (this.requestedReady) {
+        console.log('[1v1 client] re-emitting playerReady');
+        this.client.setReady();
+      }
+    }
   }
 
   showRules(data) {
