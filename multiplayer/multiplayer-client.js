@@ -3,6 +3,12 @@ export class MultiplayerClient {
     this.url = url;
     this.socket = null;
     this.handlers = {};
+    this._autoRequestMatch = false;
+    this.playerName = null;
+  }
+
+  get isConnected() {
+    return !!(this.socket && this.socket.connected);
   }
 
   connect() {
@@ -16,7 +22,15 @@ export class MultiplayerClient {
     };
     
     this.socket = window.io(this.url, socketOptions);
-    this.socket.on('connect', () => this._emit('connected'));
+    this.socket.on('connect', () => {
+      this._emit('connected');
+      if (this._autoRequestMatch) {
+        const name = this.playerName || (this.socket && this.socket.id ? `Player_${this.socket.id.slice(0,5)}` : `Player_${Math.floor(Math.random()*90000+10000)}`);
+        this.requestMatch({ name });
+      }
+    });
+    this.socket.on('connect_error', (err) => this._emit('socketError', err?.message || 'connect_error'));
+    this.socket.on('error', (err) => this._emit('socketError', err?.message || 'error'));
     this.socket.on('roomStatusUpdate', (status) => this._emit('roomStatusUpdate', status));
     this.socket.on('proceedToRules', (data) => this._emit('proceedToRules', data));
     this.socket.on('gameStarting', (data) => this._emit('gameStarting', data));
@@ -45,4 +59,12 @@ export class MultiplayerClient {
   updateName(data) { this.socket.emit('updateName', data); }
   sendBattleResult(data) { this.socket.emit('clientBattleResult', data); }
   leaveRoom() { this.socket.emit('leaveRoom'); }
+  enableAutoRequestMatch(playerName) {
+    this.playerName = playerName;
+    this._autoRequestMatch = true;
+    if (this.isConnected) {
+      this.requestMatch({ name: playerName });
+    }
+  }
+
 }

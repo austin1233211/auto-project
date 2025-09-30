@@ -16,16 +16,24 @@ export class MultiplayerLobby {
     this.displayedHeroes = this.getRandomHeroes(3);
     this.render();
     this.attachEvents();
-    this.client.connect();
-    this.client.on('connected', () => {
+    this.client.enableAutoRequestMatch(this.player.name);
+    this.updateConnStatus();
+    if (this.client.isConnected) {
       this.client.requestMatch({ name: this.player.name });
-    });
-    if (this.client.socket && this.client.socket.connected) {
-      this.client.requestMatch({ name: this.player.name });
+    } else {
+      this.client.connect();
     }
+    this.client.on('connected', () => {
+      this.updateConnStatus();
+    });
+    this.client.on('socketError', (msg) => {
+      const el = this.container.querySelector('#mt-conn');
+      if (el) el.textContent = `Connection issue: ${msg}`;
+    });
     this.client.on('roomStatusUpdate', (status) => {
       console.log('[1v1] roomStatusUpdate', status);
       this.updateStatus(status);
+      this.updateConnStatus(status.players && status.players.length === 2 ? 'paired' : null);
     });
     this.client.on('proceedToRules', (data) => {
       console.log('[1v1] proceedToRules', data);
@@ -128,6 +136,11 @@ export class MultiplayerLobby {
       <div class="hero-selection-container">
         <h1 class="hero-selection-title">Choose Your Gladiator</h1>
 
+        <div class="status-banner" style="margin-bottom:12px;">
+          <div id="mt-conn"></div>
+          <div id="mt-phaseInfo"></div>
+        </div>
+
         <div class="heroes-grid">
           ${this.displayedHeroes.map(h => this.renderHeroCard(h)).join('')}
         </div>
@@ -145,6 +158,9 @@ export class MultiplayerLobby {
             <div class="feature"><span class="feature-text">Status: <span id="mt-phase"></span></span></div>
             <div class="feature"><span class="feature-text">Players:</span></div>
             <div id="mt-players"></div>
+          </div>
+          <div class="mt-queue-actions" style="margin-top:8px;">
+            <button id="mt-rejoin" class="action-button small">Rejoin Queue</button>
           </div>
         </div>
 
@@ -164,6 +180,13 @@ export class MultiplayerLobby {
           const index = parseInt(card.dataset.index, 10);
           this.rerollHero(index);
         }
+        return;
+      }
+      const rejoinBtn = e.target.closest('#mt-rejoin');
+      if (rejoinBtn) {
+        if (!this.client.isConnected) this.client.connect();
+        this.client.requestMatch({ name: this.player.name });
+        this.updateConnStatus();
         return;
       }
       const card = e.target.closest('.hero-card');
@@ -233,5 +256,17 @@ export class MultiplayerLobby {
   showCountdown(count) {
     const phase = this.container.querySelector('#phaseInfo');
     if (phase) phase.textContent = `Game starting in ${count}...`;
+    const banner = this.container.querySelector('#mt-phaseInfo');
+    if (banner) banner.textContent = `Game starting in ${count}...`;
   }
+  updateConnStatus(pairedState) {
+    const el = this.container.querySelector('#mt-conn');
+    if (!el) return;
+    if (!this.client || !this.client.isConnected) {
+      el.textContent = 'Connecting to server…';
+      return;
+    }
+    el.textContent = pairedState === 'paired' ? 'Connected · In room with opponent' : 'Connected · Pairing…';
+  }
+
 }
