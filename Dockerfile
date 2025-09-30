@@ -73,7 +73,8 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '# Start nginx in background' >> /app/start.sh && \
     echo 'nginx -g "daemon off;" &' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
-    echo '# Start Node.js server' >> /app/start.sh && \
+    echo '# Start Node.js server on SERVER_PORT (default 3001)' >> /app/start.sh && \
+    echo 'export SERVER_PORT=${SERVER_PORT:-3001}' >> /app/start.sh && \
     echo 'cd /app/server && node server.js &' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '# Wait for any process to exit' >> /app/start.sh && \

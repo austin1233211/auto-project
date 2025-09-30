@@ -1,5 +1,5 @@
 export class MultiplayerClient {
-  constructor(url = (window.GAME_SERVER_URL || 'http://localhost:3001')) {
+  constructor(url = (typeof window !== 'undefined' ? window.GAME_SERVER_URL : undefined)) {
     this.url = url;
     this.socket = null;
     this.handlers = {};
