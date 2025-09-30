@@ -8,9 +8,11 @@ export class MultiplayerLobby {
     this.player = { name: `Player_${Math.floor(Math.random()*100000)}` };
     this.selectedHero = null;
     this.onStartBattle = onStartBattle;
+    this.displayedHeroes = [];
   }
 
   init() {
+    this.displayedHeroes = this.getRandomHeroes(3);
     this.render();
     this.attachEvents();
     this.client.connect();
@@ -31,6 +33,11 @@ export class MultiplayerLobby {
       const opponent = normalize(opponentRaw);
       if (this.onStartBattle) this.onStartBattle({ me, opponent });
     });
+  }
+
+  getRandomHeroes(count) {
+    const shuffled = [...heroes].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count).map((hero, index) => ({ ...hero, displayIndex: index }));
   }
   renderHeroCard(hero) {
     return `
@@ -71,7 +78,7 @@ export class MultiplayerLobby {
         <h1 class="hero-selection-title">Choose Your Gladiator</h1>
 
         <div class="heroes-grid">
-          ${heroes.map(h => this.renderHeroCard(h)).join('')}
+          ${this.displayedHeroes.map(h => this.renderHeroCard(h)).join('')}
         </div>
 
         <div class="hero-details empty">
@@ -104,7 +111,7 @@ export class MultiplayerLobby {
         card.classList.add('selected');
 
         const heroId = card.dataset.heroId;
-        this.selectedHero = heroes.find(h => h.id === heroId);
+        this.selectedHero = this.displayedHeroes.find(h => h.id === heroId);
         this.client.selectHero(this.selectedHero);
 
         const details = this.container.querySelector('.hero-details');
