@@ -17,6 +17,9 @@ export class MultiplayerLobby {
     this.client.on('connected', () => {
       this.client.requestMatch({ name: this.player.name });
     });
+    if (this.client.socket && this.client.socket.connected) {
+      this.client.requestMatch({ name: this.player.name });
+    }
     this.client.on('roomStatusUpdate', (status) => this.updateStatus(status));
     this.client.on('proceedToRules', (data) => this.showRules());
     this.client.on('gameStarting', (data) => this.showCountdown(data.countdown));
