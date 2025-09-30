@@ -165,12 +165,35 @@ function tryMatch1v1() {
       continue;
     }
     const roomId = makeRoomId('duo');
-    const room = { mode: '1v1', players: new Map() };
+    const room = {
+      mode: '1v1',
+      players: new Map(),
+      currentRound: 1,
+      activePlayers: [],
+      ghostPlayers: [],
+      currentMatches: [],
+      timer: null,
+      phase: 'lobby'
+    };
     rooms.set(roomId, room);
-    [a,b].forEach(s => {
+    [a,b].forEach((s, idx) => {
       s.join(roomId);
       s.data.roomId = roomId;
-      room.players.set(s.id, { id: s.id, name: s.data.name, isReady: false, heroId: null });
+      room.players.set(s.id, {
+        sid: s.id,
+        id: idx + 1,
+        name: s.data.name,
+        heroId: null,
+        isReady: false,
+        hp: { current: 50, max: 50 },
+        isEliminated: false,
+        isGhost: false,
+        wins: 0,
+        losses: 0,
+        gold: 300,
+        consecutiveWins: 0,
+        consecutiveLosses: 0
+      });
     });
     console.log('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
     broadcastRoomStatus1v1(roomId);
@@ -222,15 +245,25 @@ function checkStart1v1(roomId) {
   const ready = players.every(p => p.isReady);
   console.log('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
   if (heroSelected && ready) {
-    console.log('[1v1]', roomId, 'EMIT gameStarting');
+    console.log('[1v1]', roomId, 'EMIT gameStarting then start buffer/round lifecycle');
     io.to(roomId).emit('gameStarting', { countdown: 3 });
     setTimeout(() => {
-      const payload = {
-        players: players.map(p => ({ name: p.name, heroId: p.heroId })),
-        gameMode: '1v1'
-      };
-      console.log('[1v1]', roomId, 'EMIT gameStart', payload);
-      io.to(roomId).emit('gameStart', payload);
+      const pArr = Array.from(room.players.values());
+      room.activePlayers = pArr.map(p => ({
+        id: p.id,
+        name: p.name,
+        heroId: p.heroId,
+        hp: p.hp,
+        isEliminated: p.isEliminated,
+        isGhost: p.isGhost,
+        wins: p.wins || 0,
+        losses: p.losses || 0,
+        gold: p.gold || 300
+      }));
+      room.ghostPlayers = [];
+      room.currentRound = 1;
+      room.phase = 'buffer';
+      startBuffer(roomId);
     }, 3000);
   }
 }
