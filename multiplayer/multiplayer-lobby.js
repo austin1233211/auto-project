@@ -94,7 +94,7 @@ export class MultiplayerLobby {
 
   showRules() {
     const phase = this.container.querySelector('#phaseInfo');
-    if (phase) phase.textContent = 'Both players ready. Starting soon...';
+    if (phase) phase.textContent = 'Both heroes selected. Click Ready to start.';
     this.client.confirmRules();
   }
 

@@ -188,9 +188,13 @@ function broadcastRoomStatus1v1(roomId) {
   const phase = getPhase1v1(room);
   console.log('[1v1]', roomId, 'broadcast status phase=', phase, players);
   io.to(roomId).emit('roomStatusUpdate', { players, phase });
-  if (phase === 'waiting_for_ready' && players.length === 2) {
-    console.log('[1v1]', roomId, 'proceedToRules');
-    io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
+  if (players.length === 2) {
+    const allHeroes = players.every(p => p.heroSelected);
+    const allReady = players.every(p => p.isReady);
+    if (allHeroes && !allReady) {
+      console.log('[1v1]', roomId, 'proceedToRules');
+      io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
+    }
   }
 }
 
