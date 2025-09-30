@@ -43,6 +43,7 @@ io.on('connection', (socket) => {
   console.log('New WebSocket connection established:', socket.id, new Date().toISOString());
   
   socket.on('requestMatch', (playerData) => {
+    console.log('[1v1] requestMatch from', socket.id, 'name=', playerData?.name);
     socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
     waitingQueue1v1.push(socket);
     tryMatch1v1();
@@ -98,6 +99,7 @@ io.on('connection', (socket) => {
 
   socket.on('selectHero', ({ heroId }) => {
     const roomId = socket.data.roomId;
+    console.log('[1v1] selectHero from', socket.id, 'room=', roomId, 'heroId=', heroId);
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
@@ -115,6 +117,7 @@ io.on('connection', (socket) => {
 
   socket.on('playerReady', () => {
     const roomId = socket.data.roomId;
+    console.log('[1v1] playerReady from', socket.id, 'room=', roomId);
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
