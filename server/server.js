@@ -103,9 +103,13 @@ io.on('connection', (socket) => {
     const player = room.players.get(socket.id);
     if (player) {
       player.heroId = heroId;
-      broadcastLobby(roomId);
-      checkStart1v1(roomId);
-      checkStartTournament(roomId);
+      if (room.mode === '1v1') {
+        broadcastRoomStatus1v1(roomId);
+        checkStart1v1(roomId);
+      } else {
+        broadcastLobby(roomId);
+        checkStartTournament(roomId);
+      }
     }
   });
 
@@ -116,9 +120,13 @@ io.on('connection', (socket) => {
     const player = room.players.get(socket.id);
     if (player) {
       player.isReady = true;
-      broadcastLobby(roomId);
-      checkStart1v1(roomId);
-      checkStartTournament(roomId);
+      if (room.mode === '1v1') {
+        broadcastRoomStatus1v1(roomId);
+        checkStart1v1(roomId);
+      } else {
+        broadcastLobby(roomId);
+        checkStartTournament(roomId);
+      }
     }
   });
 
