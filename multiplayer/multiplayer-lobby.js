@@ -9,6 +9,7 @@ export class MultiplayerLobby {
     this.selectedHero = null;
     this.onStartBattle = onStartBattle;
     this.displayedHeroes = [];
+    this.readySent = false;
   }
 
   init() {
@@ -22,10 +23,20 @@ export class MultiplayerLobby {
     if (this.client.socket && this.client.socket.connected) {
       this.client.requestMatch({ name: this.player.name });
     }
-    this.client.on('roomStatusUpdate', (status) => this.updateStatus(status));
-    this.client.on('proceedToRules', (data) => this.showRules());
-    this.client.on('gameStarting', (data) => this.showCountdown(data.countdown));
+    this.client.on('roomStatusUpdate', (status) => {
+      console.log('[1v1] roomStatusUpdate', status);
+      this.updateStatus(status);
+    });
+    this.client.on('proceedToRules', (data) => {
+      console.log('[1v1] proceedToRules', data);
+      this.showRules();
+    });
+    this.client.on('gameStarting', (data) => {
+      console.log('[1v1] gameStarting', data);
+      this.showCountdown(data.countdown);
+    });
     this.client.on('gameStart', (data) => {
+      console.log('[1v1] gameStart', data);
       const meRaw = data.players.find(p => p.name === this.player.name) || data.players[0];
       const opponentRaw = data.players.find(p => p.name !== this.player.name) || data.players[1];
       const normalize = (p) => ({ ...p, heroId: p.heroId ?? (p.hero && p.hero.id) ?? p.hero });
@@ -50,6 +61,7 @@ export class MultiplayerLobby {
   rerollHero(index) {
     const currentIds = new Set(this.displayedHeroes.map(h => h.id));
     const candidates = heroes.filter(h => !currentIds.has(h.id));
+    if (this.readySent) return;
     if (candidates.length === 0) return;
     const newHero = candidates[Math.floor(Math.random() * candidates.length)];
     this.displayedHeroes[index] = { ...newHero, displayIndex: index, rerolled: true };
@@ -89,7 +101,7 @@ export class MultiplayerLobby {
           <div class="stat"><span class="stat-label">ARM</span><span class="stat-value">${hero.stats.armor}</span></div>
           <div class="stat"><span class="stat-label">SPD</span><span class="stat-value">${hero.stats.speed}</span></div>
         </div>
-        <button class="reroll-btn" ${hero.rerolled ? 'disabled' : ''}>Reroll</button>
+        <button class="reroll-btn" ${hero.rerolled || this.readySent ? 'disabled' : ''}>Reroll</button>
       </div>
     `;
   }
@@ -146,6 +158,7 @@ export class MultiplayerLobby {
       const reroll = e.target.closest('.reroll-btn');
       if (reroll) {
         e.stopPropagation();
+        if (this.readySent) return;
         const card = reroll.closest('.hero-card');
         if (card) {
           const index = parseInt(card.dataset.index, 10);
@@ -155,6 +168,7 @@ export class MultiplayerLobby {
       }
       const card = e.target.closest('.hero-card');
       if (card) {
+        if (this.readySent) return;
         const prev = this.container.querySelector('.hero-card.selected');
         if (prev) prev.classList.remove('selected');
         card.classList.add('selected');
@@ -178,10 +192,16 @@ export class MultiplayerLobby {
     });
     const readyBtn = this.container.querySelector('#mt-ready');
     if (readyBtn) {
+      let readySent = false;
       readyBtn.addEventListener('click', () => {
+        if (readySent) return;
+        readySent = true;
+        this.readySent = true;
         this.client.setReady();
         readyBtn.disabled = true;
         readyBtn.textContent = 'Ready ✓';
+        const rerollButtons = this.container.querySelectorAll('.reroll-btn');
+        rerollButtons.forEach(b => { b.disabled = true; });
       });
     }
   }
@@ -199,13 +219,14 @@ export class MultiplayerLobby {
     }
     const phase = this.container.querySelector('#mt-phase');
     if (phase) {
-      phase.textContent = status.phase ? `Phase: ${status.phase}` : '';
+      const pretty = (status.phase || '').replace(/_/g, ' ');
+      phase.textContent = status.phase ? `Phase: ${pretty}` : '';
     }
   }
 
   showRules() {
     const phase = this.container.querySelector('#phaseInfo');
-    if (phase) phase.textContent = 'Both heroes selected. Click Ready to start.';
+    if (phase) phase.textContent = 'Both heroes selected — click Ready in both tabs to begin.';
     this.client.confirmRules();
   }
 
