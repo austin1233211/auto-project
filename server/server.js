@@ -43,9 +43,15 @@ io.on('connection', (socket) => {
   console.log('New WebSocket connection established:', socket.id, new Date().toISOString());
   
   socket.on('requestMatch', (playerData) => {
-    console.log('[1v1] requestMatch from', socket.id, 'name=', playerData?.name);
+    console.log('[1v1] requestMatch from', socket.id, 'name=', playerData?.name, 'existingRoom=', socket.data?.roomId);
     socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
-    waitingQueue1v1.push(socket);
+    if (socket.data.roomId) {
+      leaveRoom(socket);
+    }
+    if (!waitingQueue1v1.includes(socket)) {
+      waitingQueue1v1.push(socket);
+    }
+    console.log('[1v1] queue length =', waitingQueue1v1.length);
     tryMatch1v1();
   });
 
@@ -148,9 +154,16 @@ io.on('connection', (socket) => {
 });
 
 function tryMatch1v1() {
+  console.log('[1v1] tryMatch1v1 called. queue length =', waitingQueue1v1.length);
   while (waitingQueue1v1.length >= 2) {
-    const a = waitingQueue1v1.shift();
-    const b = waitingQueue1v1.shift();
+    let a = waitingQueue1v1.shift();
+    let b = waitingQueue1v1.shift();
+    if (!a?.connected) a = null;
+    if (!b?.connected) b = null;
+    if (!a || !b) {
+      console.log('[1v1] skipped pairing due to disconnected socket(s)');
+      continue;
+    }
     const roomId = makeRoomId('duo');
     const room = { mode: '1v1', players: new Map() };
     rooms.set(roomId, room);
