@@ -193,7 +193,7 @@ function checkStart1v1(roomId) {
     io.to(roomId).emit('gameStarting', { countdown: 3 });
     setTimeout(() => {
       const payload = {
-        players: players.map(p => ({ name: p.name, hero: { id: p.heroId } })),
+        players: players.map(p => ({ name: p.name, heroId: p.heroId })),
         gameMode: '1v1'
       };
       io.to(roomId).emit('gameStart', payload);

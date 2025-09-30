@@ -21,8 +21,11 @@ export class MultiplayerLobby {
     this.client.on('proceedToRules', (data) => this.showRules());
     this.client.on('gameStarting', (data) => this.showCountdown(data.countdown));
     this.client.on('gameStart', (data) => {
-      const me = data.players.find(p => p.name === this.player.name) || data.players[0];
-      const opponent = data.players.find(p => p.name !== this.player.name) || data.players[1];
+      const meRaw = data.players.find(p => p.name === this.player.name) || data.players[0];
+      const opponentRaw = data.players.find(p => p.name !== this.player.name) || data.players[1];
+      const normalize = (p) => ({ ...p, heroId: p.heroId ?? (p.hero && p.hero.id) ?? p.hero });
+      const me = normalize(meRaw);
+      const opponent = normalize(opponentRaw);
       if (this.onStartBattle) this.onStartBattle({ me, opponent });
     });
   }
