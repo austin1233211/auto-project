@@ -33,6 +33,17 @@ app.get('/health', (req, res) => {
 
 const clientRoot = path.resolve(__dirname, '..');
 app.use(express.static(clientRoot));
+try { console.log('[startup] Serving static from', clientRoot); } catch(_) {}
+try { 
+  const allowed = [
+    'http://localhost:8080',
+    'https://game-test-app-t0805w30.devinapps.com',
+    'https://auto-project-production.up.railway.app',
+    process.env.CLIENT_ORIGIN,
+    process.env.DEPLOY_ORIGIN
+  ].filter(Boolean);
+  console.log('[startup] Allowed origins:', allowed);
+} catch(_) {}
 app.get('*', (req, res) => {
   res.sendFile(path.join(clientRoot, 'index.html'));
 });
@@ -718,6 +729,11 @@ function leaveRoom(socket) {
 }
 
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Multiplayer server listening on ${PORT}`);
-});
+try { console.log('[startup] Will listen on PORT', PORT); } catch(_) {}
+if (!server.listening) {
+  server.listen(PORT, () => {
+    console.log(`Multiplayer server listening on ${PORT}`);
+  });
+} else {
+  console.log('Server already listening, skipping duplicate listen()');
+}
