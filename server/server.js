@@ -104,11 +104,53 @@ io.on('connection', (socket) => {
     }
 
     if (!joinedExistingDuo) {
-      if (!waitingQueue1v1.includes(socket)) {
-        waitingQueue1v1.push(socket);
+      waitingQueue1v1.push(socket);
+      for (let i = waitingQueue1v1.length - 1; i >= 0; i--) {
+        if (!waitingQueue1v1[i]?.connected) waitingQueue1v1.splice(i, 1);
       }
-      console.log('[1v1] queue length =', waitingQueue1v1.length);
-      tryMatch1v1();
+      console.log('[1v1] queue now =', waitingQueue1v1.map(s => s.id));
+
+      if (waitingQueue1v1.length >= 2) {
+        const a = waitingQueue1v1.shift();
+        const b = waitingQueue1v1.shift();
+        if (a && b && a.connected && b.connected) {
+          const roomId = makeRoomId('duo');
+          const room = {
+            mode: '1v1',
+            players: new Map(),
+            currentRound: 1,
+            activePlayers: [],
+            ghostPlayers: [],
+            currentMatches: [],
+            timer: null,
+            phase: 'lobby'
+          };
+          rooms.set(roomId, room);
+          [a,b].forEach((s, idx) => {
+            s.join(roomId);
+            s.data.roomId = roomId;
+            room.players.set(s.id, {
+              sid: s.id,
+              id: idx + 1,
+              name: s.data.name,
+              heroId: null,
+              isReady: false,
+              hp: { current: 50, max: 50 },
+              isEliminated: false,
+              isGhost: false,
+              wins: 0,
+              losses: 0,
+              gold: 300,
+              consecutiveWins: 0,
+              consecutiveLosses: 0
+            });
+          });
+          console.log('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
+          broadcastRoomStatus1v1(roomId);
+        }
+      } else {
+        console.log('[1v1] waiting for opponent; queue length =', waitingQueue1v1.length);
+      }
     }
   });
 
