@@ -58,7 +58,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '    keepalive_timeout 65;' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '    server {' >> /app/start.sh && \
-    echo '        listen '"'\$PORT;'" >> /app/start.sh && \
+    echo "        listen \${PORT};" >> /app/start.sh && \
     echo '        server_name localhost;' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '        location / {' >> /app/start.sh && \
@@ -68,7 +68,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '        }' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '        location /socket.io/ {' >> /app/start.sh && \
-    echo '            proxy_pass http://127.0.0.1:'"'\$SERVER_PORT;'" >> /app/start.sh && \
+    echo "            proxy_pass http://127.0.0.1:\${SERVER_PORT};" >> /app/start.sh && \
     echo '            proxy_http_version 1.1;' >> /app/start.sh && \
     echo '            proxy_set_header Upgrade $http_upgrade;' >> /app/start.sh && \
     echo '            proxy_set_header Connection "upgrade";' >> /app/start.sh && \
