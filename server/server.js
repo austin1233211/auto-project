@@ -10,7 +10,20 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
-  origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080', 'https://auto-project-production.up.railway.app'],
+  origin: (origin, callback) => {
+    const allowlist = [
+      'http://localhost:8080',
+      'https://game-test-app-t0805w30.devinapps.com',
+      'https://auto-project-production.up.railway.app',
+      process.env.CLIENT_ORIGIN,
+      process.env.DEPLOY_ORIGIN
+    ].filter(Boolean);
+    if (!origin || allowlist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true
 }));
 
@@ -26,8 +39,21 @@ app.get('*', (req, res) => {
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { 
-    origin: ['https://game-test-app-t0805w30.devinapps.com', 'http://localhost:8080', 'https://auto-project-production.up.railway.app'], 
+  cors: {
+    origin: (origin, callback) => {
+      const allowlist = [
+        'http://localhost:8080',
+        'https://game-test-app-t0805w30.devinapps.com',
+        'https://auto-project-production.up.railway.app',
+        process.env.CLIENT_ORIGIN,
+        process.env.DEPLOY_ORIGIN
+      ].filter(Boolean);
+      if (!origin || allowlist.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     methods: ['GET','POST'],
     credentials: true
   }
@@ -649,7 +675,7 @@ function leaveRoom(socket) {
   socket.data.roomId = null;
 }
 
-const PORT = process.env.SERVER_PORT || 3001;
+const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Multiplayer server listening on ${PORT}`);
 });
