@@ -48,11 +48,42 @@ io.on('connection', (socket) => {
     if (socket.data.roomId) {
       leaveRoom(socket);
     }
-    if (!waitingQueue1v1.includes(socket)) {
-      waitingQueue1v1.push(socket);
+
+    let joinedExistingDuo = false;
+    for (const [roomId, room] of rooms.entries()) {
+      if (room.mode === '1v1' && room.phase === 'lobby' && room.players.size === 1) {
+        console.log('[1v1] Joining existing duo room:', roomId);
+        socket.join(roomId);
+        socket.data.roomId = roomId;
+        const idx = room.players.size + 1;
+        room.players.set(socket.id, {
+          sid: socket.id,
+          id: idx,
+          name: socket.data.name,
+          heroId: null,
+          isReady: false,
+          hp: { current: 50, max: 50 },
+          isEliminated: false,
+          isGhost: false,
+          wins: 0,
+          losses: 0,
+          gold: 300,
+          consecutiveWins: 0,
+          consecutiveLosses: 0
+        });
+        joinedExistingDuo = true;
+        broadcastRoomStatus1v1(roomId);
+        break;
+      }
     }
-    console.log('[1v1] queue length =', waitingQueue1v1.length);
-    tryMatch1v1();
+
+    if (!joinedExistingDuo) {
+      if (!waitingQueue1v1.includes(socket)) {
+        waitingQueue1v1.push(socket);
+      }
+      console.log('[1v1] queue length =', waitingQueue1v1.length);
+      tryMatch1v1();
+    }
   });
 
   socket.on('requestTournament', (playerData) => {
@@ -109,15 +140,20 @@ io.on('connection', (socket) => {
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
-    if (player) {
-      player.heroId = heroId;
-      if (room.mode === '1v1') {
-        broadcastRoomStatus1v1(roomId);
-        checkStart1v1(roomId);
-      } else {
-        broadcastLobby(roomId);
-        checkStartTournament(roomId);
-      }
+    if (!player) {
+      console.log('[1v1] selectHero could not find player for socket', socket.id, 'players keys=', Array.from(room.players.keys()));
+      return;
+    }
+    const before = { heroId: player.heroId, isReady: player.isReady, name: player.name };
+    player.heroId = heroId;
+    const after = { heroId: player.heroId, isReady: player.isReady, name: player.name };
+    console.log('[1v1] selectHero updated', before, '->', after);
+    if (room.mode === '1v1') {
+      broadcastRoomStatus1v1(roomId);
+      checkStart1v1(roomId);
+    } else {
+      broadcastLobby(roomId);
+      checkStartTournament(roomId);
     }
   });
 
@@ -127,15 +163,20 @@ io.on('connection', (socket) => {
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
-    if (player) {
-      player.isReady = true;
-      if (room.mode === '1v1') {
-        broadcastRoomStatus1v1(roomId);
-        checkStart1v1(roomId);
-      } else {
-        broadcastLobby(roomId);
-        checkStartTournament(roomId);
-      }
+    if (!player) {
+      console.log('[1v1] playerReady could not find player for socket', socket.id, 'players keys=', Array.from(room.players.keys()));
+      return;
+    }
+    const before = { heroId: player.heroId, isReady: player.isReady, name: player.name };
+    player.isReady = true;
+    const after = { heroId: player.heroId, isReady: player.isReady, name: player.name };
+    console.log('[1v1] playerReady updated', before, '->', after);
+    if (room.mode === '1v1') {
+      broadcastRoomStatus1v1(roomId);
+      checkStart1v1(roomId);
+    } else {
+      broadcastLobby(roomId);
+      checkStartTournament(roomId);
     }
   });
 
@@ -143,7 +184,7 @@ io.on('connection', (socket) => {
     const roomId = socket.data.roomId;
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
-    if (room.mode !== 'tournament') return;
+    if (room.mode !== 'tournament' && room.mode !== '1v1') return;
     handleClientBattleResult(roomId, data);
   });
 
@@ -165,12 +206,35 @@ function tryMatch1v1() {
       continue;
     }
     const roomId = makeRoomId('duo');
-    const room = { mode: '1v1', players: new Map() };
+    const room = {
+      mode: '1v1',
+      players: new Map(),
+      currentRound: 1,
+      activePlayers: [],
+      ghostPlayers: [],
+      currentMatches: [],
+      timer: null,
+      phase: 'lobby'
+    };
     rooms.set(roomId, room);
-    [a,b].forEach(s => {
+    [a,b].forEach((s, idx) => {
       s.join(roomId);
       s.data.roomId = roomId;
-      room.players.set(s.id, { id: s.id, name: s.data.name, isReady: false, heroId: null });
+      room.players.set(s.id, {
+        sid: s.id,
+        id: idx + 1,
+        name: s.data.name,
+        heroId: null,
+        isReady: false,
+        hp: { current: 50, max: 50 },
+        isEliminated: false,
+        isGhost: false,
+        wins: 0,
+        losses: 0,
+        gold: 300,
+        consecutiveWins: 0,
+        consecutiveLosses: 0
+      });
     });
     console.log('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
     broadcastRoomStatus1v1(roomId);
@@ -222,15 +286,25 @@ function checkStart1v1(roomId) {
   const ready = players.every(p => p.isReady);
   console.log('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
   if (heroSelected && ready) {
-    console.log('[1v1]', roomId, 'EMIT gameStarting');
+    console.log('[1v1]', roomId, 'EMIT gameStarting then start buffer/round lifecycle');
     io.to(roomId).emit('gameStarting', { countdown: 3 });
     setTimeout(() => {
-      const payload = {
-        players: players.map(p => ({ name: p.name, heroId: p.heroId })),
-        gameMode: '1v1'
-      };
-      console.log('[1v1]', roomId, 'EMIT gameStart', payload);
-      io.to(roomId).emit('gameStart', payload);
+      const pArr = Array.from(room.players.values());
+      room.activePlayers = pArr.map(p => ({
+        id: p.id,
+        name: p.name,
+        heroId: p.heroId,
+        hp: p.hp,
+        isEliminated: p.isEliminated,
+        isGhost: p.isGhost,
+        wins: p.wins || 0,
+        losses: p.losses || 0,
+        gold: p.gold || 300
+      }));
+      room.ghostPlayers = [];
+      room.currentRound = 1;
+      room.phase = 'buffer';
+      startBuffer(roomId);
     }, 3000);
   }
 }
