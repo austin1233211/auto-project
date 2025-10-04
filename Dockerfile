@@ -41,7 +41,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'SERVER_PORT="${SERVER_PORT:-3001}"' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '# Generate nginx.conf using runtime PORT and SERVER_PORT' >> /app/start.sh && \
-    echo 'cat > /etc/nginx/nginx.conf <<EOF' >> /app/start.sh && \
+    echo "cat > /etc/nginx/nginx.conf <<'EOF'" >> /app/start.sh && \
     echo 'user nginx;' >> /app/start.sh && \
     echo 'worker_processes auto;' >> /app/start.sh && \
     echo 'error_log /var/log/nginx/error.log warn;' >> /app/start.sh && \
