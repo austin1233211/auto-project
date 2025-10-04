@@ -728,8 +728,8 @@ function leaveRoom(socket) {
   socket.data.roomId = null;
 }
 
-const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
-try { console.log('[startup] Will listen on PORT', PORT); } catch(_) {}
+const PORT = process.env.SERVER_PORT || process.env.PORT || 3001;
+try { console.log('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch(_) {}
 if (!server.listening) {
   server.listen(PORT, () => {
     console.log(`Multiplayer server listening on ${PORT}`);
