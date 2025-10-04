@@ -15,6 +15,7 @@ export class MultiplayerDuel {
     this.currentPhase = 'lobby';
     this.players = [];
     this.requestedReady = false;
+    this.selectionLocked = false;
   }
 
   init() {
@@ -89,6 +90,10 @@ export class MultiplayerDuel {
       });
     }
     this.container.addEventListener('click', (e) => {
+      if (this.selectionLocked) {
+        e.stopPropagation();
+        return;
+      }
       const rerollBtn = e.target.closest('.reroll-btn');
       if (rerollBtn) {
         const idx = parseInt(rerollBtn.dataset.displayIndex);
@@ -105,9 +110,14 @@ export class MultiplayerDuel {
     if (readyBtn) {
       readyBtn.addEventListener('click', () => {
         this.requestedReady = true;
+        this.selectionLocked = true;
         this.client.setReady();
         readyBtn.disabled = true;
         readyBtn.textContent = 'Ready ✓';
+        const rerollBtns = this.container.querySelectorAll('.reroll-btn');
+        rerollBtns.forEach(b => b.disabled = true);
+        const heroCards = this.container.querySelectorAll('.hero-card');
+        heroCards.forEach(c => c.classList.add('locked'));
       });
     }
   }
@@ -167,13 +177,16 @@ export class MultiplayerDuel {
         console.log('[1v1 client] re-emitting selectHero', this.selectedHero?.id || this.selectedHero);
         this.client.selectHero(this.selectedHero);
         const readyBtn = this.container.querySelector('#duel-ready');
-        if (readyBtn) readyBtn.disabled = false;
+        if (readyBtn && !this.selectionLocked) readyBtn.disabled = false;
       } else {
         console.log('[1v1 client] no selectedHero yet when waiting_for_ready');
       }
       if (this.requestedReady) {
         console.log('[1v1 client] re-emitting playerReady');
         this.client.setReady();
+        this.selectionLocked = true;
+        const rerollBtns = this.container.querySelectorAll('.reroll-btn');
+        rerollBtns.forEach(b => b.disabled = true);
       }
     }
   }
