@@ -754,27 +754,6 @@ export class RoundsManager {
         userPlayer.hero.equipment = [];
       }
       userPlayer.hero.equipment.push(equipment);
-      
-      if (equipment.stat === 'health') {
-        userPlayer.hero.stats.health += equipment.value;
-      } else if (equipment.stat === 'attack') {
-        userPlayer.hero.stats.attack += equipment.value;
-      } else if (equipment.stat === 'speed') {
-        userPlayer.hero.stats.speed += equipment.value;
-      } else if (equipment.stat === 'armor') {
-        userPlayer.hero.stats.armor += equipment.value;
-      } else if (equipment.stat === 'magicDamageReduction') {
-        userPlayer.hero.stats.magicDamageReduction = (userPlayer.hero.stats.magicDamageReduction || 0) + equipment.value;
-      } else if (equipment.stat === 'physicalDamageAmplification') {
-        userPlayer.hero.stats.physicalDamageAmplification = (userPlayer.hero.stats.physicalDamageAmplification || 0) + equipment.value;
-      } else if (equipment.stat === 'magicDamageAmplification') {
-        userPlayer.hero.stats.magicDamageAmplification = (userPlayer.hero.stats.magicDamageAmplification || 0) + equipment.value;
-      } else if (equipment.stat === 'critChance') {
-        userPlayer.hero.stats.critChance = (userPlayer.hero.stats.critChance || 0) + equipment.value;
-      } else if (equipment.stat === 'evasionChance') {
-        userPlayer.hero.stats.evasionChance = (userPlayer.hero.stats.evasionChance || 0) + equipment.value;
-      }
-      
       this.updatePlayerHero();
     }
     
