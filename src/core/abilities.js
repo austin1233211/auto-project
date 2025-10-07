@@ -1070,6 +1070,61 @@ export class AbilitySystem {
           }
         }
       }
+    for (const item of equipment) {
+      const fx = item.effects || {};
+      if (triggerType === 'status_tick') {
+        if (fx.periodicDamage && fx.periodicDamage.amount && fx.periodicDamage.intervalSec) {
+          const k = `${item.type}_dmg_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicDamage.intervalSec * 1000) {
+            const dmg = fx.periodicDamage.amount;
+            target.currentHealth = Math.max(0, (target.currentHealth || 0) - dmg);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} deals ${dmg} damage over time.`);
+            }
+          }
+        }
+        if (fx.periodicApplyPoison && fx.periodicApplyPoison.stacks && fx.periodicApplyPoison.intervalSec) {
+          const k = `${item.type}_poison_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicApplyPoison.intervalSec * 1000) {
+            let stacks = fx.periodicApplyPoison.stacks;
+            if (hero.persistentEffects && typeof hero.persistentEffects.urnPoisonIncrement === 'number') {
+              stacks += hero.persistentEffects.urnPoisonIncrement;
+            }
+            this.applyPoisonStacks(target, stacks);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} applies ${stacks} poison stacks.`);
+            }
+          }
+        }
+      }
+      if (triggerType === 'low_hp_check') {
+        if (fx.shieldThreshold && fx.shieldThreshold.hpPct && fx.shieldThreshold.stacks) {
+          const usedKey = `${item.type}_threshold_used`;
+          const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+          if (!hero.equipmentState[usedKey] && hpPct <= fx.shieldThreshold.hpPct) {
+            this.applyShieldStacks(hero, fx.shieldThreshold.stacks);
+            hero.equipmentState[usedKey] = fx.shieldThreshold.oncePerBattle ? true : false;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} grants ${fx.shieldThreshold.stacks} shield stacks at low HP!`);
+            }
+          }
+        }
+        if (fx.thresholdFrostBurst && fx.thresholdFrostBurst.hpPct && fx.thresholdFrostBurst.heal && fx.thresholdFrostBurst.enemyFrostStacks) {
+          const usedKey = `${item.type}_threshold_used`;
+          const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+          if (!hero.equipmentState[usedKey] && hpPct <= fx.thresholdFrostBurst.hpPct) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.thresholdFrostBurst.heal);
+            this.applyFrostStacks(target, fx.thresholdFrostBurst.enemyFrostStacks);
+            hero.equipmentState[usedKey] = fx.thresholdFrostBurst.oncePerBattle ? true : false;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} restores ${fx.thresholdFrostBurst.heal} HP and applies ${fx.thresholdFrostBurst.enemyFrostStacks} frost stacks!`);
+            }
+          }
+        }
+      }
+    }
     }
     if (triggerType === 'status_tick') {
       if (hero.equipmentState && Array.isArray(hero.equipmentState.manaRegenDebuffs)) {
