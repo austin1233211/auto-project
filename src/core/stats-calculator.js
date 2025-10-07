@@ -443,5 +443,43 @@ export class StatsCalculator {
         deathSaveCharges: modifiedStats.deathSaveCharges || 0
       }
     };
+    if (hero.equipment && hero.equipment.length > 0) {
+      for (const item of hero.equipment) {
+        const fx = item.effects || {};
+        if (fx.maxHpFlat) {
+          modifiedStats.health += fx.maxHpFlat;
+        }
+        if (fx.manaRegenPerSec) {
+          modifiedStats.manaRegeneration = (modifiedStats.manaRegeneration || 0) + fx.manaRegenPerSec;
+        }
+        if (fx.attackFlat) {
+          modifiedStats.attack += fx.attackFlat;
+        }
+        if (fx.attackSpeedPct) {
+          modifiedStats.speed *= (1 + fx.attackSpeedPct / 100);
+        }
+        if (fx.critDamagePct) {
+          modifiedStats.critDamage = (modifiedStats.critDamage || 1.5) + (fx.critDamagePct / 100);
+        }
+        if (fx.physicalDamageReductionPct) {
+          modifiedStats.physicalDamageReduction = (modifiedStats.physicalDamageReduction || 0) + fx.physicalDamageReductionPct;
+        }
+        if (fx.abilityEffectivenessPct) {
+          modifiedStats.abilityEffectiveness = (modifiedStats.abilityEffectiveness || 0) + fx.abilityEffectivenessPct;
+        }
+        if (fx.extraShieldStacks) {
+          modifiedStats.extraShieldStacks = (modifiedStats.extraShieldStacks || 0) + fx.extraShieldStacks;
+        }
+        if (fx.extraPoisonStacks) {
+          modifiedStats.extraPoisonStacks = (modifiedStats.extraPoisonStacks || 0) + fx.extraPoisonStacks;
+        }
+        if (fx.extraFrostStacks) {
+          modifiedStats.extraFrostStacks = (modifiedStats.extraFrostStacks || 0) + fx.extraFrostStacks;
+        }
+        if (fx.extraRegenStacks) {
+          modifiedStats.extraRegenStacks = (modifiedStats.extraRegenStacks || 0) + fx.extraRegenStacks;
+        }
+      }
+    }
   }
 }

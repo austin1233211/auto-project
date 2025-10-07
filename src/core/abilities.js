@@ -1014,6 +1014,72 @@ export class AbilitySystem {
       }
     }
     
+    const equipment = hero.equipment || [];
+    hero.equipmentState = hero.equipmentState || {};
+    const now = Date.now();
+    for (const item of equipment) {
+      const fx = item.effects || {};
+      if (triggerType === 'battle_start') {
+        if (fx.manaOnBattleStart) {
+          hero.currentMana = Math.min(hero.maxMana, (hero.currentMana || 0) + fx.manaOnBattleStart);
+          if (this.combat && this.combat.addToLog) {
+            this.combat.addToLog(`${hero.name}'s ${item.name} restores ${fx.manaOnBattleStart} mana at battle start!`);
+          }
+        }
+      }
+      if (triggerType === 'status_tick') {
+        if (fx.periodicHeal && fx.periodicHeal.amount && fx.periodicHeal.intervalSec) {
+          const k = `${item.type}_heal_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicHeal.intervalSec * 1000) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.periodicHeal.amount);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} heals ${fx.periodicHeal.amount} HP.`);
+            }
+          }
+        }
+        if (fx.perStack && fx.perStack.intervalSec && hero.persistentEffects && typeof hero.persistentEffects.mapleSyrupStacks === 'number') {
+          const k = `${item.type}_stack_tick_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.perStack.intervalSec * 1000) {
+            const stacks = hero.persistentEffects.mapleSyrupStacks;
+            const healAmt = (fx.perStack.heal || 0) * stacks;
+            const manaAmt = (fx.perStack.mana || 0) * stacks;
+            if (healAmt) {
+              hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
+            }
+            if (manaAmt) {
+              hero.currentMana = Math.min(hero.maxMana, (hero.currentMana || 0) + manaAmt);
+            }
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog && (healAmt || manaAmt)) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} restores ${healAmt} HP and ${manaAmt} mana from stacks.`);
+            }
+          }
+        }
+      }
+      if (triggerType === 'on_ultimate') {
+        if (fx.onEnemyUltimate && fx.onEnemyUltimate.manaRegenDelta && fx.onEnemyUltimate.durationSec) {
+          if (target) {
+            target.equipmentState = target.equipmentState || {};
+            const debuffs = target.equipmentState.manaRegenDebuffs || [];
+            debuffs.push({ delta: fx.onEnemyUltimate.manaRegenDelta, expires: now + fx.onEnemyUltimate.durationSec * 1000 });
+            target.equipmentState.manaRegenDebuffs = debuffs;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} reduces ${target.name}'s mana regen by ${Math.abs(fx.onEnemyUltimate.manaRegenDelta)} for ${fx.onEnemyUltimate.durationSec}s.`);
+            }
+          }
+        }
+      }
+    }
+    if (triggerType === 'status_tick') {
+      if (hero.equipmentState && Array.isArray(hero.equipmentState.manaRegenDebuffs)) {
+        hero.equipmentState.manaRegenDebuffs = hero.equipmentState.manaRegenDebuffs.filter(d => d.expires > now);
+      }
+      if (target && target.equipmentState && Array.isArray(target.equipmentState.manaRegenDebuffs)) {
+        target.equipmentState.manaRegenDebuffs = target.equipmentState.manaRegenDebuffs.filter(d => d.expires > now);
+      }
+    }
+
     return false;
   }
 }
