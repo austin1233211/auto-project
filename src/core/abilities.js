@@ -881,12 +881,16 @@ export class AbilitySystem {
           break;
         case 'health_regen_flat':
           if (triggerType === 'status_tick') {
-            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+            const reduction = Math.max(0, 1 - ((target && target.effectiveStats && target.effectiveStats.enemyRegenReductionPct) ? target.effectiveStats.enemyRegenReductionPct / 100 : 0));
+            const heal = Math.max(0, Math.floor(ability.value * reduction));
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + heal);
           }
           break;
         case 'enhanced_regen':
           if (triggerType === 'enhanced_tick') {
-            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+            const reduction = Math.max(0, 1 - ((target && target.effectiveStats && target.effectiveStats.enemyRegenReductionPct) ? target.effectiveStats.enemyRegenReductionPct / 100 : 0));
+            const heal = Math.max(0, Math.floor(ability.value * reduction));
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + heal);
           }
           break;
         case 'battle_start_poison':
@@ -1028,13 +1032,17 @@ export class AbilitySystem {
         }
       }
       if (triggerType === 'status_tick') {
+        const regenReduction = Math.max(0, 1 - ((target && target.effectiveStats && target.effectiveStats.enemyRegenReductionPct) ? target.effectiveStats.enemyRegenReductionPct / 100 : 0));
         if (fx.periodicHeal && fx.periodicHeal.amount && fx.periodicHeal.intervalSec) {
           const k = `${item.type}_heal_last`;
           if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicHeal.intervalSec * 1000) {
-            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.periodicHeal.amount);
+            const healAmt = Math.max(0, Math.floor(fx.periodicHeal.amount * regenReduction));
+            if (healAmt > 0) {
+              hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
+            }
             hero.equipmentState[k] = now;
-            if (this.combat && this.combat.addToLog) {
-              this.combat.addToLog(`${hero.name}'s ${item.name} heals ${fx.periodicHeal.amount} HP.`);
+            if (this.combat && this.combat.addToLog && healAmt > 0) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} heals ${healAmt} HP.`);
             }
           }
         if (fx.evadePhysicalCooldownSec) {
@@ -1056,8 +1064,9 @@ export class AbilitySystem {
           const k = `${item.type}_stack_tick_last`;
           if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.perStack.intervalSec * 1000) {
             const stacks = hero.persistentEffects.mapleSyrupStacks;
-            const healAmt = (fx.perStack.heal || 0) * stacks;
+            const healBase = (fx.perStack.heal || 0) * stacks;
             const manaAmt = (fx.perStack.mana || 0) * stacks;
+            const healAmt = Math.max(0, Math.floor(healBase * regenReduction));
             if (healAmt) {
               hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
             }
@@ -1070,6 +1079,12 @@ export class AbilitySystem {
             }
           }
         }
+        if (hero.effectiveStats && hero.effectiveStats.extraRegenStacks) {
+          const healAmt = Math.max(0, Math.floor(hero.effectiveStats.extraRegenStacks * regenReduction));
+          if (healAmt) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
+          }
+        }
       }
       if (triggerType === 'on_ultimate') {
         if (fx.onEnemyUltimate && fx.onEnemyUltimate.manaRegenDelta && fx.onEnemyUltimate.durationSec) {
@@ -1079,6 +1094,25 @@ export class AbilitySystem {
             debuffs.push({ delta: fx.onEnemyUltimate.manaRegenDelta, expires: now + fx.onEnemyUltimate.durationSec * 1000 });
             target.equipmentState.manaRegenDebuffs = debuffs;
             if (this.combat && this.combat.addToLog) {
+    if (triggerType === 'status_tick') {
+      const arachnid = (hero.equipment || []).find(eq => eq.type === 'sign_of_the_arachnid' && eq.effects && eq.effects.attackSpeedPctPerHpLost);
+      if (arachnid && hero.stats && typeof hero.currentHealth === 'number') {
+        const hpLost = Math.max(0, hero.stats.health - hero.currentHealth);
+        const step = arachnid.effects.attackSpeedPctPerHpLost.hpPerStep || 300;
+        const perStepPct = arachnid.effects.attackSpeedPctPerHpLost.amountPct || 0;
+        const steps = Math.floor(hpLost / step);
+        const bonusPct = Math.max(0, steps * perStepPct);
+        hero.statusEffects = hero.statusEffects || [];
+        const existing = hero.statusEffects.find(e => e.type === 'attack_speed' && e.source === 'sign_of_the_arachnid');
+        const bonus = bonusPct / 100;
+        if (existing) {
+          existing.bonus = bonus;
+          existing.ticksRemaining = 2;
+        } else {
+          hero.statusEffects.push({ type: 'attack_speed', bonus, ticksRemaining: 2, source: 'sign_of_the_arachnid' });
+        }
+      }
+    }
               this.combat.addToLog(`${hero.name}'s ${item.name} reduces ${target.name}'s mana regen by ${Math.abs(fx.onEnemyUltimate.manaRegenDelta)} for ${fx.onEnemyUltimate.durationSec}s.`);
             }
           }

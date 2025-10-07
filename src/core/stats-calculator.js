@@ -479,6 +479,9 @@ export class StatsCalculator {
         if (fx.extraRegenStacks) {
           modifiedStats.extraRegenStacks = (modifiedStats.extraRegenStacks || 0) + fx.extraRegenStacks;
         }
+        if (fx.enemyHealRegenReductionPct) {
+          modifiedStats.enemyRegenReductionPct = (modifiedStats.enemyRegenReductionPct || 0) + fx.enemyHealRegenReductionPct;
+        }
       }
     }
   }
