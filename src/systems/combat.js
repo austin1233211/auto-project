@@ -460,6 +460,10 @@ export class Combat {
     
     finalDamage = finalDamage * (1 + damageAmplification / 100);
     
+    if (damageType === 'physical' && (target.effectiveStats.physicalDamageReduction || 0) > 0) {
+      finalDamage = finalDamage * (1 - (target.effectiveStats.physicalDamageReduction / 100));
+    }
+    
     const shieldEffect = target.statusEffects?.find(e => e.type === 'shield_stacks');
     if (shieldEffect && shieldEffect.stacks > 0) {
       const shieldReduction = Math.min(finalDamage, shieldEffect.stacks);
