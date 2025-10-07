@@ -146,7 +146,10 @@ export class Combat {
     
     this.playerManaTimer = setInterval(() => {
       if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
-        const totalRegen = 11 + (this.playerHero.effectiveStats.manaRegeneration || 0);
+        const debuffs = (this.playerHero.equipmentState && Array.isArray(this.playerHero.equipmentState.manaRegenDebuffs))
+          ? this.playerHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
+          : 0;
+        const totalRegen = Math.max(0, 11 + (this.playerHero.effectiveStats.manaRegeneration || 0) + debuffs);
         const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
@@ -155,7 +158,10 @@ export class Combat {
     
     this.enemyManaTimer = setInterval(() => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
-        const totalRegen = 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0);
+        const debuffs = (this.enemyHero.equipmentState && Array.isArray(this.enemyHero.equipmentState.manaRegenDebuffs))
+          ? this.enemyHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
+          : 0;
+        const totalRegen = Math.max(0, 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0) + debuffs);
         const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
       }
