@@ -881,12 +881,16 @@ export class AbilitySystem {
           break;
         case 'health_regen_flat':
           if (triggerType === 'status_tick') {
-            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+            const reduction = Math.max(0, 1 - ((target && target.effectiveStats && target.effectiveStats.enemyRegenReductionPct) ? target.effectiveStats.enemyRegenReductionPct / 100 : 0));
+            const heal = Math.max(0, Math.floor(ability.value * reduction));
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + heal);
           }
           break;
         case 'enhanced_regen':
           if (triggerType === 'enhanced_tick') {
-            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + ability.value);
+            const reduction = Math.max(0, 1 - ((target && target.effectiveStats && target.effectiveStats.enemyRegenReductionPct) ? target.effectiveStats.enemyRegenReductionPct / 100 : 0));
+            const heal = Math.max(0, Math.floor(ability.value * reduction));
+            hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + heal);
           }
           break;
         case 'battle_start_poison':
@@ -1014,6 +1018,203 @@ export class AbilitySystem {
       }
     }
     
+    const equipment = hero.equipment || [];
+    hero.equipmentState = hero.equipmentState || {};
+    const now = Date.now();
+    for (const item of equipment) {
+      const fx = item.effects || {};
+      if (triggerType === 'battle_start') {
+        if (fx.manaOnBattleStart) {
+          hero.currentMana = Math.min(hero.maxMana, (hero.currentMana || 0) + fx.manaOnBattleStart);
+          if (this.combat && this.combat.addToLog) {
+            this.combat.addToLog(`${hero.name}'s ${item.name} restores ${fx.manaOnBattleStart} mana at battle start!`);
+          }
+        }
+      }
+      if (triggerType === 'status_tick') {
+        const regenReduction = Math.max(0, 1 - ((target && target.effectiveStats && target.effectiveStats.enemyRegenReductionPct) ? target.effectiveStats.enemyRegenReductionPct / 100 : 0));
+        if (fx.periodicHeal && fx.periodicHeal.amount && fx.periodicHeal.intervalSec) {
+          const k = `${item.type}_heal_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicHeal.intervalSec * 1000) {
+            const healAmt = Math.max(0, Math.floor(fx.periodicHeal.amount * regenReduction));
+            if (healAmt > 0) {
+              hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
+            }
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog && healAmt > 0) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} heals ${healAmt} HP.`);
+            }
+          }
+        if (fx.evadePhysicalCooldownSec) {
+          const key = `${item.type}_evade_last`;
+          if (!hero.equipmentState[key] || now - hero.equipmentState[key] >= fx.evadePhysicalCooldownSec * 1000) {
+            hero.equipmentState.autoEvadeReady = true;
+            hero.equipmentState[key] = now;
+          }
+        }
+        if (fx.guaranteedCritCooldownSec) {
+          const key = `${item.type}_gcrit_last`;
+          if (!hero.equipmentState[key] || now - hero.equipmentState[key] >= fx.guaranteedCritCooldownSec * 1000) {
+            hero.equipmentState.forceCrit = true;
+            hero.equipmentState[key] = now;
+          }
+        }
+        }
+        if (fx.perStack && fx.perStack.intervalSec && hero.persistentEffects && typeof hero.persistentEffects.mapleSyrupStacks === 'number') {
+          const k = `${item.type}_stack_tick_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.perStack.intervalSec * 1000) {
+            const stacks = hero.persistentEffects.mapleSyrupStacks;
+            const healBase = (fx.perStack.heal || 0) * stacks;
+            const manaAmt = (fx.perStack.mana || 0) * stacks;
+            const healAmt = Math.max(0, Math.floor(healBase * regenReduction));
+            if (healAmt) {
+              hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
+            }
+            if (manaAmt) {
+              hero.currentMana = Math.min(hero.maxMana, (hero.currentMana || 0) + manaAmt);
+            }
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog && (healAmt || manaAmt)) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} restores ${healAmt} HP and ${manaAmt} mana from stacks.`);
+            }
+          }
+        }
+        if (hero.effectiveStats && hero.effectiveStats.extraRegenStacks) {
+          const healAmt = Math.max(0, Math.floor(hero.effectiveStats.extraRegenStacks * regenReduction));
+          if (healAmt) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + healAmt);
+          }
+        }
+      }
+      if (triggerType === 'on_ultimate') {
+        if (fx.onEnemyUltimate && fx.onEnemyUltimate.manaRegenDelta && fx.onEnemyUltimate.durationSec) {
+          if (target) {
+            target.equipmentState = target.equipmentState || {};
+            const debuffs = target.equipmentState.manaRegenDebuffs || [];
+            debuffs.push({ delta: fx.onEnemyUltimate.manaRegenDelta, expires: now + fx.onEnemyUltimate.durationSec * 1000 });
+            target.equipmentState.manaRegenDebuffs = debuffs;
+            if (this.combat && this.combat.addToLog) {
+    if (triggerType === 'status_tick') {
+      const arachnid = (hero.equipment || []).find(eq => eq.type === 'sign_of_the_arachnid' && eq.effects && eq.effects.attackSpeedPctPerHpLost);
+      if (arachnid && hero.stats && typeof hero.currentHealth === 'number') {
+        const hpLost = Math.max(0, hero.stats.health - hero.currentHealth);
+        const step = arachnid.effects.attackSpeedPctPerHpLost.hpPerStep || 300;
+        const perStepPct = arachnid.effects.attackSpeedPctPerHpLost.amountPct || 0;
+        const steps = Math.floor(hpLost / step);
+        const bonusPct = Math.max(0, steps * perStepPct);
+        hero.statusEffects = hero.statusEffects || [];
+        const existing = hero.statusEffects.find(e => e.type === 'attack_speed' && e.source === 'sign_of_the_arachnid');
+        const bonus = bonusPct / 100;
+        if (existing) {
+          existing.bonus = bonus;
+          existing.ticksRemaining = 2;
+        } else {
+          hero.statusEffects.push({ type: 'attack_speed', bonus, ticksRemaining: 2, source: 'sign_of_the_arachnid' });
+        }
+      }
+    }
+              this.combat.addToLog(`${hero.name}'s ${item.name} reduces ${target.name}'s mana regen by ${Math.abs(fx.onEnemyUltimate.manaRegenDelta)} for ${fx.onEnemyUltimate.durationSec}s.`);
+            }
+          }
+        }
+      if (triggerType === 'on_attack') {
+        if (fx.onHitMagicProc && fx.onHitMagicProc.chancePct && fx.onHitMagicProc.bonusDamage) {
+          if (Math.random() < fx.onHitMagicProc.chancePct / 100) {
+            hero.equipmentState.onHitBonusMagic = (hero.equipmentState.onHitBonusMagic || 0) + fx.onHitMagicProc.bonusDamage;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} will add ${fx.onHitMagicProc.bonusDamage} bonus magic damage!`);
+            }
+          }
+        }
+      }
+      }
+    for (const item of equipment) {
+      const fx = item.effects || {};
+      if (triggerType === 'status_tick') {
+        if (fx.periodicDamage && fx.periodicDamage.amount && fx.periodicDamage.intervalSec) {
+          const k = `${item.type}_dmg_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicDamage.intervalSec * 1000) {
+            const dmg = fx.periodicDamage.amount;
+            target.currentHealth = Math.max(0, (target.currentHealth || 0) - dmg);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} deals ${dmg} damage over time.`);
+            }
+          }
+        }
+        if (fx.periodicApplyPoison && fx.periodicApplyPoison.stacks && fx.periodicApplyPoison.intervalSec) {
+          const k = `${item.type}_poison_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicApplyPoison.intervalSec * 1000) {
+            let stacks = fx.periodicApplyPoison.stacks;
+            if (hero.persistentEffects && typeof hero.persistentEffects.urnPoisonIncrement === 'number') {
+              stacks += hero.persistentEffects.urnPoisonIncrement;
+            }
+            this.applyPoisonStacks(target, stacks);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} applies ${stacks} poison stacks.`);
+            }
+          }
+        }
+      }
+      if (triggerType === 'low_hp_check') {
+        if (fx.shieldThreshold && fx.shieldThreshold.hpPct && fx.shieldThreshold.stacks) {
+          const usedKey = `${item.type}_threshold_used`;
+          const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+          if (!hero.equipmentState[usedKey] && hpPct <= fx.shieldThreshold.hpPct) {
+            this.applyShieldStacks(hero, fx.shieldThreshold.stacks);
+            hero.equipmentState[usedKey] = fx.shieldThreshold.oncePerBattle ? true : false;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} grants ${fx.shieldThreshold.stacks} shield stacks at low HP!`);
+            }
+          }
+        }
+        if (fx.thresholdFrostBurst && fx.thresholdFrostBurst.hpPct && fx.thresholdFrostBurst.heal && fx.thresholdFrostBurst.enemyFrostStacks) {
+          const usedKey = `${item.type}_threshold_used`;
+          const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+          if (!hero.equipmentState[usedKey] && hpPct <= fx.thresholdFrostBurst.hpPct) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.thresholdFrostBurst.heal);
+            this.applyFrostStacks(target, fx.thresholdFrostBurst.enemyFrostStacks);
+            hero.equipmentState[usedKey] = fx.thresholdFrostBurst.oncePerBattle ? true : false;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} restores ${fx.thresholdFrostBurst.heal} HP and applies ${fx.thresholdFrostBurst.enemyFrostStacks} frost stacks!`);
+            }
+          }
+        }
+      if (triggerType === 'on_damage_taken') {
+        if (fx.onPhysicalDamageGainShield && target && target === attacker && false) {}
+        if (fx.onPhysicalDamageGainShield) {
+          if (extraData && extraData.damageType === 'physical') {
+            if (Math.random() < (fx.onPhysicalDamageGainShield.chancePct / 100)) {
+              const stacks = fx.onPhysicalDamageGainShield.stacks + (hero.effectiveStats.extraShieldStacks || 0);
+              this.applyShieldStacks(hero, stacks);
+              if (this.combat && this.combat.addToLog) {
+                this.combat.addToLog(`${hero.name}'s ${item.name} grants ${stacks} shield stacks on taking physical damage!`);
+              }
+            }
+          }
+        }
+        if (fx.healOnCritTaken) {
+          if (extraData && extraData.wasCrit) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.healOnCritTaken);
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} heals ${fx.healOnCritTaken} HP from crit taken.`);
+            }
+          }
+        }
+      }
+      }
+    }
+    }
+    if (triggerType === 'status_tick') {
+      if (hero.equipmentState && Array.isArray(hero.equipmentState.manaRegenDebuffs)) {
+        hero.equipmentState.manaRegenDebuffs = hero.equipmentState.manaRegenDebuffs.filter(d => d.expires > now);
+      }
+      if (target && target.equipmentState && Array.isArray(target.equipmentState.manaRegenDebuffs)) {
+        target.equipmentState.manaRegenDebuffs = target.equipmentState.manaRegenDebuffs.filter(d => d.expires > now);
+      }
+    }
+
     return false;
   }
 }

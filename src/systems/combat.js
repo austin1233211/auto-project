@@ -146,7 +146,10 @@ export class Combat {
     
     this.playerManaTimer = setInterval(() => {
       if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
-        const totalRegen = 11 + (this.playerHero.effectiveStats.manaRegeneration || 0);
+        const debuffs = (this.playerHero.equipmentState && Array.isArray(this.playerHero.equipmentState.manaRegenDebuffs))
+          ? this.playerHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
+          : 0;
+        const totalRegen = Math.max(0, 11 + (this.playerHero.effectiveStats.manaRegeneration || 0) + debuffs);
         const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
@@ -155,7 +158,10 @@ export class Combat {
     
     this.enemyManaTimer = setInterval(() => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
-        const totalRegen = 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0);
+        const debuffs = (this.enemyHero.equipmentState && Array.isArray(this.enemyHero.equipmentState.manaRegenDebuffs))
+          ? this.enemyHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
+          : 0;
+        const totalRegen = Math.max(0, 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0) + debuffs);
         const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
       }
@@ -355,8 +361,14 @@ export class Combat {
       this.abilitySystem.triggerAbilities(attacker, target, 'on_ultimate');
     } else {
       let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical');
-      
-      if (Math.random() < target.effectiveStats.evasionChance) {
+
+      if (target.equipmentState && target.equipmentState.autoEvadeReady) {
+        wasEvaded = true;
+        target.equipmentState.autoEvadeReady = false;
+        finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
+        this.addToLog(`${target.name} evades with equipment, reducing damage to ${finalDamage}!`);
+        this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+      } else if (Math.random() < target.effectiveStats.evasionChance) {
         wasEvaded = true;
         finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
         this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
@@ -366,6 +378,10 @@ export class Combat {
       let totalCritChance = attacker.effectiveStats.critChance;
       if (passiveResult && passiveResult.criticalHit) {
         totalCritChance += 0.15;
+      }
+      if (attacker.equipmentState && attacker.equipmentState.forceCrit) {
+        totalCritChance = 1.0;
+        attacker.equipmentState.forceCrit = false;
       }
       
       if (Math.random() < totalCritChance) {
@@ -378,6 +394,14 @@ export class Combat {
       }
       
       damage = finalDamage;
+
+      if (attacker.equipmentState && attacker.equipmentState.onHitBonusMagic) {
+        const bonus = attacker.equipmentState.onHitBonusMagic;
+        attacker.equipmentState.onHitBonusMagic = 0;
+        const bonusDmg = this.calculateDamage(bonus, target, 'magic');
+        target.currentHealth = Math.max(0, target.currentHealth - bonusDmg);
+        this.addToLog(`${attacker.name}'s equipment deals ${bonusDmg} bonus magic damage!`);
+      }
     }
 
     if (target.currentHealth - damage <= 0) {
@@ -398,7 +422,7 @@ export class Combat {
     target.currentHealth = Math.max(0, target.currentHealth - damage);
     
     if (damage > 0) {
-      this.abilitySystem.triggerAbilities(target, attacker, 'on_damage_taken');
+      this.abilitySystem.triggerAbilities(target, attacker, 'on_damage_taken', { wasCrit, damageType: 'physical' });
       this.abilitySystem.triggerAbilities(attacker, target, 'on_damage_dealt');
       
       if (damage > 80) {
@@ -435,6 +459,10 @@ export class Combat {
     }
     
     finalDamage = finalDamage * (1 + damageAmplification / 100);
+    
+    if (damageType === 'physical' && (target.effectiveStats.physicalDamageReduction || 0) > 0) {
+      finalDamage = finalDamage * (1 - (target.effectiveStats.physicalDamageReduction / 100));
+    }
     
     const shieldEffect = target.statusEffects?.find(e => e.type === 'shield_stacks');
     if (shieldEffect && shieldEffect.stacks > 0) {

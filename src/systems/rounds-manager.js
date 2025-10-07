@@ -317,6 +317,16 @@ export class RoundsManager {
         }, 2000);
         return; // Don't check round completion yet, artifact selection will handle progression
       }
+    const userPlayerForUrn = this.players.find(p => p.name === 'You');
+    if (userPlayerForUrn && userPlayerForUrn.hero && userPlayerForUrn.hero.persistentEffects) {
+      if (typeof userPlayerForUrn.hero.persistentEffects.urnBattlesCounter === 'number') {
+        userPlayerForUrn.hero.persistentEffects.urnBattlesCounter += 1;
+        if (userPlayerForUrn.hero.persistentEffects.urnBattlesCounter >= 5) {
+          userPlayerForUrn.hero.persistentEffects.urnPoisonIncrement = (userPlayerForUrn.hero.persistentEffects.urnPoisonIncrement || 0) + 3;
+          userPlayerForUrn.hero.persistentEffects.urnBattlesCounter = 0;
+        }
+      }
+    }
       
       setTimeout(() => {
         this.checkRoundCompletion();
@@ -624,6 +634,13 @@ export class RoundsManager {
 
   startInterRoundTimer() {
     if (this.isArtifactSelectionActive) {
+    const userPlayerForMaple = this.players.find(p => p.name === 'You');
+    if (userPlayerForMaple && userPlayerForMaple.hero && userPlayerForMaple.hero.persistentEffects && typeof userPlayerForMaple.hero.persistentEffects.mapleSyrupStacks === 'number') {
+      if (this.currentRound % 5 === 0) {
+        userPlayerForMaple.hero.persistentEffects.mapleSyrupStacks += 1;
+        this.updatePlayerHero();
+      }
+    }
       console.log('Artifact selection is active, preventing startInterRoundTimer()');
       return;
     }
@@ -754,27 +771,20 @@ export class RoundsManager {
         userPlayer.hero.equipment = [];
       }
       userPlayer.hero.equipment.push(equipment);
-      
-      if (equipment.stat === 'health') {
-        userPlayer.hero.stats.health += equipment.value;
-      } else if (equipment.stat === 'attack') {
-        userPlayer.hero.stats.attack += equipment.value;
-      } else if (equipment.stat === 'speed') {
-        userPlayer.hero.stats.speed += equipment.value;
-      } else if (equipment.stat === 'armor') {
-        userPlayer.hero.stats.armor += equipment.value;
-      } else if (equipment.stat === 'magicDamageReduction') {
-        userPlayer.hero.stats.magicDamageReduction = (userPlayer.hero.stats.magicDamageReduction || 0) + equipment.value;
-      } else if (equipment.stat === 'physicalDamageAmplification') {
-        userPlayer.hero.stats.physicalDamageAmplification = (userPlayer.hero.stats.physicalDamageAmplification || 0) + equipment.value;
-      } else if (equipment.stat === 'magicDamageAmplification') {
-        userPlayer.hero.stats.magicDamageAmplification = (userPlayer.hero.stats.magicDamageAmplification || 0) + equipment.value;
-      } else if (equipment.stat === 'critChance') {
-        userPlayer.hero.stats.critChance = (userPlayer.hero.stats.critChance || 0) + equipment.value;
-      } else if (equipment.stat === 'evasionChance') {
-        userPlayer.hero.stats.evasionChance = (userPlayer.hero.stats.evasionChance || 0) + equipment.value;
+      if (!userPlayer.hero.persistentEffects) {
+        userPlayer.hero.persistentEffects = {};
       }
-      
+      if (equipment && equipment.type === 'maple_syrup') {
+        if (userPlayer.hero.persistentEffects.mapleSyrupStacks == null) {
+          userPlayer.hero.persistentEffects.mapleSyrupStacks = 1;
+        }
+      }
+      if (equipment && equipment.type === 'urn_of_shadows') {
+        if (userPlayer.hero.persistentEffects.urnPoisonIncrement == null) {
+          userPlayer.hero.persistentEffects.urnPoisonIncrement = 0;
+          userPlayer.hero.persistentEffects.urnBattlesCounter = 0;
+        }
+      }
       this.updatePlayerHero();
     }
     
