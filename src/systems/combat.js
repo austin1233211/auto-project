@@ -361,8 +361,14 @@ export class Combat {
       this.abilitySystem.triggerAbilities(attacker, target, 'on_ultimate');
     } else {
       let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical');
-      
-      if (Math.random() < target.effectiveStats.evasionChance) {
+
+      if (target.equipmentState && target.equipmentState.autoEvadeReady) {
+        wasEvaded = true;
+        target.equipmentState.autoEvadeReady = false;
+        finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
+        this.addToLog(`${target.name} evades with equipment, reducing damage to ${finalDamage}!`);
+        this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+      } else if (Math.random() < target.effectiveStats.evasionChance) {
         wasEvaded = true;
         finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
         this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
@@ -372,6 +378,10 @@ export class Combat {
       let totalCritChance = attacker.effectiveStats.critChance;
       if (passiveResult && passiveResult.criticalHit) {
         totalCritChance += 0.15;
+      }
+      if (attacker.equipmentState && attacker.equipmentState.forceCrit) {
+        totalCritChance = 1.0;
+        attacker.equipmentState.forceCrit = false;
       }
       
       if (Math.random() < totalCritChance) {
@@ -384,6 +394,14 @@ export class Combat {
       }
       
       damage = finalDamage;
+
+      if (attacker.equipmentState && attacker.equipmentState.onHitBonusMagic) {
+        const bonus = attacker.equipmentState.onHitBonusMagic;
+        attacker.equipmentState.onHitBonusMagic = 0;
+        const bonusDmg = this.calculateDamage(bonus, target, 'magic');
+        target.currentHealth = Math.max(0, target.currentHealth - bonusDmg);
+        this.addToLog(`${attacker.name}'s equipment deals ${bonusDmg} bonus magic damage!`);
+      }
     }
 
     if (target.currentHealth - damage <= 0) {
@@ -404,7 +422,7 @@ export class Combat {
     target.currentHealth = Math.max(0, target.currentHealth - damage);
     
     if (damage > 0) {
-      this.abilitySystem.triggerAbilities(target, attacker, 'on_damage_taken');
+      this.abilitySystem.triggerAbilities(target, attacker, 'on_damage_taken', { wasCrit, damageType: 'physical' });
       this.abilitySystem.triggerAbilities(attacker, target, 'on_damage_dealt');
       
       if (damage > 80) {

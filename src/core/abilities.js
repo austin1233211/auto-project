@@ -1037,6 +1037,20 @@ export class AbilitySystem {
               this.combat.addToLog(`${hero.name}'s ${item.name} heals ${fx.periodicHeal.amount} HP.`);
             }
           }
+        if (fx.evadePhysicalCooldownSec) {
+          const key = `${item.type}_evade_last`;
+          if (!hero.equipmentState[key] || now - hero.equipmentState[key] >= fx.evadePhysicalCooldownSec * 1000) {
+            hero.equipmentState.autoEvadeReady = true;
+            hero.equipmentState[key] = now;
+          }
+        }
+        if (fx.guaranteedCritCooldownSec) {
+          const key = `${item.type}_gcrit_last`;
+          if (!hero.equipmentState[key] || now - hero.equipmentState[key] >= fx.guaranteedCritCooldownSec * 1000) {
+            hero.equipmentState.forceCrit = true;
+            hero.equipmentState[key] = now;
+          }
+        }
         }
         if (fx.perStack && fx.perStack.intervalSec && hero.persistentEffects && typeof hero.persistentEffects.mapleSyrupStacks === 'number') {
           const k = `${item.type}_stack_tick_last`;
@@ -1069,6 +1083,16 @@ export class AbilitySystem {
             }
           }
         }
+      if (triggerType === 'on_attack') {
+        if (fx.onHitMagicProc && fx.onHitMagicProc.chancePct && fx.onHitMagicProc.bonusDamage) {
+          if (Math.random() < fx.onHitMagicProc.chancePct / 100) {
+            hero.equipmentState.onHitBonusMagic = (hero.equipmentState.onHitBonusMagic || 0) + fx.onHitMagicProc.bonusDamage;
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} will add ${fx.onHitMagicProc.bonusDamage} bonus magic damage!`);
+            }
+          }
+        }
+      }
       }
     for (const item of equipment) {
       const fx = item.effects || {};
@@ -1123,6 +1147,28 @@ export class AbilitySystem {
             }
           }
         }
+      if (triggerType === 'on_damage_taken') {
+        if (fx.onPhysicalDamageGainShield && target && target === attacker && false) {}
+        if (fx.onPhysicalDamageGainShield) {
+          if (extraData && extraData.damageType === 'physical') {
+            if (Math.random() < (fx.onPhysicalDamageGainShield.chancePct / 100)) {
+              const stacks = fx.onPhysicalDamageGainShield.stacks + (hero.effectiveStats.extraShieldStacks || 0);
+              this.applyShieldStacks(hero, stacks);
+              if (this.combat && this.combat.addToLog) {
+                this.combat.addToLog(`${hero.name}'s ${item.name} grants ${stacks} shield stacks on taking physical damage!`);
+              }
+            }
+          }
+        }
+        if (fx.healOnCritTaken) {
+          if (extraData && extraData.wasCrit) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.healOnCritTaken);
+            if (this.combat && this.combat.addToLog) {
+              this.combat.addToLog(`${hero.name}'s ${item.name} heals ${fx.healOnCritTaken} HP from crit taken.`);
+            }
+          }
+        }
+      }
       }
     }
     }
