@@ -362,7 +362,10 @@ export class Combat {
     } else {
       let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical');
 
-      if (target.equipmentState && target.equipmentState.autoEvadeReady) {
+      if (attacker.equipmentState && attacker.equipmentState.forceNoEvasion) {
+        wasEvaded = false;
+        attacker.equipmentState.forceNoEvasion = false;
+      } else if (target.equipmentState && target.equipmentState.autoEvadeReady) {
         wasEvaded = true;
         target.equipmentState.autoEvadeReady = false;
         finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
@@ -455,6 +458,17 @@ export class Combat {
     if (damageType === 'physical') {
       damageAmplification = target.effectiveStats.physicalDamageAmplification || 0;
     } else if (damageType === 'magic') {
+    if (wasCrit && target.effectiveStats && target.effectiveStats.critDamageTakenReduction) {
+      damage = Math.round(damage * (1 - (target.effectiveStats.critDamageTakenReduction / 100)));
+    }
+    if (attacker.effectiveStats && attacker.effectiveStats.attackDamagePct && damageType === 'physical') {
+      damage = Math.round(damage * (1 + attacker.effectiveStats.attackDamagePct / 100));
+    }
+    if (attacker.equipmentState && attacker.equipmentState.damageOutputReduction) {
+      const red = attacker.equipmentState.damageOutputReduction;
+      const mult = damageType === 'physical' ? (1 - (red.phys / 100)) : (1 - (red.magic / 100));
+      damage = Math.round(damage * mult);
+    }
       damageAmplification = target.effectiveStats.magicDamageAmplification || 0;
     }
     

@@ -1024,6 +1024,154 @@ export class AbilitySystem {
     for (const item of equipment) {
       const fx = item.effects || {};
       if (triggerType === 'battle_start') {
+        if (item.type === 'enchanted_quiver' && fx.unEvadableNext) {
+          hero.equipmentState.quiverLast = 0;
+          hero.equipmentState.unEvadableNextReady = true;
+        }
+        if (item.type === 'wraith_pact' && fx.delayedEnemyDamageReduction) {
+          hero.equipmentState.wraithPactStart = now;
+          hero.equipmentState.wraithPactApplied = false;
+        }
+        if (item.type === 'diffusal_blade') {
+          hero.equipmentState.diffusalLast = 0;
+        }
+        if (item.type === 'defiant_shell') {
+          hero.equipmentState.defiantLast = 0;
+        }
+        if (item.type === 'mana_staff') {
+          hero.equipmentState.freeUltLock = false;
+        }
+      }
+      if (triggerType === 'status_tick') {
+        if (item.type === 'enchanted_quiver' && fx.unEvadableNext && fx.unEvadableNext.cooldownSec) {
+          const key = `${item.type}_cd`;
+          if (!hero.equipmentState[key]) hero.equipmentState[key] = 0;
+          if (!hero.equipmentState.unEvadableNextReady && now - hero.equipmentState[key] >= fx.unEvadableNext.cooldownSec * 1000) {
+            hero.equipmentState.unEvadableNextReady = true;
+          }
+        }
+        if (item.type === 'wraith_pact' && fx.delayedEnemyDamageReduction && target) {
+          if (!hero.equipmentState.wraithPactApplied && now - hero.combat.startTime >= fx.delayedEnemyDamageReduction.delaySec * 1000) {
+            target.equipmentState = target.equipmentState || {};
+            target.equipmentState.damageOutputReduction = { phys: fx.delayedEnemyDamageReduction.physPct, magic: fx.delayedEnemyDamageReduction.magicPct };
+            hero.equipmentState.wraithPactApplied = true;
+            if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} reduces ${target.name}'s damage output!`);
+          }
+        }
+        if (item.type === 'blade_mail' && fx.lostHpDamage && hero.stats) {
+          const lostHp = Math.max(0, hero.stats.health - hero.currentHealth);
+          const ticks = Math.floor(lostHp / fx.lostHpDamage.perHp);
+          if (ticks > 0) {
+            let dmg = ticks * fx.lostHpDamage.amount;
+            if ((hero.currentHealth / hero.stats.health) * 100 < 50) dmg = Math.floor(dmg * (1 + (fx.lostHpDamage.lowHpBonusPct || 0) / 100));
+            const k = `${item.type}_tick`;
+            if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= 1000) {
+              target.currentHealth = Math.max(0, target.currentHealth - dmg);
+              hero.equipmentState[k] = now;
+              if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} deals ${dmg} damage based on HP lost.`);
+            }
+          }
+        }
+        if (item.type === 'lotus_orb' && fx.periodicSelfPurge && fx.periodicSelfPurge.intervalSec && fx.periodicSelfPurge.percent) {
+          const k = `${item.type}_purge_last`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.periodicSelfPurge.intervalSec * 1000) {
+            hero.statusEffects = hero.statusEffects || [];
+            const reduce = (type) => {
+              const eff = hero.statusEffects.find(e => e.type === `${type}_stacks`);
+              if (eff) eff.stacks = Math.floor(eff.stacks * (1 - fx.periodicSelfPurge.percent / 100));
+            };
+            (fx.periodicSelfPurge.stacks || ['frost','poison']).forEach(reduce);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} purges own stacks by ${fx.periodicSelfPurge.percent}%.`);
+          }
+        }
+        if (item.type === 'shroud' && fx.lowHpBonuses) {
+          const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+          hero.equipmentState.shroudActive = hpPct < fx.lowHpBonuses.thresholdPct;
+          if (hero.equipmentState.shroudActive) {
+            hero.effectiveStats.magicDamageReduction = (hero.effectiveStats.magicDamageReduction || 0) + (fx.lowHpBonuses.extraMagicDrPct / 100);
+            hero.effectiveStats.healthRegenMultiplier = (hero.effectiveStats.healthRegenMultiplier || 1) * fx.lowHpBonuses.healthRegenMultiplier;
+          }
+        }
+        if (item.type === 'talisman_of_evasion' && fx.lowHpExtraEvasionPct && fx.thresholdPct) {
+          const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+          hero.effectiveStats.evasionChance = (hero.effectiveStats.evasionChance || 0);
+          if (hpPct < fx.thresholdPct) hero.effectiveStats.evasionChance += fx.lowHpExtraEvasionPct / 100;
+        }
+      }
+      if (triggerType === 'on_attack') {
+        if (item.type === 'enchanted_quiver' && fx.unEvadableNext) {
+          if (hero.equipmentState.unEvadableNextReady) {
+            hero.equipmentState.unEvadableNextReady = false;
+            const key = `${item.type}_cd`;
+            hero.equipmentState[key] = now;
+            hero.equipmentState.onHitBonusMagic = (hero.equipmentState.onHitBonusMagic || 0) + (fx.unEvadableNext.bonusMagic || 0);
+            hero.equipmentState.forceNoEvasion = true;
+          }
+        }
+        if (item.type === 'diffusal_blade' && fx.manaBurnOnHit) {
+          const k = `${item.type}_cd`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.manaBurnOnHit.cooldownSec * 1000) {
+            if (Math.random() < (fx.manaBurnOnHit.chancePct / 100)) {
+              target.currentMana = Math.max(0, (target.currentMana || 0) - fx.manaBurnOnHit.burn);
+              hero.equipmentState[k] = now;
+              if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} burns ${fx.manaBurnOnHit.burn} mana!`);
+            }
+          }
+        }
+        if (item.type === 'vampire_fangs' && fx.lifestealOnHit) {
+          if (Math.random() < (fx.lifestealOnHit.chancePct / 100)) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + fx.lifestealOnHit.heal);
+            if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} heals ${fx.lifestealOnHit.heal} HP on hit!`);
+          }
+        }
+        if (item.type === 'poison_claw' && fx.onHitPoisonInstance) {
+          if (Math.random() < (fx.onHitPoisonInstance.chancePct / 100)) {
+            const stacks = target.statusEffects?.find(e => e.type === 'poison_stacks')?.stacks || 0;
+            if (stacks > 0) {
+              const dmg = Math.max(1, Math.floor(stacks));
+              target.currentHealth = Math.max(0, target.currentHealth - dmg);
+              if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} triggers a poison instance for ${dmg} damage!`);
+            }
+          }
+        }
+      }
+      if (triggerType === 'on_damage_taken') {
+        if (item.type === 'defiant_shell' && fx.counterattack) {
+          const k = `${item.type}_cd`;
+          if (!hero.equipmentState[k] || now - hero.equipmentState[k] >= fx.counterattack.cooldownSec * 1000) {
+            const retaliate = Math.round(hero.effectiveStats.attack * (fx.counterattack.percentOfAttack / 100));
+            const damage = this.combat.calculateDamage(retaliate, target, 'physical');
+            target.currentHealth = Math.max(0, target.currentHealth - damage);
+            hero.equipmentState[k] = now;
+            if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} counterattacks for ${damage} damage!`);
+          }
+        }
+      }
+      if (triggerType === 'on_ultimate') {
+        if (item.type === 'mana_staff' && fx.freeUltimate && !hero.equipmentState.freeUltLock) {
+          if (Math.random() < (fx.freeUltimate.chancePct / 100)) {
+            hero.equipmentState.freeUltLock = true;
+            this.executeAbility(hero, target, hero.selectedAbility || hero.defaultAbility || 'generic');
+            hero.equipmentState.freeUltLock = false;
+            if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} grants a free recast!`);
+          }
+        }
+        if (item.type === 'phylactery' && fx.magicOnUlt) {
+          target.currentHealth = Math.max(0, target.currentHealth - fx.magicOnUlt);
+          if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} deals ${fx.magicOnUlt} bonus magic damage on ultimate!`);
+        }
+      }
+      if (triggerType === 'on_crit') {
+        if (item.type === 'spear_of_pursuit' && fx.extraDamageOnCrit) {
+          target.currentHealth = Math.max(0, target.currentHealth - fx.extraDamageOnCrit);
+          if (this.combat && this.combat.addToLog) this.combat.addToLog(`${item.name} adds ${fx.extraDamageOnCrit} damage on crit!`);
+        }
+      }
+    }
+    for (const item of equipment) {
+      const fx = item.effects || {};
+      if (triggerType === 'battle_start') {
         if (fx.manaOnBattleStart) {
           hero.currentMana = Math.min(hero.maxMana, (hero.currentMana || 0) + fx.manaOnBattleStart);
           if (this.combat && this.combat.addToLog) {

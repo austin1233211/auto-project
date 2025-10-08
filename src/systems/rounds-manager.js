@@ -639,6 +639,15 @@ export class RoundsManager {
       if (this.currentRound % 5 === 0) {
         userPlayerForMaple.hero.persistentEffects.mapleSyrupStacks += 1;
         this.updatePlayerHero();
+    const userPlayerForSoul = this.players.find(p => p.name === 'You');
+    if (userPlayerForSoul && userPlayerForSoul.hero && userPlayerForSoul.hero.persistentEffects) {
+      const pe = userPlayerForSoul.hero.persistentEffects;
+      if (typeof pe.soulBoosterHpPerRound === 'number') {
+        pe.soulBoosterAccum = (pe.soulBoosterAccum || 0) + pe.soulBoosterHpPerRound;
+        userPlayerForSoul.hero.stats.health += pe.soulBoosterHpPerRound;
+        this.updatePlayerHero();
+      }
+    }
       }
     }
       console.log('Artifact selection is active, preventing startInterRoundTimer()');
@@ -739,7 +748,7 @@ export class RoundsManager {
         this.handleEquipmentSelection(equipment);
       });
       
-      equipmentReward.init(result.playerWon);
+      equipmentReward.init(result.playerWon, this.currentRound);
     }
   }
 
@@ -784,6 +793,10 @@ export class RoundsManager {
           userPlayer.hero.persistentEffects.urnPoisonIncrement = 0;
           userPlayer.hero.persistentEffects.urnBattlesCounter = 0;
         }
+      }
+      if (equipment && equipment.type === 'soul_booster') {
+        userPlayer.hero.persistentEffects.soulBoosterHpPerRound = (equipment.effects && equipment.effects.perRoundHpGain) ? equipment.effects.perRoundHpGain : 30;
+        userPlayer.hero.persistentEffects.soulBoosterAccum = (userPlayer.hero.persistentEffects.soulBoosterAccum || 0);
       }
       this.updatePlayerHero();
     }
