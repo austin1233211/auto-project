@@ -1051,7 +1051,7 @@ export class AbilitySystem {
     }
     if (hero.equipment && hero.equipment.find(it => it.type === 'shivas_guard')) {
       if (now - es.lastFrostPulseTs >= 1000) {
-        if (this.applyFrostStacks) this.applyFrostStacks(hero, opp, 12);
+        if (this.applyFrostStacks) this.applyFrostStacks(opp, 12);
         const frostEff = opp.statusEffects?.find(e => e.type === 'frost_stacks');
         const stacks = frostEff ? frostEff.stacks : 0;
         if (stacks > 0) {
@@ -1089,7 +1089,7 @@ export class AbilitySystem {
       if (has('orchid')) {
         const key = 'orchid_stun_used';
         if (!hero.equipmentState[key] && opp && (opp.currentHealth / opp.stats.health) * 100 < 60) {
-          if (this.applyStun) this.applyStun(opp, 1500);
+          if (this.applyStunEffect) this.applyStunEffect(opp, 1.5);
           hero.equipmentState[key] = true;
           this.combat?.addToLog?.(`${hero.name}'s Orchid stuns ${opp.name}!`);
         }
@@ -1180,7 +1180,7 @@ export class AbilitySystem {
           const red = opp.equipmentState.damageOutputReduction || { phys: 0, magic: 0 };
           red.phys = Math.max(red.phys || 0, 80);
           opp.equipmentState.damageOutputReduction = red;
-          if (this.applyStun) this.applyStun(opp, 2000);
+          if (this.applyStunEffect) this.applyStunEffect(opp, 2.0);
           hero.equipmentState[usedKey] = true;
           hero.equipmentState[expKey] = Date.now() + 2000;
           this.combat?.addToLog?.(`${hero.name}'s Heaven's Halberd disables ${opp.name}!`);
@@ -1225,14 +1225,14 @@ export class AbilitySystem {
   if (trigger === 'on_attack') {
     if (hero.equipment && hero.equipment.find(it => it.type === 'mind_breaker')) {
       if (now - es.lastMindBreakerTs >= 4000) {
-        if (this.applyStun) this.applyStun(opp, 1500);
+        if (this.applyStunEffect) this.applyStunEffect(opp, 1.5);
         es.lastMindBreakerTs = now;
       }
     }
     if (hero.equipment && hero.equipment.find(it => it.type === 'abyssal_blade')) {
       if (now - es.lastAbyssalTs >= 1500) {
         if (Math.random() < 0.25) {
-          if (this.applyStun) this.applyStun(opp, 600);
+          if (this.applyStunEffect) this.applyStunEffect(opp, 0.6);
           es.lastAbyssalTs = now;
         }
       }
