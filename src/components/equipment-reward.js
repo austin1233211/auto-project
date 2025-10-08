@@ -703,6 +703,7 @@ export class EquipmentReward {
         type: 'equipment'
       });
     }
+
   }
 
   render() {
@@ -820,4 +821,13 @@ export class EquipmentReward {
   show() {
     this.container.style.display = 'block';
   }
+  static debugGenerateForRound(round, playerWon = true) {
+    const container = document.createElement('div');
+    const inst = new EquipmentReward(container);
+    inst.playerWon = playerWon;
+    inst.currentRound = round;
+    inst.generateEquipment();
+    return (inst.currentEquipment || []).map(e => e.type);
+  }
+
 }
