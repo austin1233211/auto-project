@@ -8,8 +8,9 @@ export class EquipmentReward {
     this.playerWon = true;
   }
 
-  init(playerWon = true) {
+  init(playerWon = true, currentRound = 1) {
     this.playerWon = playerWon;
+    this.currentRound = currentRound;
     this.generateEquipment();
     this.render();
     this.attachEventListeners();
@@ -17,6 +18,56 @@ export class EquipmentReward {
 
   generateEquipment() {
     const equipmentCount = this.playerWon ? 3 : 1;
+
+    const pickTierByRound = (round) => {
+      const weights = (() => {
+        if (round >= 15) return { 1: 10, 2: 60, 3: 30, 4: 0 };
+        if (round >= 10) return { 1: 20, 2: 70, 3: 10, 4: 0 };
+        return { 1: 70, 2: 30, 3: 0, 4: 0 };
+      })();
+      const tiers = Object.keys(weights).map(k => parseInt(k, 10));
+      const total = tiers.reduce((s, t) => s + weights[t], 0);
+      let r = Math.random() * total;
+      for (const t of tiers) {
+        if (r < weights[t]) return t;
+        r -= weights[t];
+      }
+      return 1;
+    };
+
+    const tier1Types = [
+      'arcane_ring','band_of_elvenskin','blightstone','claymore','faerie_fire','gauntlets_of_strength',
+      'iron_branch','javelin','mango','maple_syrup','mekansm','pavise','poor_mans_shield',
+      'sign_of_the_arachnid','spirit_vessel','urn_of_shadows','whisper_of_the_dead','winter_lotus'
+    ];
+    const tier2Types = [
+      'ascetics_cap','blade_mail','poison_claw','crystalys','defiant_shell','diffusal_blade',
+      'enchanted_quiver','shroud','ghost_scepter','hyper_frost','infused_raindrops','lotus_orb',
+      'mana_staff','phylactery','soul_booster','spear_of_pursuit','talisman_of_evasion','vampire_fangs',
+      'vanguard','wraith_pact'
+    ];
+    const byTier = (templates, t) => {
+      if (t === 1) return templates.filter(it => tier1Types.includes(it.type));
+      if (t === 2) return templates.filter(it => tier2Types.includes(it.type));
+      if (t === 3) return []; // reserved for future items
+      if (t === 4) return []; // reserved for future items
+      return [];
+    };
+    const fallbackFindByTier = (templates, target) => {
+      let candidates = byTier(templates, target);
+      if (candidates.length > 0) return candidates;
+      for (let d = 1; d <= 3; d++) {
+        if (target - d >= 1) {
+          candidates = byTier(templates, target - d);
+          if (candidates.length > 0) return candidates;
+        }
+        if (target + d <= 4) {
+          candidates = byTier(templates, target + d);
+          if (candidates.length > 0) return candidates;
+        }
+      }
+      return templates;
+    };
     
     const equipmentTemplates = [
       {
@@ -426,14 +477,20 @@ export class EquipmentReward {
         effects: { extraShieldStacks: 6, delayedEnemyDamageReduction: { delaySec: 3, physPct: 35, magicPct: 35 } }
       }
     ];
-    const shuffled = [...equipmentTemplates].sort(() => Math.random() - 0.5);
-    this.currentEquipment = shuffled.slice(0, equipmentCount).map(item => ({
-      ...item,
-      cost: 0,
-      tier: Math.floor(Math.random() * 3) + 1,
-      tierName: `Tier ${Math.floor(Math.random() * 3) + 1}`,
-      type: 'equipment'
-    }));
+    this.currentEquipment = [];
+    for (let i = 0; i < equipmentCount; i++) {
+      const desiredTier = pickTierByRound(this.currentRound || 1);
+      const pool = fallbackFindByTier(equipmentTemplates, desiredTier);
+      const item = pool[Math.floor(Math.random() * pool.length)];
+      const labeledTier = tier1Types.includes(item.type) ? 1 : (tier2Types.includes(item.type) ? 2 : desiredTier);
+      this.currentEquipment.push({
+        ...item,
+        cost: 0,
+        tier: labeledTier,
+        tierName: `Tier ${labeledTier}`,
+        type: 'equipment'
+      });
+    }
   }
 
   render() {

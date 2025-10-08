@@ -748,7 +748,7 @@ export class RoundsManager {
         this.handleEquipmentSelection(equipment);
       });
       
-      equipmentReward.init(result.playerWon);
+      equipmentReward.init(result.playerWon, this.currentRound);
     }
   }
 
