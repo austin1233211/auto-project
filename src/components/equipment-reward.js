@@ -20,19 +20,8 @@ export class EquipmentReward {
     const equipmentCount = this.playerWon ? 3 : 1;
 
     const pickTierByRound = (round) => {
-      const weights = (() => {
-        if (round >= 15) return { 1: 10, 2: 60, 3: 30, 4: 0 };
-        if (round >= 10) return { 1: 20, 2: 70, 3: 10, 4: 0 };
-        return { 1: 70, 2: 30, 3: 0, 4: 0 };
-      })();
-      const tiers = Object.keys(weights).map(k => parseInt(k, 10));
-      const total = tiers.reduce((s, t) => s + weights[t], 0);
-      let r = Math.random() * total;
-      for (const t of tiers) {
-        if (r < weights[t]) return t;
-        r -= weights[t];
-      }
-      return 1;
+      const fixed = { 5: 1, 10: 2, 15: 3, 20: 4 };
+      return fixed[round] || 1;
     };
 
     const tier1Types = [
