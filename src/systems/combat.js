@@ -371,11 +371,19 @@ export class Combat {
         finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
         this.addToLog(`${target.name} evades with equipment, reducing damage to ${finalDamage}!`);
         this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
-      } else if (Math.random() < target.effectiveStats.evasionChance) {
-        wasEvaded = true;
-        finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
-        this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
-        this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+      } else {
+        const enemyMissBonus = (target.equipmentState && target.equipmentState.enemyMissChanceBonusPct) ? target.equipmentState.enemyMissChanceBonusPct / 100 : 0;
+        if (enemyMissBonus > 0 && Math.random() < enemyMissBonus) {
+          wasEvaded = true;
+          finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
+          this.addToLog(`${attacker.name}'s attack misses due to aura!`);
+          this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+        } else if (Math.random() < target.effectiveStats.evasionChance) {
+          wasEvaded = true;
+          finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
+          this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
+          this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+        }
       }
       
       let totalCritChance = attacker.effectiveStats.critChance;
@@ -413,6 +421,15 @@ export class Combat {
         target.currentHealth = 1;
         this.addToLog(`${target.name} survives fatal damage!`);
         return;
+      if (wasCrit && target.effectiveStats && target.effectiveStats.critDamageTakenReduction) {
+        finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.critDamageTakenReduction / 100)));
+      }
+      if (wasCrit && target.effectiveStats && target.effectiveStats.critReflect && Math.random() < (target.effectiveStats.critReflect.chancePct / 100)) {
+        const reflect = Math.round(finalDamage * (target.effectiveStats.critReflect.reflectPct / 100));
+        attacker.currentHealth = Math.max(0, attacker.currentHealth - reflect);
+        this.addToLog(`${target.name} reflects ${reflect} crit damage!`);
+      }
+
       }
       
       const deathSaved = this.abilitySystem.triggerAbilities(target, attacker, 'death_save');
