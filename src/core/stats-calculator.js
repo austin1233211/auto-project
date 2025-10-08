@@ -367,6 +367,25 @@ export class StatsCalculator {
             break;
           case 'battle_start_frost':
             modifiedStats.battleStartFrost = (modifiedStats.battleStartFrost || 0) + ability.value;
+            break;
+          case 'frost_nova_damage':
+            modifiedStats.frostNovaDamage = (modifiedStats.frostNovaDamage || 0) + ability.value;
+            break;
+          case 'frostbite_stun':
+            modifiedStats.frostbiteStun = (modifiedStats.frostbiteStun || 0) + ability.value;
+            break;
+          case 'cold_embrace_defense':
+            modifiedStats.coldEmbraceDefense = (modifiedStats.coldEmbraceDefense || 0) + (ability.value / 100);
+            break;
+          
+          case 'shield_aura':
+            modifiedStats.shieldAura = (modifiedStats.shieldAura || 0) + ability.value;
+            break;
+          case 'shield_resistance':
+            modifiedStats.shieldResistance = (modifiedStats.shieldResistance || 0) + (ability.value / 100);
+            break;
+          case 'ultimate_shield':
+            modifiedStats.ultimateShield = (modifiedStats.ultimateShield || 0) + ability.value;
     if (hero.equipment && hero.equipment.length > 0) {
       for (const item of hero.equipment) {
         const fx = item.effects || {};
@@ -388,27 +407,15 @@ export class StatsCalculator {
         if (fx.healthRegenPct) modifiedStats.healthRegenPct = (modifiedStats.healthRegenPct || 0) + fx.healthRegenPct;
         if (fx.critDamageTakenReductionPct) modifiedStats.critDamageTakenReduction = (modifiedStats.critDamageTakenReduction || 0) + fx.critDamageTakenReductionPct;
         if (fx.evasionChancePct) modifiedStats.evasionChance = (modifiedStats.evasionChance || 0) + (fx.evasionChancePct / 100);
+        if (fx.magicDamageAmplificationPct) modifiedStats.magicDamageAmplification = (modifiedStats.magicDamageAmplification || 0) + fx.magicDamageAmplificationPct;
+        if (fx.enemyMissChanceBonusPct) modifiedStats.enemyMissChanceBonusPct = (modifiedStats.enemyMissChanceBonusPct || 0) + fx.enemyMissChanceBonusPct;
+        if (fx.stunResistancePct) modifiedStats.stunResistancePct = (modifiedStats.stunResistancePct || 0) + fx.stunResistancePct;
+        if (fx.lifestealPct) modifiedStats.lifestealPct = (modifiedStats.lifestealPct || 0) + fx.lifestealPct;
+        if (fx.poisonDamageMultiplierPct) modifiedStats.poisonDamageMultiplierPct = (modifiedStats.poisonDamageMultiplierPct || 0) + fx.poisonDamageMultiplierPct;
+        if (fx.poisonPerStackBonus) modifiedStats.poisonPerStackBonus = (modifiedStats.poisonPerStackBonus || 0) + fx.poisonPerStackBonus;
+        if (fx.poisonCanCrit) modifiedStats.poisonCanCrit = true;
       }
     }
-            break;
-          case 'frost_nova_damage':
-            modifiedStats.frostNovaDamage = (modifiedStats.frostNovaDamage || 0) + ability.value;
-            break;
-          case 'frostbite_stun':
-            modifiedStats.frostbiteStun = (modifiedStats.frostbiteStun || 0) + ability.value;
-            break;
-          case 'cold_embrace_defense':
-            modifiedStats.coldEmbraceDefense = (modifiedStats.coldEmbraceDefense || 0) + (ability.value / 100);
-            break;
-          
-          case 'shield_aura':
-            modifiedStats.shieldAura = (modifiedStats.shieldAura || 0) + ability.value;
-            break;
-          case 'shield_resistance':
-            modifiedStats.shieldResistance = (modifiedStats.shieldResistance || 0) + (ability.value / 100);
-            break;
-          case 'ultimate_shield':
-            modifiedStats.ultimateShield = (modifiedStats.ultimateShield || 0) + ability.value;
             break;
           case 'battle_start_shield':
             modifiedStats.battleStartShield = (modifiedStats.battleStartShield || 0) + ability.value;
@@ -463,49 +470,19 @@ export class StatsCalculator {
         lowHealthDamageBonus: modifiedStats.lowHealthDamageBonus || 0,
         damageImmunityChance: modifiedStats.damageImmunityChance || 0,
         abilityCooldownReduction: modifiedStats.abilityCooldownReduction || 0,
-        deathSaveCharges: modifiedStats.deathSaveCharges || 0
+        deathSaveCharges: modifiedStats.deathSaveCharges || 0,
+        critReflect: modifiedStats.critReflect || null,
+        healPerSecondPctMaxHp: modifiedStats.healPerSecondPctMaxHp || 0,
+        stunResistancePct: modifiedStats.stunResistancePct || 0,
+        enemyMissChanceBonusPct: modifiedStats.enemyMissChanceBonusPct || 0,
+        lifestealPct: modifiedStats.lifestealPct || 0,
+        poisonDamageMultiplierPct: modifiedStats.poisonDamageMultiplierPct || 0,
+        poisonPerStackBonus: modifiedStats.poisonPerStackBonus || 0,
+        poisonCanCrit: !!modifiedStats.poisonCanCrit,
+        attackDamagePct: modifiedStats.attackDamagePct || 0,
+        healthRegenPct: modifiedStats.healthRegenPct || 0,
+        critDamageTakenReduction: modifiedStats.critDamageTakenReduction || 0
       }
     };
-    if (hero.equipment && hero.equipment.length > 0) {
-      for (const item of hero.equipment) {
-        const fx = item.effects || {};
-        if (fx.maxHpFlat) {
-          modifiedStats.health += fx.maxHpFlat;
-        }
-        if (fx.manaRegenPerSec) {
-          modifiedStats.manaRegeneration = (modifiedStats.manaRegeneration || 0) + fx.manaRegenPerSec;
-        }
-        if (fx.attackFlat) {
-          modifiedStats.attack += fx.attackFlat;
-        }
-        if (fx.attackSpeedPct) {
-          modifiedStats.speed *= (1 + fx.attackSpeedPct / 100);
-        }
-        if (fx.critDamagePct) {
-          modifiedStats.critDamage = (modifiedStats.critDamage || 1.5) + (fx.critDamagePct / 100);
-        }
-        if (fx.physicalDamageReductionPct) {
-          modifiedStats.physicalDamageReduction = (modifiedStats.physicalDamageReduction || 0) + fx.physicalDamageReductionPct;
-        }
-        if (fx.abilityEffectivenessPct) {
-          modifiedStats.abilityEffectiveness = (modifiedStats.abilityEffectiveness || 0) + fx.abilityEffectivenessPct;
-        }
-        if (fx.extraShieldStacks) {
-          modifiedStats.extraShieldStacks = (modifiedStats.extraShieldStacks || 0) + fx.extraShieldStacks;
-        }
-        if (fx.extraPoisonStacks) {
-          modifiedStats.extraPoisonStacks = (modifiedStats.extraPoisonStacks || 0) + fx.extraPoisonStacks;
-        }
-        if (fx.extraFrostStacks) {
-          modifiedStats.extraFrostStacks = (modifiedStats.extraFrostStacks || 0) + fx.extraFrostStacks;
-        }
-        if (fx.extraRegenStacks) {
-          modifiedStats.extraRegenStacks = (modifiedStats.extraRegenStacks || 0) + fx.extraRegenStacks;
-        }
-        if (fx.enemyHealRegenReductionPct) {
-          modifiedStats.enemyRegenReductionPct = (modifiedStats.enemyRegenReductionPct || 0) + fx.enemyHealRegenReductionPct;
-        }
-      }
-    }
   }
 }

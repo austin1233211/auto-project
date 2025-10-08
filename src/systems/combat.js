@@ -360,7 +360,7 @@ export class Combat {
       
       this.abilitySystem.triggerAbilities(attacker, target, 'on_ultimate');
     } else {
-      let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical');
+      let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical', attacker);
 
       if (attacker.equipmentState && attacker.equipmentState.forceNoEvasion) {
         wasEvaded = false;
@@ -371,11 +371,19 @@ export class Combat {
         finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
         this.addToLog(`${target.name} evades with equipment, reducing damage to ${finalDamage}!`);
         this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
-      } else if (Math.random() < target.effectiveStats.evasionChance) {
-        wasEvaded = true;
-        finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
-        this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
-        this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+      } else {
+        const enemyMissBonus = (target.equipmentState && target.equipmentState.enemyMissChanceBonusPct) ? target.equipmentState.enemyMissChanceBonusPct / 100 : 0;
+        if (enemyMissBonus > 0 && Math.random() < enemyMissBonus) {
+          wasEvaded = true;
+          finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
+          this.addToLog(`${attacker.name}'s attack misses due to aura!`);
+          this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+        } else if (Math.random() < target.effectiveStats.evasionChance) {
+          wasEvaded = true;
+          finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
+          this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
+          this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
+        }
       }
       
       let totalCritChance = attacker.effectiveStats.critChance;
@@ -422,6 +430,10 @@ export class Combat {
     }
 
     const oldHealth = target.currentHealth;
+    if (target.equipmentState && typeof target.equipmentState.reduceIncomingFlat === 'number' && target.equipmentState.reduceIncomingFlat > 0) {
+      damage = Math.max(0, damage - target.equipmentState.reduceIncomingFlat);
+      target.equipmentState.reduceIncomingFlat = 0;
+    }
     target.currentHealth = Math.max(0, target.currentHealth - damage);
     
     if (damage > 0) {
@@ -442,14 +454,14 @@ export class Combat {
     }
   }
 
-  calculateDamage(attack, target, damageType = 'physical') {
+  calculateDamage(attack, target, damageType = 'physical', attacker = null) {
     const baseDamage = attack;
     
     let damageReduction = 0;
     if (damageType === 'physical') {
       damageReduction = target.effectiveStats.armor;
     } else if (damageType === 'magic') {
-      damageReduction = target.effectiveStats.magicDamageReduction || 0;
+      damageReduction = (target.effectiveStats.magicDamageReduction || 0);
     }
     
     let finalDamage = baseDamage * (1 - damageReduction / 100);
@@ -458,17 +470,6 @@ export class Combat {
     if (damageType === 'physical') {
       damageAmplification = target.effectiveStats.physicalDamageAmplification || 0;
     } else if (damageType === 'magic') {
-    if (wasCrit && target.effectiveStats && target.effectiveStats.critDamageTakenReduction) {
-      damage = Math.round(damage * (1 - (target.effectiveStats.critDamageTakenReduction / 100)));
-    }
-    if (attacker.effectiveStats && attacker.effectiveStats.attackDamagePct && damageType === 'physical') {
-      damage = Math.round(damage * (1 + attacker.effectiveStats.attackDamagePct / 100));
-    }
-    if (attacker.equipmentState && attacker.equipmentState.damageOutputReduction) {
-      const red = attacker.equipmentState.damageOutputReduction;
-      const mult = damageType === 'physical' ? (1 - (red.phys / 100)) : (1 - (red.magic / 100));
-      damage = Math.round(damage * mult);
-    }
       damageAmplification = target.effectiveStats.magicDamageAmplification || 0;
     }
     
@@ -478,14 +479,24 @@ export class Combat {
       finalDamage = finalDamage * (1 - (target.effectiveStats.physicalDamageReduction / 100));
     }
     
+    const now = Date.now ? Date.now() : 0;
+    if (attacker && attacker.equipmentState && attacker.equipmentState.damageOutputReduction) {
+      const dor = attacker.equipmentState.damageOutputReduction;
+      if (!dor.until || dor.until > now) {
+        if (damageType === 'physical' && dor.phys) {
+          finalDamage = Math.round(finalDamage * (1 - dor.phys / 100));
+        } else if (damageType === 'magic' && dor.magic) {
+          finalDamage = Math.round(finalDamage * (1 - dor.magic / 100));
+        }
+      }
+    }
+    
     const shieldEffect = target.statusEffects?.find(e => e.type === 'shield_stacks');
     if (shieldEffect && shieldEffect.stacks > 0) {
       const shieldReduction = Math.min(finalDamage, shieldEffect.stacks);
       finalDamage -= shieldReduction;
       shieldEffect.stacks -= shieldReduction;
-      
       shieldEffect.stacks = Math.floor(shieldEffect.stacks * 0.7);
-      
       if (shieldReduction > 0) {
         this.addToLog(`Shield absorbs ${shieldReduction} damage!`);
       }

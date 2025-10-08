@@ -1017,10 +1017,255 @@ export class AbilitySystem {
           break;
       }
     }
+  if (!hero.equipmentState) hero.equipmentState = {};
+  const now = Date.now();
+  const es = hero.equipmentState;
+
+  if (!es.initT3T4) {
+    es.initT3T4 = true;
+    es.lastPoisonPurgeTs = now;
+    es.lastFrostPulseTs = now;
+    es.lastDamageToShieldTs = now;
+    es.damageTakenWindow = 0;
+    es.lastMindBreakerTs = 0;
+    es.lastAbyssalTs = 0;
+    es.lastDisperserTs = 0;
+  }
+
+  if (trigger === 'status_tick') {
+    const opp = opponent;
+    const dt = 1000;
+    if (hero.effectiveStats.healPerSecondPctMaxHp) {
+      const heal = Math.floor((hero.stats.health + (hero.effectiveStats.healthBonus || 0)) * (hero.effectiveStats.healPerSecondPctMaxHp / 100));
+      hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + heal);
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'lotus_antitoxic_capsule')) {
+      if (now - es.lastPoisonPurgeTs >= 800) {
+        const eff = hero.statusEffects?.find(e => e.type === 'poison_stacks');
+        if (eff && eff.stacks > 0) {
+          const reduce = Math.floor(eff.stacks * 0.25);
+          eff.stacks = Math.max(0, eff.stacks - reduce);
+        }
+        es.lastPoisonPurgeTs = now;
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'shivas_guard')) {
+      if (now - es.lastFrostPulseTs >= 1000) {
+        if (this.applyFrostStacks) this.applyFrostStacks(opp, 12);
+        const frostEff = opp.statusEffects?.find(e => e.type === 'frost_stacks');
+        const stacks = frostEff ? frostEff.stacks : 0;
+        if (stacks > 0) {
+          const dmg = Math.round(stacks * 0.25);
+          opp.currentHealth = Math.max(0, opp.currentHealth - dmg);
+          this.combat?.addToLog?.(`${hero.name}'s Shiva pulse deals ${dmg} magic damage`);
+        }
+        es.lastFrostPulseTs = now;
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'martyrs_plate')) {
+      if (now - es.lastDamageToShieldTs >= 1000) {
+        const convertStacks = Math.floor((es.damageTakenWindow || 0) * 0.10);
+        if (convertStacks > 0 && this.applyShieldStacks) {
+          this.applyShieldStacks(hero, convertStacks);
+          es.damageTakenWindow = 0;
+        }
+        es.lastDamageToShieldTs = now;
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'radiance')) {
+      const mult = hero.effectiveStats?.evasionChance ? hero.effectiveStats.evasionChance * 1.5 : 0;
+      const dmg = Math.floor(mult);
+      if (dmg > 0) {
+        opp.currentHealth = Math.max(0, opp.currentHealth - dmg);
+        this.combat?.addToLog?.(`${hero.name}'s Radiance burns for ${dmg} magic`);
+      }
+      if (opp && opp.equipmentState) opp.equipmentState.enemyMissChanceBonusPct = hero.effectiveStats.enemyMissChanceBonusPct || 0;
+    }
+  }
+    if (hero.equipment) {
+      const has = (t) => hero.equipment.find(it => it.type === t);
+      const opp = opponent;
+
+      if (has('orchid')) {
+        const key = 'orchid_stun_used';
+        if (!hero.equipmentState[key] && opp && (opp.currentHealth / opp.stats.health) * 100 < 60) {
+          if (this.applyStunEffect) this.applyStunEffect(opp, 1.5);
+          hero.equipmentState[key] = true;
+          this.combat?.addToLog?.(`${hero.name}'s Orchid stuns ${opp.name}!`);
+        }
+      }
+
+      if (has('heavens_blade')) {
+        const usedKey = 'heavens_blade_used';
+        const expKey = 'heavens_blade_expires';
+        const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+        if (!hero.equipmentState[usedKey] && hpPct < 50) {
+          opp.equipmentState = opp.equipmentState || {};
+          const red = opp.equipmentState.damageOutputReduction || { phys: 0, magic: 0 };
+          red.phys = Math.max(red.phys || 0, 80);
+          opp.equipmentState.damageOutputReduction = red;
+          hero.equipmentState[usedKey] = true;
+          hero.equipmentState[expKey] = Date.now() + 2000;
+          this.combat?.addToLog?.(`${hero.name}'s Heaven's Blade cripples ${opp.name}'s physical damage!`);
+        }
+        if (hero.equipmentState[expKey] && Date.now() > hero.equipmentState[expKey]) {
+          if (opp?.equipmentState?.damageOutputReduction) {
+            opp.equipmentState.damageOutputReduction.phys = 0;
+          }
+          hero.equipmentState[expKey] = 0;
+        }
+      }
+
+      if (has('minotaur_horn')) {
+        const usedKey = 'minotaur_horn_used';
+        const expKey = 'minotaur_horn_expires';
+        const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+        if (!hero.equipmentState[usedKey] && hpPct < 40) {
+          hero.statusEffects = hero.statusEffects || [];
+          const purge = (type) => {
+            const eff = hero.statusEffects.find(e => e.type === `${type}_stacks`);
+            if (eff) eff.stacks = 0;
+          };
+          purge('poison');
+          purge('frost');
+          opp.equipmentState = opp.equipmentState || {};
+          const red = opp.equipmentState.damageOutputReduction || { phys: 0, magic: 0 };
+          red.magic = Math.max(red.magic || 0, 80);
+          opp.equipmentState.damageOutputReduction = red;
+          hero.equipmentState[usedKey] = true;
+          hero.equipmentState[expKey] = Date.now() + 2000;
+          this.combat?.addToLog?.(`${hero.name}'s Minotaur Horn purges and cripples ${opp.name}'s magic damage!`);
+        }
+        if (hero.equipmentState[expKey] && Date.now() > hero.equipmentState[expKey]) {
+          if (opp?.equipmentState?.damageOutputReduction) {
+            opp.equipmentState.damageOutputReduction.magic = 0;
+          }
+          hero.equipmentState[expKey] = 0;
+        }
+      }
+
+      if (has('magic_lamp')) {
+        const usedKey = 'magic_lamp_used';
+        const tickKey = 'magic_lamp_tick';
+        const endKey = 'magic_lamp_end';
+        const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+        if (!hero.equipmentState[usedKey] && hpPct < 20) {
+          hero.statusEffects = hero.statusEffects || [];
+          ['poison', 'frost'].forEach(type => {
+            const eff = hero.statusEffects.find(e => e.type === `${type}_stacks`);
+            if (eff) eff.stacks = 0;
+          });
+          hero.equipmentState[usedKey] = true;
+          hero.equipmentState[endKey] = Date.now() + 3000;
+          hero.equipmentState[tickKey] = 0;
+          this.combat?.addToLog?.(`${hero.name}'s Magic Lamp activates!`);
+        }
+        if (hero.equipmentState[endKey]) {
+          if (!hero.equipmentState[tickKey] || Date.now() - hero.equipmentState[tickKey] >= 1000) {
+            hero.currentHealth = Math.min(hero.stats.health, (hero.currentHealth || 0) + 500);
+            hero.equipmentState[tickKey] = Date.now();
+          }
+          if (Date.now() > hero.equipmentState[endKey]) {
+            hero.equipmentState[endKey] = 0;
+          }
+        }
+      }
+
+      if (has('heavens_halberd')) {
+        const usedKey = 'heavens_halberd_used';
+        const expKey = 'heavens_halberd_expires';
+        const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+        if (!hero.equipmentState[usedKey] && hpPct < 50) {
+          opp.equipmentState = opp.equipmentState || {};
+          const red = opp.equipmentState.damageOutputReduction || { phys: 0, magic: 0 };
+          red.phys = Math.max(red.phys || 0, 80);
+          opp.equipmentState.damageOutputReduction = red;
+          if (this.applyStunEffect) this.applyStunEffect(opp, 2.0);
+          hero.equipmentState[usedKey] = true;
+          hero.equipmentState[expKey] = Date.now() + 2000;
+          this.combat?.addToLog?.(`${hero.name}'s Heaven's Halberd disables ${opp.name}!`);
+        }
+        if (hero.equipmentState[expKey] && Date.now() > hero.equipmentState[expKey]) {
+          if (opp?.equipmentState?.damageOutputReduction) {
+            opp.equipmentState.damageOutputReduction.phys = 0;
+          }
+          hero.equipmentState[expKey] = 0;
+        }
+      }
+
+      if (has('gods_horn')) {
+        const usedKey = 'gods_horn_used';
+        const expKey = 'gods_horn_expires';
+        const hpPct = (hero.currentHealth / hero.stats.health) * 100;
+        if (!hero.equipmentState[usedKey] && hpPct < 40) {
+          hero.statusEffects = hero.statusEffects || [];
+          ['poison', 'frost'].forEach(type => {
+            const eff = hero.statusEffects.find(e => e.type === `${type}_stacks`);
+            if (eff) eff.stacks = 0;
+          });
+          hero.equipmentState.stunImmune = true;
+          hero.equipmentState[usedKey] = true;
+          hero.equipmentState[expKey] = Date.now() + 2000;
+          this.combat?.addToLog?.(`${hero.name}'s God's Horn grants stun immunity!`);
+        }
+        if (hero.equipmentState[expKey] && Date.now() > hero.equipmentState[expKey]) {
+          hero.equipmentState.stunImmune = false;
+          hero.equipmentState[expKey] = 0;
+        }
+      }
+    }
+
+
+  if (trigger === 'on_damage_taken' && data && data.damageType === 'physical') {
+    if (hero.equipment && hero.equipment.find(it => it.type === 'martyrs_plate')) {
+      es.damageTakenWindow = (es.damageTakenWindow || 0) + (data.damageAmount || 0);
+    }
+  }
+
+  if (trigger === 'on_attack') {
+    if (hero.equipment && hero.equipment.find(it => it.type === 'mind_breaker')) {
+      if (now - es.lastMindBreakerTs >= 4000) {
+        if (this.applyStunEffect) this.applyStunEffect(opp, 1.5);
+        es.lastMindBreakerTs = now;
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'abyssal_blade')) {
+      if (now - es.lastAbyssalTs >= 1500) {
+        if (Math.random() < 0.25) {
+          if (this.applyStunEffect) this.applyStunEffect(opp, 0.6);
+          es.lastAbyssalTs = now;
+        }
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'disperser')) {
+      if (now - es.lastDisperserTs >= 500) {
+        if (Math.random() < 0.60) {
+          opp.currentMana = Math.max(0, (opp.currentMana || 0) - 8);
+          es.lastDisperserTs = now;
+          this.combat?.addToLog?.(`${hero.name} burns 8 mana`);
+        }
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'revenant_brooch')) {
+      if (Math.random() < 0.50) {
+        const now = Date.now();
+        const bonus = Math.round((hero.effectiveStats.attack || 0) * 0.15);
+        const dealt = this.combat?.calculateDamage ? this.combat.calculateDamage(bonus, opp, 'physical') : bonus;
+        opp.currentHealth = Math.max(0, opp.currentHealth - dealt);
+        this.combat?.addToLog?.(`${hero.name}'s Revenant strike deals +${dealt}`);
+      }
+    }
+    if (hero.equipment && hero.equipment.find(it => it.type === 'monkey_king_bar')) {
+      if (Math.random() < 0.35) {
+        hero.equipmentState.forceNoEvasion = true;
+        hero.equipmentState.onHitBonusMagic = (hero.equipmentState.onHitBonusMagic || 0) + 120;
+      }
+    }
+  }
+
     
     const equipment = hero.equipment || [];
     hero.equipmentState = hero.equipmentState || {};
-    const now = Date.now();
     for (const item of equipment) {
       const fx = item.effects || {};
       if (triggerType === 'battle_start') {

@@ -20,19 +20,8 @@ export class EquipmentReward {
     const equipmentCount = this.playerWon ? 3 : 1;
 
     const pickTierByRound = (round) => {
-      const weights = (() => {
-        if (round >= 15) return { 1: 10, 2: 60, 3: 30, 4: 0 };
-        if (round >= 10) return { 1: 20, 2: 70, 3: 10, 4: 0 };
-        return { 1: 70, 2: 30, 3: 0, 4: 0 };
-      })();
-      const tiers = Object.keys(weights).map(k => parseInt(k, 10));
-      const total = tiers.reduce((s, t) => s + weights[t], 0);
-      let r = Math.random() * total;
-      for (const t of tiers) {
-        if (r < weights[t]) return t;
-        r -= weights[t];
-      }
-      return 1;
+      const fixed = { 5: 1, 10: 2, 15: 3, 20: 4 };
+      return fixed[round] || 1;
     };
 
     const tier1Types = [
@@ -46,11 +35,20 @@ export class EquipmentReward {
       'mana_staff','phylactery','soul_booster','spear_of_pursuit','talisman_of_evasion','vampire_fangs',
       'vanguard','wraith_pact'
     ];
+    const tier3Types = [
+      'archanist_armor','butterfly','daedalus','giant_slayer','heart_of_tarrasque','heavens_blade','kindle_staff',
+      'lotus_antitoxic_capsule','magic_lamp','mind_breaker','minotaur_horn','monkey_king_bar','martyrs_plate',
+      'orb_of_frost','orchid','revenant_brooch','shivas_guard','spell_prism','tricksters_cloak',
+      'unwavering_condition','witch_blade','witless_shako'
+    ];
+    const tier4Types = [
+      'abyssal_blade','disperser','heavens_halberd','gods_horn','parasma','pirate_hat','radiance','spell_blade','trident'
+    ];
     const byTier = (templates, t) => {
       if (t === 1) return templates.filter(it => tier1Types.includes(it.type));
       if (t === 2) return templates.filter(it => tier2Types.includes(it.type));
-      if (t === 3) return []; // reserved for future items
-      if (t === 4) return []; // reserved for future items
+      if (t === 3) return templates.filter(it => tier3Types.includes(it.type));
+      if (t === 4) return templates.filter(it => tier4Types.includes(it.type));
       return [];
     };
     const fallbackFindByTier = (templates, target) => {
@@ -470,19 +468,233 @@ export class EquipmentReward {
         effects: { extraShieldStacks: 4, maxHpFlat: 200, onPhysicalDamageGainShield: { chancePct: 20, stacks: 10 } }
       },
       {
-        name: 'Wraith Pact',
-        emoji: '🕯️',
-        description: '+6 Shield stacks; after 3s, -35% enemy physical & magic damage until round end',
-        type: 'wraith_pact',
-        effects: { extraShieldStacks: 6, delayedEnemyDamageReduction: { delaySec: 3, physPct: 35, magicPct: 35 } }
-      }
+        name: 'Archanist Armor',
+        emoji: '🛡️',
+        description: '+400 HP; +3% crit; 50% chance to reflect 40% of crit damage',
+        type: 'archanist_armor',
+        effects: { maxHpFlat: 400, critChancePct: 3, critReflect: { chancePct: 50, reflectPct: 40 } }
+      },
+      {
+        name: 'Butterfly',
+        emoji: '🦋',
+        description: '+6% evasion; +15% attack speed; 30% to reduce damage by 1× evasion',
+        type: 'butterfly',
+        effects: { evasionChancePct: 6, attackSpeedPct: 15, onHitEvasionReduction: { chancePct: 30, multiplier: 1.0 } }
+      },
+      {
+        name: 'Daedalus',
+        emoji: '💥',
+        description: '+40% crit dmg; +8% crit chance; +15 attack',
+        type: 'daedalus',
+        effects: { critDamagePct: 40, critChancePct: 8, attackFlat: 15 }
+      },
+      {
+        name: 'Giant Slayer',
+        emoji: '🪓',
+        description: '+8% physical dmg; +2% per 600 opponent HP',
+        type: 'giant_slayer',
+        effects: { attackDamagePct: 8, perOpponentHpPhysAmp: { perHp: 600, pct: 2 } }
+      },
+      {
+        name: 'Heart of Tarrasque',
+        emoji: '❤️',
+        description: '+400 HP; restore 1% max HP/sec; +20% health regen bonus',
+        type: 'heart_of_tarrasque',
+        effects: { maxHpFlat: 400, healPerSecondPctMaxHp: 1, healthRegenPct: 20 }
+      },
+      {
+        name: "Heaven's Blade",
+        emoji: '⚔️',
+        description: '+15 attack; +200 HP; below 50% HP: -80% enemy physical damage for 2s (once)',
+        type: 'heavens_blade',
+        effects: { attackFlat: 15, maxHpFlat: 200, lowHpEnemyPhysReduce: { thresholdPct: 50, physPct: 80, durationSec: 2, once: true } }
+      },
+      {
+        name: 'Kindle Staff',
+        emoji: '🔥',
+        description: '+200 HP; every 18% HP lost grants +6% damage reduction until round end',
+        type: 'kindle_staff',
+        effects: { maxHpFlat: 200, thresholdDrPerLoss: { pctLoss: 18, drPct: 6 } }
+      },
+      {
+        name: 'Lotus Antitoxic Capsule',
+        emoji: '💊',
+        description: '+200 HP; +10 poison stacks; remove 25% of own poison every 0.8s',
+        type: 'lotus_antitoxic_capsule',
+        effects: { maxHpFlat: 200, extraPoisonStacks: 10, periodicSelfPoisonReduce: { pct: 25, intervalSec: 0.8 } }
+      },
+      {
+        name: 'Magic Lamp',
+        emoji: '🪔',
+        description: '+10 health regen; +500 HP; below 20% HP: purge frost/poison and heal 500/s for 3s (once)',
+        type: 'magic_lamp',
+        effects: { extraRegenStacks: 10, maxHpFlat: 500, lowHpBurstHeal: { thresholdPct: 20, healPerSec: 500, durationSec: 3, purge: true, once: true } }
+      },
+      {
+        name: 'Mind Breaker',
+        emoji: '🧠',
+        description: '+30% attack speed; on hit: stun 1.5s (4s cd)',
+        type: 'mind_breaker',
+        effects: { attackSpeedPct: 30, onHitStun: { durationSec: 1.5, cooldownSec: 4, chancePct: 100 } }
+      },
+      {
+        name: 'Minotaur Horn',
+        emoji: '🐂',
+        description: '+10 attack; +10% AS; below 40% HP: purge frost/poison and -80% enemy magic dmg for 2s (once)',
+        type: 'minotaur_horn',
+        effects: { attackFlat: 10, attackSpeedPct: 10, lowHpEnemyMagicReduce: { thresholdPct: 40, magicPct: 80, durationSec: 2, purge: true, once: true } }
+      },
+      {
+        name: 'Monkey King Bar',
+        emoji: '🦍',
+        description: '+20 attack; +20% AS; 35% to ignore evasion and deal 120 magic',
+        type: 'monkey_king_bar',
+        effects: { attackFlat: 20, attackSpeedPct: 20, onHitNoEvasion: { chancePct: 35, bonusMagic: 120 } }
+      },
+      {
+        name: "Martyr's Plate",
+        emoji: '🛡️',
+        description: '+8 shield stacks; every 1s convert 10% damage taken into shield',
+        type: 'martyrs_plate',
+        effects: { extraShieldStacks: 8, periodicDamageToShield: { intervalSec: 1, pct: 10 } }
+      },
+      {
+        name: 'Orb of Frost',
+        emoji: '❄️',
+        description: '+6 frost stacks; +2.5 mana regen; every 160 frost applied: deal 100 dmg',
+        type: 'orb_of_frost',
+        effects: { extraFrostStacks: 6, manaRegenPerSec: 2.5, frostThresholdDamage: { stacks: 160, damage: 100 } }
+      },
+      {
+        name: 'Orchid',
+        emoji: '🌸',
+        description: '+3 mana regen; +8% magic amp; when enemy HP <60%: stun 1.5s',
+        type: 'orchid',
+        effects: { manaRegenPerSec: 3, magicDamageAmplificationPct: 8, hpThresholdStun: { enemyBelowPct: 60, durationSec: 1.5 } }
+      },
+      {
+        name: 'Revenant Brooch',
+        emoji: '🧿',
+        description: '+30% AS; 50% to deal +15% attack damage',
+        type: 'revenant_brooch',
+        effects: { attackSpeedPct: 30, onHitBonusAttackPct: { chancePct: 50, pct: 15 } }
+      },
+      {
+        name: "Shiva's Guard",
+        emoji: '🧊',
+        description: '+8% physical DR; +8 frost stacks; every 1s: +12 frost and deal stacks×25% magic',
+        type: 'shivas_guard',
+        effects: { physicalDamageReductionPct: 8, extraFrostStacks: 8, periodicFrostPulse: { intervalSec: 1, addStacks: 12, dmgPerStackPct: 25 } }
+      },
+      {
+        name: 'Spell Prism',
+        emoji: '🔮',
+        description: '+10% ultimate damage; +4 mana regen; after ult: gain 10 mana',
+        type: 'spell_prism',
+        effects: { abilityEffectivenessPct: 10, manaRegenPerSec: 4, onUltGainMana: 10 }
+      },
+      {
+        name: "Trickster's Cloak",
+        emoji: '🃏',
+        description: '+12% phys & magic DR; -9 frost/poison stacks applied to you',
+        type: 'tricksters_cloak',
+        effects: { physicalDamageReductionPct: 12, magicDamageReductionPct: 12, incomingStacksReduce: 9 }
+      },
+      {
+        name: 'Unwavering Condition',
+        emoji: '🧱',
+        description: '+30% magic DR; -30% enemy ultimate damage',
+        type: 'unwavering_condition',
+        effects: { magicDamageReductionPct: 30, enemyUltDamageReducePct: 30 }
+      },
+      {
+        name: 'Witch Blade',
+        emoji: '🪄',
+        description: '+20 poison stacks; +20% AS; +20% poison damage',
+        type: 'witch_blade',
+        effects: { extraPoisonStacks: 20, attackSpeedPct: 20, poisonDamageMultiplierPct: 20 }
+      },
+      {
+        name: 'Witless Shako',
+        emoji: '🎭',
+        description: '+500 HP; every 800 max HP grants +1.6% phys & magic DR',
+        type: 'witless_shako',
+        effects: { maxHpFlat: 500, drPerHp: { perHp: 800, pct: 1.6 } }
+      },
+      {
+        name: 'Abyssal Blade',
+        emoji: '⛓️',
+        description: '+20% AS; +50% stun resist; +200 HP; 25% to stun 0.6s (1.5s cd)',
+        type: 'abyssal_blade',
+        effects: { attackSpeedPct: 20, stunResistancePct: 50, maxHpFlat: 200, onHitStun: { chancePct: 25, durationSec: 0.6, cooldownSec: 1.5 } }
+      },
+      {
+        name: 'Disperser',
+        emoji: '🌊',
+        description: '+30% AS; 60% chance to burn 8 mana (0.5s cd)',
+        type: 'disperser',
+        effects: { attackSpeedPct: 30, onHitManaBurn: { chancePct: 60, amount: 8, cooldownSec: 0.5 } }
+      },
+      {
+        name: "Heaven's Halberd",
+        emoji: '🪓',
+        description: '+15 attack; +10% AS; below 50% HP: -80% enemy physical dmg and stun 2s (once)',
+        type: 'heavens_halberd',
+        effects: { attackFlat: 15, attackSpeedPct: 10, lowHpEnemyPhysReduceAndStun: { thresholdPct: 50, physPct: 80, stunSec: 2, once: true } }
+      },
+      {
+        name: "God's Horn",
+        emoji: '📯',
+        description: '+15 attack; +15% AS; below 40% HP: purge frost/poison and stun-immune 2s',
+        type: 'gods_horn',
+        effects: { attackFlat: 15, attackSpeedPct: 15, lowHpPurgeAndStunImmune: { thresholdPct: 40, durationSec: 2 } }
+      },
+      {
+        name: 'Parasma',
+        emoji: '☣️',
+        description: '+20 poison dmg per stack; +20% AS; +20% poison dmg; poison can crit',
+        type: 'parasma',
+        effects: { poisonPerStackBonus: 20, attackSpeedPct: 20, poisonDamageMultiplierPct: 20, poisonCanCrit: true }
+      },
+      {
+        name: 'Pirate Hat',
+        emoji: '🏴‍☠️',
+        description: '+70% attack speed',
+        type: 'pirate_hat',
+        effects: { attackSpeedPct: 70 }
+      },
+      {
+        name: 'Radiance',
+        emoji: '🌟',
+        description: '+10 attack; +4% evasion; every 1s deal (evasion×1.5) magic; enemies have +17% miss',
+        type: 'radiance',
+        effects: { attackFlat: 10, evasionChancePct: 4, periodicEvasionDamage: { intervalSec: 1, multiplier: 1.5 }, enemyMissChanceBonusPct: 17 }
+      },
+      {
+        name: 'Spell Blade',
+        emoji: '🗡️',
+        description: '+15% ultimate dmg; +6 mana regen; after ult: +20 mana',
+        type: 'spell_blade',
+        effects: { abilityEffectivenessPct: 15, manaRegenPerSec: 6, onUltGainMana: 20 }
+      },
+      {
+        name: 'Trident',
+        emoji: '🔱',
+        description: '+10% mag/phys amp & DR; +30% AS; +30 atk; +10 mana regen; +600 HP; +30% ult; +6% crit; +6% evasion; +10% lifesteal',
+        type: 'trident',
+        effects: { magicDamageAmplificationPct: 10, physicalDamageAmplificationPct: 10, magicDamageReductionPct: 10, physicalDamageReductionPct: 10, attackSpeedPct: 30, attackFlat: 30, manaRegenPerSec: 10, maxHpFlat: 600, abilityEffectivenessPct: 30, critChancePct: 6, evasionChancePct: 6, lifestealPct: 10 }
+      },
     ];
     this.currentEquipment = [];
     for (let i = 0; i < equipmentCount; i++) {
       const desiredTier = pickTierByRound(this.currentRound || 1);
       const pool = fallbackFindByTier(equipmentTemplates, desiredTier);
       const item = pool[Math.floor(Math.random() * pool.length)];
-      const labeledTier = tier1Types.includes(item.type) ? 1 : (tier2Types.includes(item.type) ? 2 : desiredTier);
+      const labeledTier =
+        tier1Types.includes(item.type) ? 1 :
+        (tier2Types.includes(item.type) ? 2 :
+        (tier3Types.includes(item.type) ? 3 :
+        (tier4Types.includes(item.type) ? 4 : desiredTier)));
       this.currentEquipment.push({
         ...item,
         cost: 0,
