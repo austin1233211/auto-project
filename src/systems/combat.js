@@ -1,3 +1,5 @@
+import { devTestPanel } from '../components/dev-test-panel.js';
+
 import { heroes } from '../core/heroes.js';
 import { StatsCalculator } from '../core/stats-calculator.js';
 import { AbilitySystem } from '../core/abilities.js';
@@ -23,6 +25,10 @@ export class Combat {
     this.damageMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
+    if (typeof devTestPanel !== 'undefined' && devTestPanel && devTestPanel.attachCombat) {
+      devTestPanel.attachCombat(this);
+    }
+
     this.heroStatsCard = heroStatsCard;
   }
 
@@ -582,6 +588,7 @@ export class Combat {
       }
     }, 3000);
   }
+
 
 
   initCombatShop() {

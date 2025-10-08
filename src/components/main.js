@@ -1,3 +1,11 @@
+import { EquipmentReward } from './equipment-reward.js';
+import { devTestPanel } from './dev-test-panel.js';
+
+if (devTestPanel && devTestPanel.attachModules) {
+  devTestPanel.attachModules({ EquipmentReward });
+  if (devTestPanel.attachHotkeys) devTestPanel.attachHotkeys();
+}
+
 import { GameModeSelection } from '../ui/game-mode-selection.js';
 import { HeroSelection } from '../ui/hero-selection.js';
 import { PlayerHealth } from '../ui/player-health.js';
