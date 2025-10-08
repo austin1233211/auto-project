@@ -113,7 +113,7 @@ export class RoundsManager {
       return;
     }
     
-    if ([5, 10, 15].includes(this.currentRound)) {
+    if ([5, 10, 15, 20].includes(this.currentRound)) {
       this.startMinionRound();
       return;
     }
@@ -249,7 +249,7 @@ export class RoundsManager {
       this.combat.clearTimers();
     }
     
-    if ([5, 10, 15].includes(this.currentRound)) {
+    if ([5, 10, 15, 20].includes(this.currentRound)) {
       this.handleSpecialRoundResult(result);
       return;
     }
