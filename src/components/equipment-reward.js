@@ -144,9 +144,288 @@ export class EquipmentReward {
         description: '+2 additional frost stacks; Below 30% HP, restore 200 HP and apply 100 frost stacks to opponent (once per battle)',
         type: 'winter_lotus',
         effects: { extraFrostStacks: 2, thresholdFrostBurst: { hpPct: 30, heal: 200, enemyFrostStacks: 100, oncePerBattle: true } }
+      },
+      {
+        name: "Ascetic's Cap",
+        emoji: '🎩',
+        description: '+250 Max HP; -20% critical damage taken',
+        type: 'ascetics_cap',
+        effects: { maxHpFlat: 250, critDamageTakenReductionPct: 20 }
+      },
+      {
+        name: 'Blade Mail',
+        emoji: '🪓',
+        description: '+6% Physical DR; +6% Magic DR; deal 40 dmg per 600 HP lost (+50% if HP < 50%)',
+        type: 'blade_mail',
+        effects: { physicalDamageReductionPct: 6, magicDamageReductionPct: 6, lostHpDamage: { perHp: 600, amount: 40, lowHpBonusPct: 50 } }
+      },
+      {
+        name: 'Poison Claw',
+        emoji: '🐾',
+        description: '+4 Poison stacks; +12% Attack Speed; 20% on-hit triggers 1 poison tick',
+        type: 'poison_claw',
+        effects: { extraPoisonStacks: 4, attackSpeedPct: 12, onHitPoisonInstance: { chancePct: 20 } }
+      },
+      {
+        name: 'Crystalys',
+        emoji: '💎',
+        description: '+3% Crit chance; +20% Crit damage',
+        type: 'crystalys',
+        effects: { critChancePct: 3, critDamagePct: 20 }
+      },
+      {
+        name: 'Defiant Shell',
+        emoji: '🐢',
+        description: '+10% Attack damage; Counterattack for 50% attack (3s cd)',
+        type: 'defiant_shell',
+        effects: { attackDamagePct: 10, counterattack: { cooldownSec: 3, percentOfAttack: 50 } }
+      },
+      {
+        name: 'Diffusal Blade',
+        emoji: '🔪',
+        description: '+15% Attack Speed; 60% on-hit burn 5 mana (1s cd)',
+        type: 'diffusal_blade',
+        effects: { attackSpeedPct: 15, manaBurnOnHit: { chancePct: 60, burn: 5, cooldownSec: 1 } }
+      },
+      {
+        name: 'Enchanted Quiver',
+        emoji: '🏹',
+        description: '+30% Attack Speed; Next physical attack cannot be evaded and +80 magic (2s cd)',
+        type: 'enchanted_quiver',
+        effects: { attackSpeedPct: 30, unEvadableNext: { cooldownSec: 2, bonusMagic: 80 } }
+      },
+      {
+        name: 'Shroud',
+        emoji: '🧥',
+        description: '+8% Magic DR; below 50% HP: x1.2 health regen and +20% Magic DR',
+        type: 'shroud',
+        effects: { magicDamageReductionPct: 8, lowHpBonuses: { thresholdPct: 50, extraMagicDrPct: 20, healthRegenMultiplier: 1.2 } }
+      },
+      {
+        name: 'Ghost Scepter',
+        emoji: '👻',
+        description: '+12 additional poison stacks',
+        type: 'ghost_scepter',
+        effects: { extraPoisonStacks: 12 }
+      },
+      {
+        name: 'Hyper Frost',
+        emoji: '🧊',
+        description: '+3 additional frost stacks',
+        type: 'hyper_frost',
+        effects: { extraFrostStacks: 3 }
+      },
+      {
+        name: 'Infused Raindrops',
+        emoji: '💧',
+        description: '+10% Ultimate damage',
+        type: 'infused_raindrops',
+        effects: { abilityEffectivenessPct: 10 }
+      },
+      {
+        name: 'Lotus Orb',
+        emoji: '🌸',
+        description: '+1.7 Mana regen; +9% Physical DR; reduce 30% of own frost/poison stacks every 2s',
+        type: 'lotus_orb',
+        effects: { manaRegenPerSec: 1.7, physicalDamageReductionPct: 9, periodicSelfPurge: { intervalSec: 2, percent: 30, stacks: ['frost', 'poison'] } }
+      },
+      {
+        name: 'Mana Staff',
+        emoji: '📏',
+        description: '+2 Mana regen; 20% chance to free recast ultimate (no chaining)',
+        type: 'mana_staff',
+        effects: { manaRegenPerSec: 2, freeUltimate: { chancePct: 20 } }
+      },
+      {
+        name: 'Phylactery',
+        emoji: '🧪',
+        description: '+3 Mana regen; +8% Ultimate damage; +140 magic on ultimate',
+        type: 'phylactery',
+        effects: { manaRegenPerSec: 3, abilityEffectivenessPct: 8, magicOnUlt: 140 }
+      },
+      {
+        name: 'Soul Booster',
+        emoji: '💜',
+        description: '+80 Max HP; +30 Max HP per round after selection',
+        type: 'soul_booster',
+        effects: { maxHpFlat: 80, perRoundHpGain: 30 }
+      },
+      {
+        name: 'Spear of Pursuit',
+        emoji: '🗡️',
+        description: '+4% Crit chance; +40 extra damage on crit',
+        type: 'spear_of_pursuit',
+        effects: { critChancePct: 4, extraDamageOnCrit: 40 }
+      },
+      {
+        name: 'Talisman of Evasion',
+        emoji: '🧿',
+        description: '+3% Evasion; below 50% HP: +10% evasion',
+        type: 'talisman_of_evasion',
+        effects: { evasionChancePct: 3, lowHpExtraEvasionPct: 10, thresholdPct: 50 }
+      },
+      {
+        name: 'Vampire Fangs',
+        emoji: '🩸',
+        description: '+6% Health regen; 12% on-hit heal 16 HP',
+        type: 'vampire_fangs',
+        effects: { healthRegenPct: 6, lifestealOnHit: { chancePct: 12, heal: 16 } }
+      },
+      {
+        name: 'Vanguard',
+        emoji: '🛡️',
+        description: '+4 Shield stacks; +200 Max HP; 20% to gain 10 shield on physical damage taken',
+        type: 'vanguard',
+        effects: { extraShieldStacks: 4, maxHpFlat: 200, onPhysicalDamageGainShield: { chancePct: 20, stacks: 10 } }
+      },
+      {
+        name: 'Wraith Pact',
+        emoji: '🕯️',
+        description: '+6 Shield stacks; after 3s, -35% enemy physical & magic damage until round end',
+        type: 'wraith_pact',
+        effects: { extraShieldStacks: 6, delayedEnemyDamageReduction: { delaySec: 3, physPct: 35, magicPct: 35 } }
+      },
+      {
+        name: "Ascetic's Cap",
+        emoji: '🎩',
+        description: '+250 Max HP; -20% critical damage taken',
+        type: 'ascetics_cap',
+        effects: { maxHpFlat: 250, critDamageTakenReductionPct: 20 }
+      },
+      {
+        name: 'Blade Mail',
+        emoji: '🪓',
+        description: '+6% Physical DR; +6% Magic DR; deal 40 dmg per 600 HP lost (+50% if HP < 50%)',
+        type: 'blade_mail',
+        effects: { physicalDamageReductionPct: 6, magicDamageReductionPct: 6, lostHpDamage: { perHp: 600, amount: 40, lowHpBonusPct: 50 } }
+      },
+      {
+        name: 'Poison Claw',
+        emoji: '🐾',
+        description: '+4 Poison stacks; +12% Attack Speed; 20% on-hit triggers 1 poison tick',
+        type: 'poison_claw',
+        effects: { extraPoisonStacks: 4, attackSpeedPct: 12, onHitPoisonInstance: { chancePct: 20 } }
+      },
+      {
+        name: 'Crystalys',
+        emoji: '💎',
+        description: '+3% Crit chance; +20% Crit damage',
+        type: 'crystalys',
+        effects: { critChancePct: 3, critDamagePct: 20 }
+      },
+      {
+        name: 'Defiant Shell',
+        emoji: '🐢',
+        description: '+10% Attack damage; Counterattack for 50% attack (3s cd)',
+        type: 'defiant_shell',
+        effects: { attackDamagePct: 10, counterattack: { cooldownSec: 3, percentOfAttack: 50 } }
+      },
+      {
+        name: 'Diffusal Blade',
+        emoji: '🔪',
+        description: '+15% Attack Speed; 60% on-hit burn 5 mana (1s cd)',
+        type: 'diffusal_blade',
+        effects: { attackSpeedPct: 15, manaBurnOnHit: { chancePct: 60, burn: 5, cooldownSec: 1 } }
+      },
+      {
+        name: 'Enchanted Quiver',
+        emoji: '🏹',
+        description: '+30% Attack Speed; Next physical attack cannot be evaded and +80 magic (2s cd)',
+        type: 'enchanted_quiver',
+        effects: { attackSpeedPct: 30, unEvadableNext: { cooldownSec: 2, bonusMagic: 80 } }
+      },
+      {
+        name: 'Shroud',
+        emoji: '🧥',
+        description: '+8% Magic DR; below 50% HP: x1.2 health regen and +20% Magic DR',
+        type: 'shroud',
+        effects: { magicDamageReductionPct: 8, lowHpBonuses: { thresholdPct: 50, extraMagicDrPct: 20, healthRegenMultiplier: 1.2 } }
+      },
+      {
+        name: 'Ghost Scepter',
+        emoji: '👻',
+        description: '+12 additional poison stacks',
+        type: 'ghost_scepter',
+        effects: { extraPoisonStacks: 12 }
+      },
+      {
+        name: 'Hyper Frost',
+        emoji: '🧊',
+        description: '+3 additional frost stacks',
+        type: 'hyper_frost',
+        effects: { extraFrostStacks: 3 }
+      },
+      {
+        name: 'Infused Raindrops',
+        emoji: '💧',
+        description: '+10% Ultimate damage',
+        type: 'infused_raindrops',
+        effects: { abilityEffectivenessPct: 10 }
+      },
+      {
+        name: 'Lotus Orb',
+        emoji: '🌸',
+        description: '+1.7 Mana regen; +9% Physical DR; reduce 30% of own frost/poison stacks every 2s',
+        type: 'lotus_orb',
+        effects: { manaRegenPerSec: 1.7, physicalDamageReductionPct: 9, periodicSelfPurge: { intervalSec: 2, percent: 30, stacks: ['frost', 'poison'] } }
+      },
+      {
+        name: 'Mana Staff',
+        emoji: '📏',
+        description: '+2 Mana regen; 20% chance to free recast ultimate (no chaining)',
+        type: 'mana_staff',
+        effects: { manaRegenPerSec: 2, freeUltimate: { chancePct: 20 } }
+      },
+      {
+        name: 'Phylactery',
+        emoji: '🧪',
+        description: '+3 Mana regen; +8% Ultimate damage; +140 magic on ultimate',
+        type: 'phylactery',
+        effects: { manaRegenPerSec: 3, abilityEffectivenessPct: 8, magicOnUlt: 140 }
+      },
+      {
+        name: 'Soul Booster',
+        emoji: '💜',
+        description: '+80 Max HP; +30 Max HP per round after selection',
+        type: 'soul_booster',
+        effects: { maxHpFlat: 80, perRoundHpGain: 30 }
+      },
+      {
+        name: 'Spear of Pursuit',
+        emoji: '🗡️',
+        description: '+4% Crit chance; +40 extra damage on crit',
+        type: 'spear_of_pursuit',
+        effects: { critChancePct: 4, extraDamageOnCrit: 40 }
+      },
+      {
+        name: 'Talisman of Evasion',
+        emoji: '🧿',
+        description: '+3% Evasion; below 50% HP: +10% evasion',
+        type: 'talisman_of_evasion',
+        effects: { evasionChancePct: 3, lowHpExtraEvasionPct: 10, thresholdPct: 50 }
+      },
+      {
+        name: 'Vampire Fangs',
+        emoji: '🩸',
+        description: '+6% Health regen; 12% on-hit heal 16 HP',
+        type: 'vampire_fangs',
+        effects: { healthRegenPct: 6, lifestealOnHit: { chancePct: 12, heal: 16 } }
+      },
+      {
+        name: 'Vanguard',
+        emoji: '🛡️',
+        description: '+4 Shield stacks; +200 Max HP; 20% to gain 10 shield on physical damage taken',
+        type: 'vanguard',
+        effects: { extraShieldStacks: 4, maxHpFlat: 200, onPhysicalDamageGainShield: { chancePct: 20, stacks: 10 } }
+      },
+      {
+        name: 'Wraith Pact',
+        emoji: '🕯️',
+        description: '+6 Shield stacks; after 3s, -35% enemy physical & magic damage until round end',
+        type: 'wraith_pact',
+        effects: { extraShieldStacks: 6, delayedEnemyDamageReduction: { delaySec: 3, physPct: 35, magicPct: 35 } }
       }
     ];
-
     const shuffled = [...equipmentTemplates].sort(() => Math.random() - 0.5);
     this.currentEquipment = shuffled.slice(0, equipmentCount).map(item => ({
       ...item,
