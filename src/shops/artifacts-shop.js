@@ -115,8 +115,64 @@ export class ArtifactsShop {
 
   confirmSelection() {
     if (this.selectedArtifact && this.onArtifactSelected) {
-      this.onArtifactSelected(this.selectedArtifact);
+      if (this.selectedArtifact.effect === 'parasite') {
+        this.showParasitePlayerSelection();
+      } else {
+        this.onArtifactSelected(this.selectedArtifact);
+      }
     }
+  }
+
+  showParasitePlayerSelection() {
+    const overlay = document.createElement('div');
+    overlay.className = 'parasite-selection-overlay';
+    overlay.innerHTML = `
+      <div class="parasite-selection-modal">
+        <h2>🦠 Select Target Player</h2>
+        <p>Choose a player to leech gold from. You'll earn 75 gold each time they win a battle!</p>
+        <div class="parasite-player-list" id="parasite-player-list">
+          <!-- Players will be injected here -->
+        </div>
+        <button class="cancel-button" id="parasite-cancel">Cancel</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const playerListContainer = overlay.querySelector('#parasite-player-list');
+    const cancelButton = overlay.querySelector('#parasite-cancel');
+
+    if (window.currentPlayers && Array.isArray(window.currentPlayers)) {
+      const otherPlayers = window.currentPlayers.filter(p => p.name !== 'You');
+      
+      playerListContainer.innerHTML = otherPlayers.map(player => `
+        <div class="parasite-player-option" data-player-id="${player.id}">
+          <div class="player-avatar">${player.hero.avatar}</div>
+          <div class="player-details">
+            <div class="player-name">${player.name}</div>
+            <div class="player-hero-name">${player.hero.name}</div>
+          </div>
+          <div class="player-stats-mini">
+            <span>W: ${player.wins || 0}</span>
+            <span>HP: ${player.playerHealth?.currentHealth || 0}</span>
+          </div>
+        </div>
+      `).join('');
+
+      overlay.querySelectorAll('.parasite-player-option').forEach(option => {
+        option.addEventListener('click', () => {
+          const playerId = parseInt(option.dataset.playerId);
+          this.selectedArtifact.parasiteTargetId = playerId;
+          document.body.removeChild(overlay);
+          this.onArtifactSelected(this.selectedArtifact);
+        });
+      });
+    } else {
+      playerListContainer.innerHTML = '<p class="no-players-message">No other players available</p>';
+    }
+
+    cancelButton.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+    });
   }
 
   setOnArtifactSelected(callback) {

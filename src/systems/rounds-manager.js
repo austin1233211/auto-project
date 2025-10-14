@@ -9,6 +9,7 @@ import { MinionCombat } from './minion-combat.js';
 import { ArtifactsShop } from '../shops/artifacts-shop.js';
 import { EquipmentReward } from '../components/equipment-reward.js';
 import { ArtifactSystem } from '../core/artifacts.js';
+import { ArtifactEffects } from '../core/artifact-effects.js';
 import { debugTools } from '../components/debug-tools.js';
 
 export class RoundsManager {
@@ -239,6 +240,10 @@ export class RoundsManager {
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
     this.combat.init(player1.hero, player1.gold || 0);
     
+    if (player1.name === "You" && this.combat.combatShop) {
+      this.combat.combatShop.setPlayer(player1);
+    }
+    
     if (this.heroStatsCard && player1.name === "You") {
       this.heroStatsCard.updateHero(player1.hero);
     }
@@ -278,12 +283,22 @@ export class RoundsManager {
         player1.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player1.hero);
         this.economy.awardMoney(player1, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        
+        const artifactGold = ArtifactEffects.processVictoryEffects(player1, player2, this.players);
+        if (artifactGold > 0) {
+          player1.gold += artifactGold;
+        }
       }
       if (!player2.isGhost) {
         const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('defeat');
         const hpLost = oldHealth - player2.playerHealth.currentHealth;
         this.economy.awardMoney(player2, false, hpLost);
+        
+        const artifactGold = ArtifactEffects.processDefeatEffects(player2, hpLost);
+        if (artifactGold > 0) {
+          player2.gold += artifactGold;
+        }
       }
     } else {
       match.winner = player2;
@@ -293,12 +308,22 @@ export class RoundsManager {
         player2.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player2.hero);
         this.economy.awardMoney(player2, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        
+        const artifactGold = ArtifactEffects.processVictoryEffects(player2, player1, this.players);
+        if (artifactGold > 0) {
+          player2.gold += artifactGold;
+        }
       }
       if (!player1.isGhost) {
         const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('defeat');
         const hpLost = oldHealth - player1.playerHealth.currentHealth;
         this.economy.awardMoney(player1, false, hpLost);
+        
+        const artifactGold = ArtifactEffects.processDefeatEffects(player1, hpLost);
+        if (artifactGold > 0) {
+          player1.gold += artifactGold;
+        }
       }
     }
     
@@ -375,6 +400,18 @@ export class RoundsManager {
     
     debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
     
+    this.players.forEach(player => {
+      if (player.playerHealth.currentHealth <= 0 && !player.isEliminated) {
+        const rescueResult = ArtifactEffects.processUltimateRescue(player);
+        if (rescueResult.rescued) {
+          player.playerHealth.currentHealth = 1;
+          player.gold += rescueResult.gold;
+        }
+      }
+    });
+    
+    const eliminationCount = this.players.filter(p => p.isEliminated).length;
+    
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
@@ -386,6 +423,18 @@ export class RoundsManager {
         losses: 0
       };
       this.ghostPlayers.push(ghostPlayer);
+    });
+    
+    this.players.forEach(player => {
+      if (!player.isEliminated && eliminationCount < this.players.filter(p => p.isEliminated).length) {
+        const hpRestore = ArtifactEffects.processUrnOfSoul(player, this.players);
+        if (hpRestore > 0) {
+          player.playerHealth.currentHealth = Math.min(
+            player.playerHealth.maxHealth,
+            player.playerHealth.currentHealth + hpRestore
+          );
+        }
+      }
     });
 
     this.activePlayers = this.activePlayers.filter(player => player.playerHealth.currentHealth > 0);
@@ -582,6 +631,9 @@ export class RoundsManager {
       const playerGold = userPlayer ? userPlayer.gold : 300;
       
       this.roundsShop = new CombatShop(this.roundsShopContainer, null, this.currentRound);
+      if (userPlayer) {
+        this.roundsShop.setPlayer(userPlayer);
+      }
       this.roundsShop.setPlayerGold(playerGold);
       this.roundsShop.setOnGoldChange((newGold) => {
         if (userPlayer) {
@@ -598,6 +650,7 @@ export class RoundsManager {
         }
       });
       this.roundsShop.init();
+      this.roundsShop.checkAndShowTier3Selection();
     }
   }
 
@@ -634,11 +687,18 @@ export class RoundsManager {
 
   startInterRoundTimer() {
     if (this.isArtifactSelectionActive) {
+      console.log('Artifact selection is active, preventing startInterRoundTimer()');
+      return;
+    }
+    
     const userPlayerForMaple = this.players.find(p => p.name === 'You');
     if (userPlayerForMaple && userPlayerForMaple.hero && userPlayerForMaple.hero.persistentEffects && typeof userPlayerForMaple.hero.persistentEffects.mapleSyrupStacks === 'number') {
       if (this.currentRound % 5 === 0) {
         userPlayerForMaple.hero.persistentEffects.mapleSyrupStacks += 1;
         this.updatePlayerHero();
+      }
+    }
+    
     const userPlayerForSoul = this.players.find(p => p.name === 'You');
     if (userPlayerForSoul && userPlayerForSoul.hero && userPlayerForSoul.hero.persistentEffects) {
       const pe = userPlayerForSoul.hero.persistentEffects;
@@ -648,11 +708,23 @@ export class RoundsManager {
         this.updatePlayerHero();
       }
     }
+    
+    this.players.forEach(player => {
+      ArtifactEffects.processRoundEnd(player);
+      
+      const roundStartGold = ArtifactEffects.processRoundStartEffects(player, this.currentRound, this.players);
+      if (roundStartGold > 0) {
+        player.gold += roundStartGold;
       }
-    }
-      console.log('Artifact selection is active, preventing startInterRoundTimer()');
-      return;
-    }
+      
+      const loanPenalty = ArtifactEffects.getLoanPenalty(player);
+      if (loanPenalty > 0) {
+        player.gold = Math.max(0, player.gold - loanPenalty);
+      }
+      ArtifactEffects.decrementLoanRounds(player);
+    });
+    
+    this.updatePlayersList();
     
     // Setup for the next round
     if ([5, 10, 15, 20].includes(this.currentRound)) {
@@ -737,6 +809,8 @@ export class RoundsManager {
     this.isArtifactSelectionActive = true;
     this.updateRoundDisplay();
     
+    window.currentPlayers = this.players;
+    
     const combatContainer = this.container.querySelector('#battle-area');
     if (combatContainer) {
       if (this.combat) {
@@ -775,6 +849,41 @@ export class RoundsManager {
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer) {
       userPlayer.hero = this.artifactSystem.applyArtifactToHero(userPlayer.hero, artifact);
+      
+      if (artifact.effect === 'parasite' && artifact.parasiteTargetId) {
+        userPlayer.hero.persistentEffects.parasiteTargetId = artifact.parasiteTargetId;
+      }
+      
+      if (artifact.effect === 'new_years_gift') {
+        userPlayer.gold += artifact.value;
+        this.updatePlayersList();
+      }
+      
+      if (artifact.effect === 'loan_agreement') {
+        userPlayer.gold += artifact.value;
+        this.updatePlayersList();
+      }
+      
+      if (artifact.effect === 'fate') {
+        userPlayer.gold += artifact.value;
+        this.updatePlayersList();
+      }
+      
+      if (artifact.effect === 'loan_agreement_2') {
+        userPlayer.gold += artifact.value;
+        this.updatePlayersList();
+      }
+      
+      if (artifact.effect === 'new_years_gift_2') {
+        userPlayer.gold += artifact.value;
+        this.updatePlayersList();
+      }
+      
+      if (artifact.effect === 'loan_agreement_3') {
+        userPlayer.gold += artifact.value;
+        this.updatePlayersList();
+      }
+      
       this.updatePlayerHero();
     }
     

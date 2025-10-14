@@ -93,6 +93,7 @@ export class CombatShop extends AbilitiesShop {
       globalRerollBtn.addEventListener('click', () => {
         this.rerollAllItems();
         this.render();
+        this.checkAndShowTier3Selection();
       });
     }
 
