@@ -34,7 +34,19 @@ export class ItemShop {
   }
 
   generateRandomItem() {
-    const tier = this.economy.generateItemTier(this.roundNumber);
+    let tier = this.economy.generateItemTier(this.roundNumber);
+    
+    if (this.player) {
+      const providenceBonus = ArtifactEffects.getProvidenceScepterBonus(this.player);
+      const luckyDayBonus = ArtifactEffects.getLuckyDayBonus(this.player);
+      
+      const totalBonus = providenceBonus + (luckyDayBonus / 100);
+      
+      if (totalBonus > 0 && Math.random() < totalBonus) {
+        tier = 3;
+      }
+    }
+    
     return this.generateItemByTier(tier);
   }
 
