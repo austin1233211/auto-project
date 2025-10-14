@@ -654,6 +654,25 @@ export class RoundsManager {
       return;
     }
     
+    // Setup for the next round
+    if ([5, 10, 15, 20].includes(this.currentRound)) {
+      this.startMinionRound();
+      return;
+    }
+    
+    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+      this.artifactSelectionShown = true;
+      this.startArtifactRound();
+      return;
+    }
+    
+    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+    this.currentMatches = this.generateMatches();
+    this.currentMatchIndex = 0;
+    this.userBattleCompleted = false;
+    this.isProcessingRoundResults = false;
+    this.updateRoundDisplay();
+    
     this.showRoundsShop();
     this.updateRoundsShopMoney();
     
@@ -663,7 +682,7 @@ export class RoundsManager {
     
     this.timer.startBuffer(() => {
       this.hideRoundsShop();
-      this.startRound();
+      this.startSimultaneousMatches();
     });
   }
 
