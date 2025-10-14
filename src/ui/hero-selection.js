@@ -226,7 +226,7 @@ export class HeroSelection {
     if (timerElement) {
       timerElement.style.display = 'block';
     }
-    this.timer.startRound();
+    this.timer.startSelection(50);
   }
 
   updateTimerDisplay(timerData) {

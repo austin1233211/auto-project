@@ -7,6 +7,7 @@ export class Timer {
     this.currentTime = 0;
     this.isRunning = false;
     this.isBufferPhase = false;
+    this.currentPhase = null;
     this.timerInterval = null;
     this.onTimerUpdate = null;
     this.onRoundEnd = null;
@@ -98,17 +99,21 @@ export class Timer {
 
   stopTimer() {
     if (this.timerInterval) {
-      debugTools.logDebug(`⏱️ Timer: Stopping timer (was in ${this.isBufferPhase ? 'buffer' : 'round'} phase)`);
+      const phase = this.isBufferPhase ? 'buffer' : (this.currentPhase === 'selection' ? 'selection' : 'round');
+      debugTools.logDebug(`⏱️ Timer: Stopping timer (was in ${phase} phase)`);
       clearInterval(this.timerInterval);
       this.timerInterval = null;
       
       if (this.isBufferPhase) {
         debugTools.unregisterTimer('rounds_buffer');
+      } else if (this.currentPhase === 'selection') {
+        debugTools.unregisterTimer('hero_selection');
       } else {
         debugTools.unregisterTimer('rounds_main');
       }
     }
     this.isRunning = false;
+    this.currentPhase = null;
   }
 
   setOnTimerUpdate(callback) {
@@ -121,5 +126,38 @@ export class Timer {
 
   setOnDamageEscalation(callback) {
     this.onDamageEscalation = callback;
+  }
+
+  startSelection(duration = 50) {
+    this.stopTimer();
+    this.isBufferPhase = false;
+    this.currentPhase = 'selection';
+    this.currentTime = duration;
+    this.isRunning = true;
+    
+    debugTools.logDebug(`⏱️ Timer: Starting selection phase (${duration}s)`);
+    
+    this.timerInterval = setInterval(() => {
+      this.currentTime--;
+      
+      if (this.onTimerUpdate) {
+        this.onTimerUpdate({
+          time: this.currentTime,
+          isBuffer: false,
+          phase: 'selection',
+          damageEscalation: false,
+          damageMultiplier: 1
+        });
+      }
+      
+      if (this.currentTime <= 0) {
+        this.stopTimer();
+        if (this.onRoundEnd) {
+          this.onRoundEnd();
+        }
+      }
+    }, 1000);
+    
+    debugTools.registerTimer('hero_selection', 'selection', 1000, `Selection phase timer (${duration}s)`);
   }
 }
