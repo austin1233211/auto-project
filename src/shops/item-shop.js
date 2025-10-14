@@ -1,5 +1,6 @@
 import { StatsCalculator } from '../core/stats-calculator.js';
 import { Economy } from './economy.js';
+import { ArtifactEffects } from '../core/artifact-effects.js';
 
 export class ItemShop {
   constructor(container, roundNumber = 1) {
@@ -16,6 +17,8 @@ export class ItemShop {
     this.playerGold = 0;
     this.hasRerolledThisRound = false;
     this.globalRerollCost = 20;
+    this.player = null;
+    this.rerollCount = 0;
   }
 
   init() {
@@ -76,29 +79,79 @@ export class ItemShop {
   }
 
   rerollAllItems() {
-    if (this.hasRerolledThisRound || this.playerGold < this.globalRerollCost) {
+    const effectiveRerollCost = this.getEffectiveRerollCost();
+    
+    if (this.hasRerolledThisRound || this.playerGold < effectiveRerollCost) {
       return false;
     }
     
-    this.playerGold -= this.globalRerollCost;
+    this.playerGold -= effectiveRerollCost;
     this.hasRerolledThisRound = true;
+    this.rerollCount++;
     
     for (let i = 0; i < 3; i++) {
       this.itemSlots[i].item = this.generateRandomItem();
       this.updateSlotDisplay(i);
     }
     
+    if (this.player) {
+      ArtifactEffects.processFreeGiftReroll(this.player);
+      ArtifactEffects.processBigSpenderReroll(this.player);
+      
+      const secondFree = ArtifactEffects.checkSecondFreeReroll(this.player);
+      if (secondFree) {
+        this.hasRerolledThisRound = false;
+      }
+    }
+    
     this.updateGoldDisplay();
     this.updateGlobalRerollButton();
     return true;
   }
+  
+  getEffectiveRerollCost() {
+    let cost = this.globalRerollCost;
+    
+    if (this.player) {
+      const discount = ArtifactEffects.getRerollDiscount(this.player);
+      cost = Math.max(0, cost - discount);
+      
+      const fatePenalty = ArtifactEffects.getFateRerollPenalty(this.player);
+      cost += fatePenalty;
+    }
+    
+    return cost;
+  }
+  
+  setPlayer(player) {
+    this.player = player;
+  }
 
   purchaseItem(slotIndex) {
     const slot = this.itemSlots[slotIndex];
-    if (slot.item && this.playerGold >= slot.item.cost) {
-      this.playerGold -= slot.item.cost;
+    let itemCost = slot.item ? slot.item.cost : 0;
+    
+    if (this.player && ArtifactEffects.checkAndConsumeFreeGift(this.player)) {
+      itemCost = 0;
+    }
+    
+    if (slot.item && this.playerGold >= itemCost) {
+      this.playerGold -= itemCost;
       this.purchasedItems.push(slot.item);
       slot.item = null;
+      
+      if (this.player) {
+        const explorerGold = ArtifactEffects.processAbilityPurchase(this.player);
+        if (explorerGold > 0) {
+          this.playerGold += explorerGold;
+        }
+        
+        const rebate = ArtifactEffects.processPurchase(this.player, itemCost);
+        if (rebate > 0) {
+          this.playerGold += rebate;
+        }
+      }
+      
       this.updateSlotDisplay(slotIndex);
       this.updateGoldDisplay();
       this.checkAndRefreshIfAllPurchased();
@@ -308,11 +361,12 @@ export class ItemShop {
   updateGlobalRerollButton() {
     const globalRerollBtn = this.container.querySelector('#global-reroll-btn');
     if (globalRerollBtn) {
-      const canReroll = !this.hasRerolledThisRound && this.playerGold >= this.globalRerollCost;
+      const effectiveCost = this.getEffectiveRerollCost();
+      const canReroll = !this.hasRerolledThisRound && this.playerGold >= effectiveCost;
       globalRerollBtn.disabled = !canReroll;
       globalRerollBtn.textContent = this.hasRerolledThisRound 
         ? 'Re-roll Used This Round' 
-        : `Re-roll All (💰${this.globalRerollCost})`;
+        : `Re-roll All (💰${effectiveCost})`;
     }
   }
 
