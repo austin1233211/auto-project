@@ -240,6 +240,10 @@ export class RoundsManager {
     this.combat.selectRandomEnemy = () => ({ ...player2.hero });
     this.combat.init(player1.hero, player1.gold || 0);
     
+    if (player1.name === "You" && this.combat.combatShop) {
+      this.combat.combatShop.setPlayer(player1);
+    }
+    
     if (this.heroStatsCard && player1.name === "You") {
       this.heroStatsCard.updateHero(player1.hero);
     }
@@ -396,6 +400,18 @@ export class RoundsManager {
     
     debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
     
+    this.players.forEach(player => {
+      if (player.playerHealth.currentHealth <= 0 && !player.isEliminated) {
+        const rescueResult = ArtifactEffects.processUltimateRescue(player);
+        if (rescueResult.rescued) {
+          player.playerHealth.currentHealth = 1;
+          player.gold += rescueResult.gold;
+        }
+      }
+    });
+    
+    const eliminationCount = this.players.filter(p => p.isEliminated).length;
+    
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
@@ -407,6 +423,18 @@ export class RoundsManager {
         losses: 0
       };
       this.ghostPlayers.push(ghostPlayer);
+    });
+    
+    this.players.forEach(player => {
+      if (!player.isEliminated && eliminationCount < this.players.filter(p => p.isEliminated).length) {
+        const hpRestore = ArtifactEffects.processUrnOfSoul(player, this.players);
+        if (hpRestore > 0) {
+          player.playerHealth.currentHealth = Math.min(
+            player.playerHealth.maxHealth,
+            player.playerHealth.currentHealth + hpRestore
+          );
+        }
+      }
     });
 
     this.activePlayers = this.activePlayers.filter(player => player.playerHealth.currentHealth > 0);
@@ -603,6 +631,9 @@ export class RoundsManager {
       const playerGold = userPlayer ? userPlayer.gold : 300;
       
       this.roundsShop = new CombatShop(this.roundsShopContainer, null, this.currentRound);
+      if (userPlayer) {
+        this.roundsShop.setPlayer(userPlayer);
+      }
       this.roundsShop.setPlayerGold(playerGold);
       this.roundsShop.setOnGoldChange((newGold) => {
         if (userPlayer) {
@@ -619,6 +650,7 @@ export class RoundsManager {
         }
       });
       this.roundsShop.init();
+      this.roundsShop.checkAndShowTier3Selection();
     }
   }
 
