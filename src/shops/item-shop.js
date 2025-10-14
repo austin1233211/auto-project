@@ -1,6 +1,7 @@
 import { StatsCalculator } from '../core/stats-calculator.js';
 import { Economy } from './economy.js';
 import { ArtifactEffects } from '../core/artifact-effects.js';
+import { Tier3AbilitySelector } from '../components/tier3-ability-selector.js';
 
 export class ItemShop {
   constructor(container, roundNumber = 1) {
@@ -386,5 +387,33 @@ export class ItemShop {
     this.hasRerolledThisRound = false;
     this.refreshShopInventory();
     this.updateGlobalRerollButton();
+  }
+  
+  checkAndShowTier3Selection() {
+    if (!this.player) return;
+    
+    const goldenEggReady = ArtifactEffects.checkGoldenEggReady(this.player);
+    const bigSpenderReady = ArtifactEffects.checkAndConsumeBigSpender(this.player);
+    
+    if (goldenEggReady || bigSpenderReady) {
+      const title = goldenEggReady ? '🥚 Golden Egg Hatched!' : '💸 Big Spender Reward!';
+      const subtitle = goldenEggReady ? 
+        'Your Golden Egg has hatched! Choose a tier 3 ability' : 
+        'You\'ve rerolled 15 times! Choose a tier 3 ability';
+      
+      const selector = new Tier3AbilitySelector();
+      selector.setOnAbilitySelected((ability) => {
+        if (this.shopType === 'abilities') {
+          this.purchasedItems.push(ability);
+          this.updatePurchasedItemsDisplay();
+        }
+        
+        if (goldenEggReady) {
+          ArtifactEffects.consumeGoldenEgg(this.player);
+        }
+      });
+      
+      selector.show(title, subtitle);
+    }
   }
 }
