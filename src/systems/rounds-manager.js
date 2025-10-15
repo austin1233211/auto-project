@@ -133,8 +133,9 @@ export class RoundsManager {
     this.updateRoundDisplay();
     
     this.timer.startBuffer(() => {
-      this.startSimultaneousMatches();
+      this.hideRoundsShop();
       this.timer.startRound();
+      this.startSimultaneousMatches();
     });
   }
 
