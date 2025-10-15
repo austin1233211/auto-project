@@ -1032,8 +1032,8 @@ export class AbilitySystem {
     es.lastDisperserTs = 0;
   }
 
-  if (trigger === 'status_tick') {
-    const opp = opponent;
+  if (triggerType === 'status_tick') {
+    const opp = target;
     const dt = 1000;
     if (hero.effectiveStats.healPerSecondPctMaxHp) {
       const heal = Math.floor((hero.stats.health + (hero.effectiveStats.healthBonus || 0)) * (hero.effectiveStats.healPerSecondPctMaxHp / 100));
@@ -1084,7 +1084,7 @@ export class AbilitySystem {
   }
     if (hero.equipment) {
       const has = (t) => hero.equipment.find(it => it.type === t);
-      const opp = opponent;
+      const opp = target;
 
       if (has('orchid')) {
         const key = 'orchid_stun_used';
@@ -1216,13 +1216,13 @@ export class AbilitySystem {
     }
 
 
-  if (trigger === 'on_damage_taken' && data && data.damageType === 'physical') {
+  if (triggerType === 'on_damage_taken' && extraData && extraData.damageType === 'physical') {
     if (hero.equipment && hero.equipment.find(it => it.type === 'martyrs_plate')) {
-      es.damageTakenWindow = (es.damageTakenWindow || 0) + (data.damageAmount || 0);
+      es.damageTakenWindow = (es.damageTakenWindow || 0) + (extraData.damageAmount || 0);
     }
   }
 
-  if (trigger === 'on_attack') {
+  if (triggerType === 'on_attack') {
     if (hero.equipment && hero.equipment.find(it => it.type === 'mind_breaker')) {
       if (now - es.lastMindBreakerTs >= 4000) {
         if (this.applyStunEffect) this.applyStunEffect(opp, 1.5);
