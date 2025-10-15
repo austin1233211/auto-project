@@ -103,10 +103,25 @@ export class CombatShop extends AbilitiesShop {
         buyBtn.addEventListener('click', () => {
           this.purchaseItem(index);
           this.updateGoldDisplay();
-          this.render();
+          this.updateSlotDisplay(index);
         });
       }
     });
+  }
+  
+  updateSlotDisplay(slotIndex) {
+    const slotElement = this.container.querySelector(`[data-slot="${slotIndex}"]`);
+    if (slotElement) {
+      slotElement.innerHTML = this.renderItemSlotMini(slotIndex);
+      const buyBtn = slotElement.querySelector('.buy-btn-mini');
+      if (buyBtn && !buyBtn.disabled) {
+        buyBtn.addEventListener('click', () => {
+          this.purchaseItem(slotIndex);
+          this.updateGoldDisplay();
+          this.updateSlotDisplay(slotIndex);
+        });
+      }
+    }
   }
 
   updateGoldDisplay() {
