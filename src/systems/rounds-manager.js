@@ -755,8 +755,8 @@ export class RoundsManager {
     
     this.timer.startBuffer(() => {
       this.hideRoundsShop();
-      this.startSimultaneousMatches();
       this.timer.startRound();
+      this.startSimultaneousMatches();
     });
   }
 
