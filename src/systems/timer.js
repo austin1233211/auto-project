@@ -37,9 +37,8 @@ export class Timer {
       if (this.currentTime <= 0) {
         this.stopTimer();
         this.isBufferPhase = false;
-        debugTools.logDebug('⏱️ Timer: Buffer phase completed, starting round');
+        debugTools.logDebug('⏱️ Timer: Buffer phase completed');
         if (onBufferEnd) onBufferEnd();
-        this.startRound();
       }
     }, 1000);
     
