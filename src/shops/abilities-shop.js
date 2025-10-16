@@ -79,6 +79,8 @@ export class AbilitiesShop extends ItemShop {
     
     if (!modifiedHero.purchasedAbilities) {
       modifiedHero.purchasedAbilities = [];
+    } else {
+      modifiedHero.purchasedAbilities = [...modifiedHero.purchasedAbilities];
     }
     
     const existingAbilityIds = new Set(modifiedHero.purchasedAbilities.map(a => `${a.name}-${a.effect}-${a.value}`));
