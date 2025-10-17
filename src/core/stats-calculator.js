@@ -386,6 +386,237 @@ export class StatsCalculator {
             break;
           case 'ultimate_shield':
             modifiedStats.ultimateShield = (modifiedStats.ultimateShield || 0) + ability.value;
+            break;
+          case 'battle_start_shield':
+            modifiedStats.battleStartShield = (modifiedStats.battleStartShield || 0) + ability.value;
+            break;
+          case 'shield_damage_chance':
+            modifiedStats.shieldDamageChance = (modifiedStats.shieldDamageChance || 0) + (ability.value / 100);
+            break;
+          case 'high_damage_shield':
+            modifiedStats.highDamageShield = (modifiedStats.highDamageShield || 0) + ability.value;
+            break;
+          case 'death_immunity_shield':
+            modifiedStats.deathImmunityShield = (modifiedStats.deathImmunityShield || 0) + ability.value;
+            break;
+          case 'status_shield_cleanse':
+            modifiedStats.statusShieldCleanse = (modifiedStats.statusShieldCleanse || 0) + (ability.value / 100);
+            break;
+          case 'shield_loss_damage':
+            modifiedStats.shieldLossDamage = (modifiedStats.shieldLossDamage || 0) + (ability.value / 100);
+            break;
+          
+          case 'armor_pierce_chance':
+            modifiedStats.armorPierceChance = (modifiedStats.armorPierceChance || 0) + (ability.value / 100);
+            break;
+          case 'attack_bleed':
+            modifiedStats.attackBleedChance = (modifiedStats.attackBleedChance || 0) + (ability.value / 100);
+            break;
+          case 'attack_heal':
+            modifiedStats.attackHealAmount = (modifiedStats.attackHealAmount || 0) + ability.value;
+            break;
+          case 'attack_mana':
+            modifiedStats.attackManaAmount = (modifiedStats.attackManaAmount || 0) + ability.value;
+            break;
+          case 'attack_poison':
+            modifiedStats.attackPoisonStacks = (modifiedStats.attackPoisonStacks || 0) + ability.value;
+            break;
+          case 'attack_frost':
+            modifiedStats.attackFrostStacks = (modifiedStats.attackFrostStacks || 0) + ability.value;
+            break;
+          case 'attack_shield':
+            modifiedStats.attackShieldStacks = (modifiedStats.attackShieldStacks || 0) + ability.value;
+            break;
+          case 'attack_speed_boost':
+            modifiedStats.attackSpeedBoost = (modifiedStats.attackSpeedBoost || 0) + (ability.value / 100);
+            break;
+          case 'consecutive_attack_boost':
+            modifiedStats.consecutiveAttackBoost = (modifiedStats.consecutiveAttackBoost || 0) + (ability.value / 100);
+            break;
+          case 'kill_attack_boost':
+            modifiedStats.killAttackBoost = (modifiedStats.killAttackBoost || 0) + ability.value;
+            break;
+          case 'stacking_attack_boost':
+            modifiedStats.stackingAttackBoost = (modifiedStats.stackingAttackBoost || 0) + (ability.value / 100);
+            break;
+          case 'stacking_attack_speed':
+            modifiedStats.stackingAttackSpeed = (modifiedStats.stackingAttackSpeed || 0) + ability.value;
+            break;
+          case 'double_attack_chance':
+            modifiedStats.doubleAttackChance = (modifiedStats.doubleAttackChance || 0) + (ability.value / 100);
+            break;
+          case 'death_revive':
+            modifiedStats.deathReviveHealth = (modifiedStats.deathReviveHealth || 0) + (ability.value / 100);
+            break;
+          case 'low_health_lifesteal':
+            modifiedStats.lowHealthLifesteal = (modifiedStats.lowHealthLifesteal || 0) + (ability.value / 100);
+            break;
+          case 'damage_counter':
+            modifiedStats.damageCounterChance = (modifiedStats.damageCounterChance || 0) + (ability.value / 100);
+            break;
+          case 'evasion_attack_bonus':
+            modifiedStats.evasionAttackBonus = (modifiedStats.evasionAttackBonus || 0) + (ability.value / 100);
+            break;
+          case 'aura_heal_nearby':
+            modifiedStats.auraHealNearby = (modifiedStats.auraHealNearby || 0) + ability.value;
+            break;
+          case 'battle_start_evasion':
+            modifiedStats.battleStartEvasion = (modifiedStats.battleStartEvasion || 0) + ability.value;
+            break;
+          case 'crit_chance_boost':
+            modifiedStats.critChance = (modifiedStats.critChance || 0) + (ability.value / 100);
+            break;
+          case 'crit_armor_pierce':
+            modifiedStats.critArmorPierce = (modifiedStats.critArmorPierce || 0) + (ability.value / 100);
+            break;
+          case 'crit_battle_start':
+            modifiedStats.critBattleStart = (modifiedStats.critBattleStart || 0) + ability.value;
+            break;
+          case 'crit_bonus_damage':
+            modifiedStats.critBonusDamage = (modifiedStats.critBonusDamage || 0) + (ability.value / 100);
+            break;
+          case 'crit_chain_bonus':
+            modifiedStats.critChainBonus = (modifiedStats.critChainBonus || 0) + (ability.value / 100);
+            break;
+          case 'crit_gold_bonus':
+            modifiedStats.critGoldBonus = (modifiedStats.critGoldBonus || 0) + ability.value;
+            break;
+          case 'crit_ignore_shield':
+            modifiedStats.critIgnoreShield = (modifiedStats.critIgnoreShield || 0) + (ability.value / 100);
+            break;
+          case 'crit_lifesteal':
+            modifiedStats.critLifesteal = (modifiedStats.critLifesteal || 0) + (ability.value / 100);
+            break;
+          case 'crit_poison_chance':
+            modifiedStats.critPoisonChance = (modifiedStats.critPoisonChance || 0) + (ability.value / 100);
+            break;
+          case 'crit_temp_hp':
+            modifiedStats.critTempHp = (modifiedStats.critTempHp || 0) + ability.value;
+            break;
+          case 'evasion_boost':
+            modifiedStats.evasionChance = (modifiedStats.evasionChance || 0) + (ability.value / 100);
+            break;
+          case 'evasion_damage_reduction':
+            modifiedStats.evasionDamageReduction = (modifiedStats.evasionDamageReduction || 0) + (ability.value / 100);
+            break;
+          case 'evade_crit_boost':
+            modifiedStats.evadeCritBoost = (modifiedStats.evadeCritBoost || 0) + (ability.value / 100);
+            break;
+          case 'evade_damage_reflect':
+            modifiedStats.evadeDamageReflect = (modifiedStats.evadeDamageReflect || 0) + (ability.value / 100);
+            break;
+          case 'evade_reflect':
+            modifiedStats.evadeReflect = (modifiedStats.evadeReflect || 0) + (ability.value / 100);
+            break;
+          case 'ignore_enemy_evade':
+            modifiedStats.ignoreEnemyEvade = (modifiedStats.ignoreEnemyEvade || 0) + (ability.value / 100);
+            break;
+          case 'poison_on_evade':
+            modifiedStats.poisonOnEvade = (modifiedStats.poisonOnEvade || 0) + ability.value;
+            break;
+          case 'magic_evade':
+            modifiedStats.magicEvade = (modifiedStats.magicEvade || 0) + (ability.value / 100);
+            break;
+          case 'damage_block_chance':
+            modifiedStats.damageBlockChance = (modifiedStats.damageBlockChance || 0) + (ability.value / 100);
+            break;
+          case 'damage_reduction':
+            modifiedStats.damageReduction = (modifiedStats.damageReduction || 0) + (ability.value / 100);
+            break;
+          case 'damage_to_heal':
+            modifiedStats.damageToHeal = (modifiedStats.damageToHeal || 0) + (ability.value / 100);
+            break;
+          case 'damage_poison_reflect':
+            modifiedStats.damagePoisonReflect = (modifiedStats.damagePoisonReflect || 0) + ability.value;
+            break;
+          case 'health_armor_bonus':
+            modifiedStats.healthArmorBonus = (modifiedStats.healthArmorBonus || 0) + (ability.value / 100);
+            break;
+          case 'health_death_immunity':
+            modifiedStats.healthDeathImmunity = (modifiedStats.healthDeathImmunity || 0) + (ability.value / 100);
+            break;
+          case 'health_on_crit':
+            modifiedStats.healthOnCrit = (modifiedStats.healthOnCrit || 0) + ability.value;
+            break;
+          case 'health_on_kill':
+            modifiedStats.healthOnKill = (modifiedStats.healthOnKill || 0) + ability.value;
+            break;
+          case 'health_percentage_boost_major':
+            modifiedStats.health *= (1 + ability.value / 100);
+            break;
+          case 'health_status_resist':
+            modifiedStats.healthStatusResist = (modifiedStats.healthStatusResist || 0) + (ability.value / 100);
+            break;
+          case 'low_health_regen':
+            modifiedStats.lowHealthRegen = (modifiedStats.lowHealthRegen || 0) + ability.value;
+            break;
+          case 'low_hp_regen_boost':
+            modifiedStats.lowHpRegenBoost = (modifiedStats.lowHpRegenBoost || 0) + (ability.value / 100);
+            break;
+          case 'hp_damage_aura':
+            modifiedStats.hpDamageAura = (modifiedStats.hpDamageAura || 0) + (ability.value / 100);
+            break;
+          case 'hp_loss_damage_reduction':
+            modifiedStats.hpLossDamageReduction = (modifiedStats.hpLossDamageReduction || 0) + (ability.value / 100);
+            break;
+          case 'hp_sacrifice_damage':
+            modifiedStats.hpSacrificeDamage = (modifiedStats.hpSacrificeDamage || 0) + (ability.value / 100);
+            break;
+          case 'poison_damage_boost':
+            modifiedStats.poisonDamageBoost = (modifiedStats.poisonDamageBoost || 0) + (ability.value / 100);
+            break;
+          case 'poison_heal_conversion':
+            modifiedStats.poisonHealConversion = (modifiedStats.poisonHealConversion || 0) + (ability.value / 100);
+            break;
+          case 'poison_spread_chance':
+            modifiedStats.poisonSpreadChance = (modifiedStats.poisonSpreadChance || 0) + (ability.value / 100);
+            break;
+          case 'poison_stack_bonus':
+            modifiedStats.poisonStackBonus = (modifiedStats.poisonStackBonus || 0) + ability.value;
+            break;
+          case 'poison_status_immunity':
+            modifiedStats.poisonStatusImmunity = (modifiedStats.poisonStatusImmunity || 0) + (ability.value / 100);
+            break;
+          case 'frost_damage_reduction':
+            modifiedStats.frostDamageReduction = (modifiedStats.frostDamageReduction || 0) + (ability.value / 100);
+            break;
+          case 'frost_mana_boost':
+            modifiedStats.frostManaBoost = (modifiedStats.frostManaBoost || 0) + ability.value;
+            break;
+          case 'frost_slow_aura':
+            modifiedStats.frostSlowAura = (modifiedStats.frostSlowAura || 0) + (ability.value / 100);
+            break;
+          case 'frost_stack_bonus':
+            modifiedStats.frostStackBonus = (modifiedStats.frostStackBonus || 0) + ability.value;
+            break;
+          case 'shield_damage_bonus':
+            modifiedStats.shieldDamageBonus = (modifiedStats.shieldDamageBonus || 0) + (ability.value / 100);
+            break;
+          case 'shield_effectiveness':
+            modifiedStats.shieldEffectiveness = (modifiedStats.shieldEffectiveness || 0) + (ability.value / 100);
+            break;
+          case 'shield_reflect_chance':
+            modifiedStats.shieldReflectChance = (modifiedStats.shieldReflectChance || 0) + (ability.value / 100);
+            break;
+          case 'shield_regen':
+            modifiedStats.shieldRegen = (modifiedStats.shieldRegen || 0) + ability.value;
+            break;
+          case 'magic_crit_chance':
+            modifiedStats.magicCritChance = (modifiedStats.magicCritChance || 0) + (ability.value / 100);
+            break;
+          case 'mana_to_heal':
+            modifiedStats.manaToHeal = (modifiedStats.manaToHeal || 0) + (ability.value / 100);
+            break;
+          case 'opponent_crit_resist':
+            modifiedStats.opponentCritResist = (modifiedStats.opponentCritResist || 0) + (ability.value / 100);
+            break;
+          case 'opponent_health_reduction':
+            modifiedStats.opponentHealthReduction = (modifiedStats.opponentHealthReduction || 0) + (ability.value / 100);
+            break;
+        }
+      }
+    }
+    
     if (hero.equipment && hero.equipment.length > 0) {
       for (const item of hero.equipment) {
         const fx = item.effects || {};
@@ -416,28 +647,6 @@ export class StatsCalculator {
         if (fx.poisonCanCrit) modifiedStats.poisonCanCrit = true;
       }
     }
-            break;
-          case 'battle_start_shield':
-            modifiedStats.battleStartShield = (modifiedStats.battleStartShield || 0) + ability.value;
-            break;
-          case 'shield_damage_chance':
-            modifiedStats.shieldDamageChance = (modifiedStats.shieldDamageChance || 0) + (ability.value / 100);
-            break;
-          case 'high_damage_shield':
-            modifiedStats.highDamageShield = (modifiedStats.highDamageShield || 0) + ability.value;
-            break;
-          case 'death_immunity_shield':
-            modifiedStats.deathImmunityShield = (modifiedStats.deathImmunityShield || 0) + ability.value;
-            break;
-          case 'status_shield_cleanse':
-            modifiedStats.statusShieldCleanse = (modifiedStats.statusShieldCleanse || 0) + (ability.value / 100);
-            break;
-          case 'shield_loss_damage':
-            modifiedStats.shieldLossDamage = (modifiedStats.shieldLossDamage || 0) + (ability.value / 100);
-            break;
-        }
-      }
-    }
     
     let effectiveSpeed = this.calculateEffectiveSpeed(modifiedStats.speed);
     
@@ -452,36 +661,9 @@ export class StatsCalculator {
     return {
       ...hero,
       effectiveStats: {
-        health: modifiedStats.health,
+        ...modifiedStats,
         attack: this.calculateEffectiveAttack(modifiedStats.attack),
-        armor: modifiedStats.armor,
-        magicDamageReduction: modifiedStats.magicDamageReduction || 0,
-        physicalDamageAmplification: modifiedStats.physicalDamageAmplification || 0,
-        magicDamageAmplification: modifiedStats.magicDamageAmplification || 0,
-        speed: effectiveSpeed,
-        critChance: modifiedStats.critChance,
-        critDamage: modifiedStats.critDamage,
-        evasionChance: modifiedStats.evasionChance,
-        evasionDamageReduction: modifiedStats.evasionDamageReduction,
-        manaRegeneration: modifiedStats.manaRegeneration || 0,
-        attackSpeed: modifiedStats.attackSpeed || 0,
-        goldBonus: modifiedStats.goldBonus || 0,
-        counterChance: modifiedStats.counterChance || 0,
-        lowHealthDamageBonus: modifiedStats.lowHealthDamageBonus || 0,
-        damageImmunityChance: modifiedStats.damageImmunityChance || 0,
-        abilityCooldownReduction: modifiedStats.abilityCooldownReduction || 0,
-        deathSaveCharges: modifiedStats.deathSaveCharges || 0,
-        critReflect: modifiedStats.critReflect || null,
-        healPerSecondPctMaxHp: modifiedStats.healPerSecondPctMaxHp || 0,
-        stunResistancePct: modifiedStats.stunResistancePct || 0,
-        enemyMissChanceBonusPct: modifiedStats.enemyMissChanceBonusPct || 0,
-        lifestealPct: modifiedStats.lifestealPct || 0,
-        poisonDamageMultiplierPct: modifiedStats.poisonDamageMultiplierPct || 0,
-        poisonPerStackBonus: modifiedStats.poisonPerStackBonus || 0,
-        poisonCanCrit: !!modifiedStats.poisonCanCrit,
-        attackDamagePct: modifiedStats.attackDamagePct || 0,
-        healthRegenPct: modifiedStats.healthRegenPct || 0,
-        critDamageTakenReduction: modifiedStats.critDamageTakenReduction || 0
+        speed: effectiveSpeed
       }
     };
   }
