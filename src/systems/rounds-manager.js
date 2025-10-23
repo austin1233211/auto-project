@@ -372,20 +372,23 @@ export class RoundsManager {
       return;
     }
     
+    this.isProcessingRoundResults = true;
+    
     if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
       console.log(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
+      this.isProcessingRoundResults = false;
       return;
     }
     
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
       console.log(`All matches completed for round ${this.currentRound}, processing results`);
-      this.isProcessingRoundResults = true;
       setTimeout(() => {
         this.processRoundResults();
       }, 1000);
     } else {
       console.log(`Still waiting for ${totalMatches - completedMatches} matches to complete`);
+      this.isProcessingRoundResults = false;
     }
   }
 
@@ -417,9 +420,10 @@ export class RoundsManager {
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
+      const cleanName = player.name.replace(/^(👻 Ghost of )+/, '');
       const ghostPlayer = {
         ...player,
-        name: `👻 Ghost of ${player.name.replace('👻 Ghost of ', '')}`,
+        name: `👻 Ghost of ${cleanName}`,
         isGhost: true,
         playerHealth: { currentHealth: 0, maxHealth: 50 },
         losses: 0
