@@ -102,41 +102,45 @@ export class RoundsManager {
   }
 
   startRound() {
-    console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
-    
-    if (this.isArtifactSelectionActive) {
-      console.log('Artifact selection is active, preventing startRound()');
-      return;
+    try {
+      console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+      
+      if (this.isArtifactSelectionActive) {
+        console.log('Artifact selection is active, preventing startRound()');
+        return;
+      }
+      
+      if (this.activePlayers.length <= 1) {
+        this.endTournament();
+        return;
+      }
+      
+      if ([5, 10, 15, 20].includes(this.currentRound)) {
+        this.startMinionRound();
+        return;
+      }
+      
+      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+        this.artifactSelectionShown = true;
+        this.startArtifactRound();
+        return;
+      }
+      
+      this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+      this.currentMatches = this.generateMatches();
+      this.currentMatchIndex = 0;
+      this.userBattleCompleted = false;
+      this.isProcessingRoundResults = false;
+      this.updateRoundDisplay();
+      
+      this.timer.startBuffer(() => {
+        this.hideRoundsShop();
+        this.timer.startRound();
+        this.startSimultaneousMatches();
+      });
+    } catch (error) {
+      console.error('RoundsManager.startRound error:', error);
     }
-    
-    if (this.activePlayers.length <= 1) {
-      this.endTournament();
-      return;
-    }
-    
-    if ([5, 10, 15, 20].includes(this.currentRound)) {
-      this.startMinionRound();
-      return;
-    }
-    
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-      this.artifactSelectionShown = true;
-      this.startArtifactRound();
-      return;
-    }
-    
-    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
-    this.currentMatches = this.generateMatches();
-    this.currentMatchIndex = 0;
-    this.userBattleCompleted = false;
-    this.isProcessingRoundResults = false; // Reset flag for new round
-    this.updateRoundDisplay();
-    
-    this.timer.startBuffer(() => {
-      this.hideRoundsShop();
-      this.timer.startRound();
-      this.startSimultaneousMatches();
-    });
   }
 
   startSimultaneousMatches() {
@@ -372,20 +376,23 @@ export class RoundsManager {
       return;
     }
     
+    this.isProcessingRoundResults = true;
+    
     if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
       console.log(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
+      this.isProcessingRoundResults = false;
       return;
     }
     
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
       console.log(`All matches completed for round ${this.currentRound}, processing results`);
-      this.isProcessingRoundResults = true;
       setTimeout(() => {
         this.processRoundResults();
       }, 1000);
     } else {
       console.log(`Still waiting for ${totalMatches - completedMatches} matches to complete`);
+      this.isProcessingRoundResults = false;
     }
   }
 
@@ -417,9 +424,10 @@ export class RoundsManager {
     const newlyEliminated = this.activePlayers.filter(player => player.playerHealth.currentHealth <= 0);
     newlyEliminated.forEach(player => {
       player.isEliminated = true;
+      const cleanName = player.name.replace(/^(👻 Ghost of )+/, '');
       const ghostPlayer = {
         ...player,
-        name: `👻 Ghost of ${player.name.replace('👻 Ghost of ', '')}`,
+        name: `👻 Ghost of ${cleanName}`,
         isGhost: true,
         playerHealth: { currentHealth: 0, maxHealth: 50 },
         losses: 0

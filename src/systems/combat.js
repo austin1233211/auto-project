@@ -33,25 +33,41 @@ export class Combat {
   }
 
   init(playerHero, playerMoney = 0) {
-    this.playerHero = StatsCalculator.processHeroStats({ 
-      ...playerHero, 
-      currentHealth: playerHero.stats.health,
-      currentMana: 0,
-      maxMana: 100
-    });
-    this.playerMoney = playerMoney;
-    this.enemyHero = this.selectRandomEnemy();
-    this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
-    this.enemyHero.currentHealth = this.enemyHero.stats.health;
-    this.enemyHero.currentMana = 0;
-    this.enemyHero.maxMana = 100;
-    this.battleLog = [];
-    this.isGameOver = false;
-    this.clearTimers();
-    
-    this.render();
-    this.initCombatShop();
-    this.startBattle();
+    try {
+      if (!playerHero || !playerHero.stats) {
+        console.error('Combat.init: Invalid playerHero', playerHero);
+        throw new Error('Invalid player hero data');
+      }
+
+      this.playerHero = StatsCalculator.processHeroStats({ 
+        ...playerHero, 
+        currentHealth: playerHero.stats.health,
+        currentMana: 0,
+        maxMana: 100
+      });
+      this.playerMoney = playerMoney;
+      this.enemyHero = this.selectRandomEnemy();
+      
+      if (!this.enemyHero) {
+        console.error('Combat.init: Failed to select enemy');
+        throw new Error('Failed to select enemy hero');
+      }
+      
+      this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
+      this.enemyHero.currentHealth = this.enemyHero.stats.health;
+      this.enemyHero.currentMana = 0;
+      this.enemyHero.maxMana = 100;
+      this.battleLog = [];
+      this.isGameOver = false;
+      this.clearTimers();
+      
+      this.render();
+      this.initCombatShop();
+      this.startBattle();
+    } catch (error) {
+      console.error('Combat.init error:', error);
+      throw error;
+    }
   }
 
   selectRandomEnemy() {
@@ -350,11 +366,17 @@ export class Combat {
   executeAttack(attacker, target) {
     if (this.isGameOver) return;
 
-    let damage;
-    let wasEvaded = false;
-    let wasCrit = false;
+    try {
+      if (!attacker || !target) {
+        console.error('Combat.executeAttack: Invalid attacker or target', { attacker, target });
+        return;
+      }
 
-    this.abilitySystem.triggerAbilities(attacker, target, 'on_attack');
+      let damage;
+      let wasEvaded = false;
+      let wasCrit = false;
+
+      this.abilitySystem.triggerAbilities(attacker, target, 'on_attack');
 
     const passiveResult = this.abilitySystem.processPassiveAbility(attacker, target);
     
@@ -451,12 +473,16 @@ export class Combat {
       }
     }
     
-    this.updateHealthBars();
+      this.updateHealthBars();
 
-    if (target.currentHealth <= 0) {
-      const result = target === this.enemyHero ? 'victory' : 'defeat';
-      this.endBattle(result);
-      return;
+      if (target.currentHealth <= 0) {
+        const result = target === this.enemyHero ? 'victory' : 'defeat';
+        this.endBattle(result);
+        return;
+      }
+    } catch (error) {
+      console.error('Combat.executeAttack error:', error);
+      this.addToLog(`⚠️ Error during attack: ${error.message}`);
     }
   }
 
@@ -514,18 +540,26 @@ export class Combat {
   }
 
   updateHealthBars() {
+    if (!this.playerHero || !this.enemyHero) return;
+    
     const playerHealthPercent = (this.playerHero.currentHealth / this.playerHero.stats.health) * 100;
     const enemyHealthPercent = (this.enemyHero.currentHealth / this.enemyHero.stats.health) * 100;
 
-    const playerHealthBar = this.container.querySelector('.player-health');
-    const enemyHealthBar = this.container.querySelector('.enemy-health');
-    const playerHealthText = this.container.querySelector('.player .health-text');
-    const enemyHealthText = this.container.querySelector('.enemy .health-text');
+    if (!this.cachedHealthElements) {
+      this.cachedHealthElements = {
+        playerHealthBar: this.container.querySelector('.player-health'),
+        enemyHealthBar: this.container.querySelector('.enemy-health'),
+        playerHealthText: this.container.querySelector('.player .health-text'),
+        enemyHealthText: this.container.querySelector('.enemy .health-text')
+      };
+    }
+
+    const { playerHealthBar, enemyHealthBar, playerHealthText, enemyHealthText } = this.cachedHealthElements;
 
     if (playerHealthBar) playerHealthBar.style.width = `${playerHealthPercent}%`;
     if (enemyHealthBar) enemyHealthBar.style.width = `${enemyHealthPercent}%`;
-    if (playerHealthText) playerHealthText.textContent = `${this.playerHero.currentHealth}/${this.playerHero.stats.health}`;
-    if (enemyHealthText) enemyHealthText.textContent = `${this.enemyHero.currentHealth}/${this.enemyHero.stats.health}`;
+    if (playerHealthText) playerHealthText.textContent = `${Math.round(this.playerHero.currentHealth)}/${this.playerHero.stats.health}`;
+    if (enemyHealthText) enemyHealthText.textContent = `${Math.round(this.enemyHero.currentHealth)}/${this.enemyHero.stats.health}`;
     
     if (this.heroStatsCard) {
       this.heroStatsCard.refresh();
@@ -533,18 +567,26 @@ export class Combat {
   }
 
   updateManaBars() {
+    if (!this.playerHero || !this.enemyHero) return;
+    
     const playerManaPercent = (this.playerHero.currentMana / this.playerHero.maxMana) * 100;
     const enemyManaPercent = (this.enemyHero.currentMana / this.enemyHero.maxMana) * 100;
 
-    const playerManaBar = this.container.querySelector('.player-mana');
-    const enemyManaBar = this.container.querySelector('.enemy-mana');
-    const playerManaText = this.container.querySelector('.player .mana-text');
-    const enemyManaText = this.container.querySelector('.enemy .mana-text');
+    if (!this.cachedManaElements) {
+      this.cachedManaElements = {
+        playerManaBar: this.container.querySelector('.player-mana'),
+        enemyManaBar: this.container.querySelector('.enemy-mana'),
+        playerManaText: this.container.querySelector('.player .mana-text'),
+        enemyManaText: this.container.querySelector('.enemy .mana-text')
+      };
+    }
+
+    const { playerManaBar, enemyManaBar, playerManaText, enemyManaText } = this.cachedManaElements;
 
     if (playerManaBar) playerManaBar.style.width = `${playerManaPercent}%`;
     if (enemyManaBar) enemyManaBar.style.width = `${enemyManaPercent}%`;
-    if (playerManaText) playerManaText.textContent = `${this.playerHero.currentMana}/${this.playerHero.maxMana}`;
-    if (enemyManaText) enemyManaText.textContent = `${this.enemyHero.currentMana}/${this.enemyHero.maxMana}`;
+    if (playerManaText) playerManaText.textContent = `${Math.round(this.playerHero.currentMana)}/${this.playerHero.maxMana}`;
+    if (enemyManaText) enemyManaText.textContent = `${Math.round(this.enemyHero.currentMana)}/${this.enemyHero.maxMana}`;
   }
 
   updateHealthAndManaBars() {
