@@ -1,4 +1,5 @@
 import { Combat } from './combat.js';
+import { StatsCalculator } from '../core/stats-calculator.js';
 
 export class MinionCombat extends Combat {
   constructor(container, heroStatsCard = null) {
@@ -9,12 +10,22 @@ export class MinionCombat extends Combat {
 
   init(playerHero, playerGold, currentRound = 5) {
     this.currentRound = currentRound;
-    this.playerHero = playerHero;
-    this.playerHero.currentHealth = this.playerHero.stats.health;
-    this.playerHero.maxMana = 100;
+    this.playerMoney = playerGold;
+    this.battleLog = [];
+    this.isGameOver = false;
+    this.clearTimers();
+    
+    this.playerHero = StatsCalculator.processHeroStats({
+      ...playerHero,
+      currentHealth: playerHero.stats.health,
+      currentMana: 0,
+      maxMana: 100
+    });
     
     this.enemyHero = this.selectRandomEnemy();
+    this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
     this.enemyHero.currentHealth = this.enemyHero.stats.health;
+    this.enemyHero.currentMana = 0;
     this.enemyHero.maxMana = 100;
     
     this.render();
