@@ -5,6 +5,7 @@ export class CombatShop extends AbilitiesShop {
     super(container, roundNumber);
     this.combat = combat;
     this.isVisible = false;
+    this.eventListeners = [];
   }
 
   init() {
@@ -15,6 +16,7 @@ export class CombatShop extends AbilitiesShop {
   }
 
   render() {
+    this.removeEventListeners();
     this.container.innerHTML = `
       <div class="combat-shop-widget">
         <div class="shop-header-mini">
@@ -85,28 +87,41 @@ export class CombatShop extends AbilitiesShop {
   attachEventListeners() {
     const closeBtn = this.container.querySelector('#close-combat-shop');
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => this.hide());
+      const handler = () => this.hide();
+      closeBtn.addEventListener('click', handler);
+      this.eventListeners.push({ element: closeBtn, event: 'click', handler });
     }
 
     const globalRerollBtn = this.container.querySelector('#global-reroll-btn');
     if (globalRerollBtn) {
-      globalRerollBtn.addEventListener('click', () => {
+      const handler = () => {
         this.rerollAllItems();
         this.render();
         this.checkAndShowTier3Selection();
-      });
+      };
+      globalRerollBtn.addEventListener('click', handler);
+      this.eventListeners.push({ element: globalRerollBtn, event: 'click', handler });
     }
 
     this.itemSlots.forEach((slot, index) => {
       const buyBtn = this.container.querySelector(`[data-slot="${index}"] .buy-btn-mini`);
       if (buyBtn && !buyBtn.disabled) {
-        buyBtn.addEventListener('click', () => {
+        const handler = () => {
           this.purchaseItem(index);
           this.updateGoldDisplay();
           this.updateSlotDisplay(index);
-        });
+        };
+        buyBtn.addEventListener('click', handler);
+        this.eventListeners.push({ element: buyBtn, event: 'click', handler });
       }
     });
+  }
+
+  removeEventListeners() {
+    this.eventListeners.forEach(({ element, event, handler }) => {
+      element.removeEventListener(event, handler);
+    });
+    this.eventListeners = [];
   }
 
   updateSlotDisplay(slotIndex) {
@@ -115,11 +130,13 @@ export class CombatShop extends AbilitiesShop {
       slotElement.innerHTML = this.renderItemSlotMini(slotIndex);
       const buyBtn = slotElement.querySelector('.buy-btn-mini');
       if (buyBtn && !buyBtn.disabled) {
-        buyBtn.addEventListener('click', () => {
+        const handler = () => {
           this.purchaseItem(slotIndex);
           this.updateGoldDisplay();
           this.updateSlotDisplay(slotIndex);
-        });
+        };
+        buyBtn.addEventListener('click', handler);
+        this.eventListeners.push({ element: buyBtn, event: 'click', handler });
       }
     }
   }
