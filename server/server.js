@@ -73,8 +73,35 @@ const io = new Server(server, {
 const waitingQueue1v1 = [];
 const waitingQueueTournament = [];
 const rooms = new Map();
+const rateLimitMap = new Map();
 
 function makeRoomId(prefix='room') { return prefix + '_' + Math.random().toString(36).slice(2,8); }
+
+function checkRateLimit(socketId, eventName, maxPerSecond = 10) {
+  const key = `${socketId}:${eventName}`;
+  const now = Date.now();
+  
+  if (!rateLimitMap.has(key)) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + 1000 });
+    return true;
+  }
+  
+  const limit = rateLimitMap.get(key);
+  
+  if (now > limit.resetTime) {
+    limit.count = 1;
+    limit.resetTime = now + 1000;
+    return true;
+  }
+  
+  if (limit.count >= maxPerSecond) {
+    console.warn(`Rate limit exceeded for ${socketId} on ${eventName}`);
+    return false;
+  }
+  
+  limit.count++;
+  return true;
+}
 
 function sanitizePlayerName(name) {
   if (!name || typeof name !== 'string') {
@@ -225,6 +252,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('selectHero', ({ heroId }) => {
+    if (!checkRateLimit(socket.id, 'selectHero', 5)) return;
+    
     const roomId = socket.data.roomId;
     console.log('[1v1] selectHero from', socket.id, 'room=', roomId, 'heroId=', heroId);
     if (!roomId || !rooms.has(roomId)) return;
@@ -275,6 +304,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('clientBattleResult', (data) => {
+    if (!checkRateLimit(socket.id, 'clientBattleResult', 20)) return;
+    
     const roomId = socket.data.roomId;
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
@@ -625,12 +656,20 @@ function startRound(roomId) {
 }
 
 function handleClientBattleResult(roomId, data) {
-  const room = rooms.get(roomId);
-  if (!room) return;
-  const mx = room.currentMatches.find(m => m.matchId === data.matchId);
-  if (!mx || mx.completed) return;
-  finalizeMatch(roomId, data.matchId, data.winnerId, data.hpLost || 5);
-  maybeCompleteRound(roomId);
+  try {
+    if (!data || !data.matchId || !data.winnerId) {
+      console.error('handleClientBattleResult: Invalid data', data);
+      return;
+    }
+    const room = rooms.get(roomId);
+    if (!room) return;
+    const mx = room.currentMatches.find(m => m.matchId === data.matchId);
+    if (!mx || mx.completed) return;
+    finalizeMatch(roomId, data.matchId, data.winnerId, data.hpLost || 5);
+    maybeCompleteRound(roomId);
+  } catch (error) {
+    console.error('handleClientBattleResult error:', error);
+  }
 }
 
 function awardEconomy(winner, loser, hpLost) {
