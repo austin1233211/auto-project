@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { logger } from './logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +34,7 @@ app.get('/health', (req, res) => {
 
 const clientRoot = path.resolve(__dirname, '..');
 app.use(express.static(clientRoot));
-try { console.log('[startup] Serving static from', clientRoot); } catch(_) {}
+try { logger.info('[startup] Serving static from', clientRoot); } catch(_) {}
 try { 
   const allowed = [
     'http://localhost:8080',
@@ -42,7 +43,7 @@ try {
     process.env.CLIENT_ORIGIN,
     process.env.DEPLOY_ORIGIN
   ].filter(Boolean);
-  console.log('[startup] Allowed origins:', allowed);
+  logger.info('[startup] Allowed origins:', allowed);
 } catch(_) {}
 app.get('*', (req, res) => {
   res.sendFile(path.join(clientRoot, 'index.html'));
@@ -95,7 +96,7 @@ function checkRateLimit(socketId, eventName, maxPerSecond = 10) {
   }
   
   if (limit.count >= maxPerSecond) {
-    console.warn(`Rate limit exceeded for ${socketId} on ${eventName}`);
+    logger.warn(`Rate limit exceeded for ${socketId} on ${eventName}`);
     return false;
   }
   
@@ -115,10 +116,10 @@ function sanitizePlayerName(name) {
 }
 
 io.on('connection', (socket) => {
-  console.log('New WebSocket connection established:', socket.id, new Date().toISOString());
+  logger.debug('New WebSocket connection established:', socket.id, new Date().toISOString());
   
   socket.on('requestMatch', (playerData) => {
-    console.log('[1v1] requestMatch from', socket.id, 'name=', playerData?.name, 'existingRoom=', socket.data?.roomId);
+    logger.debug('[1v1] requestMatch from', socket.id, 'name=', playerData?.name, 'existingRoom=', socket.data?.roomId);
     socket.data.name = sanitizePlayerName(playerData?.name);
     if (socket.data.roomId) {
       leaveRoom(socket);
@@ -127,7 +128,7 @@ io.on('connection', (socket) => {
     let joinedExistingDuo = false;
     for (const [roomId, room] of rooms.entries()) {
       if (room.mode === '1v1' && room.phase === 'lobby' && room.players.size === 1) {
-        console.log('[1v1] Joining existing duo room:', roomId);
+        logger.debug('[1v1] Joining existing duo room:', roomId);
         socket.join(roomId);
         socket.data.roomId = roomId;
         const idx = room.players.size + 1;
@@ -157,7 +158,7 @@ io.on('connection', (socket) => {
       for (let i = waitingQueue1v1.length - 1; i >= 0; i--) {
         if (!waitingQueue1v1[i]?.connected) waitingQueue1v1.splice(i, 1);
       }
-      console.log('[1v1] queue now =', waitingQueue1v1.map(s => s.id));
+      logger.debug('[1v1] queue now =', waitingQueue1v1.map(s => s.id));
 
       if (waitingQueue1v1.length >= 2) {
         const a = waitingQueue1v1.shift();
@@ -194,23 +195,23 @@ io.on('connection', (socket) => {
               consecutiveLosses: 0
             });
           });
-          console.log('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
+          logger.debug('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
           broadcastRoomStatus1v1(roomId);
         }
       } else {
-        console.log('[1v1] waiting for opponent; queue length =', waitingQueue1v1.length);
+        logger.debug('[1v1] waiting for opponent; queue length =', waitingQueue1v1.length);
       }
     }
   });
 
   socket.on('requestTournament', (playerData) => {
-    console.log('Tournament request received from:', socket.id, playerData);
+    logger.debug('Tournament request received from:', socket.id, playerData);
     socket.data.name = sanitizePlayerName(playerData?.name);
     
     let joinedExistingRoom = false;
     for (const [roomId, room] of rooms.entries()) {
       if (room.mode === 'tournament' && room.phase === 'waiting' && room.players.size < 8) {
-        console.log('Adding player to existing waiting room:', roomId);
+        logger.debug('Adding player to existing waiting room:', roomId);
         socket.join(roomId);
         socket.data.roomId = roomId;
         const ps = {
@@ -236,7 +237,7 @@ io.on('connection', (socket) => {
     }
     
     if (!joinedExistingRoom) {
-      console.log('No existing waiting room found, creating new one');
+      logger.debug('No existing waiting room found, creating new one');
       createWaitingRoom(socket);
     }
   });
@@ -255,22 +256,22 @@ io.on('connection', (socket) => {
     if (!checkRateLimit(socket.id, 'selectHero', 5)) return;
     
     const roomId = socket.data.roomId;
-    console.log('[1v1] selectHero from', socket.id, 'room=', roomId, 'heroId=', heroId);
+    logger.debug('[1v1] selectHero from', socket.id, 'room=', roomId, 'heroId=', heroId);
     if (!roomId || !rooms.has(roomId)) return;
     if (!heroId || typeof heroId !== 'string') {
-      console.log('[1v1] selectHero invalid heroId:', heroId);
+      logger.debug('[1v1] selectHero invalid heroId:', heroId);
       return;
     }
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (!player) {
-      console.log('[1v1] selectHero could not find player for socket', socket.id, 'players keys=', Array.from(room.players.keys()));
+      logger.debug('[1v1] selectHero could not find player for socket', socket.id, 'players keys=', Array.from(room.players.keys()));
       return;
     }
     const before = { heroId: player.heroId, isReady: player.isReady, name: player.name };
     player.heroId = heroId;
     const after = { heroId: player.heroId, isReady: player.isReady, name: player.name };
-    console.log('[1v1] selectHero updated', before, '->', after);
+    logger.debug('[1v1] selectHero updated', before, '->', after);
     if (room.mode === '1v1') {
       broadcastRoomStatus1v1(roomId);
       checkStart1v1(roomId);
@@ -282,18 +283,18 @@ io.on('connection', (socket) => {
 
   socket.on('playerReady', () => {
     const roomId = socket.data.roomId;
-    console.log('[1v1] playerReady from', socket.id, 'room=', roomId);
+    logger.debug('[1v1] playerReady from', socket.id, 'room=', roomId);
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (!player) {
-      console.log('[1v1] playerReady could not find player for socket', socket.id, 'players keys=', Array.from(room.players.keys()));
+      logger.debug('[1v1] playerReady could not find player for socket', socket.id, 'players keys=', Array.from(room.players.keys()));
       return;
     }
     const before = { heroId: player.heroId, isReady: player.isReady, name: player.name };
     player.isReady = true;
     const after = { heroId: player.heroId, isReady: player.isReady, name: player.name };
-    console.log('[1v1] playerReady updated', before, '->', after);
+    logger.debug('[1v1] playerReady updated', before, '->', after);
     if (room.mode === '1v1') {
       broadcastRoomStatus1v1(roomId);
       checkStart1v1(roomId);
@@ -320,14 +321,14 @@ io.on('connection', (socket) => {
 });
 
 function tryMatch1v1() {
-  console.log('[1v1] tryMatch1v1 called. queue length =', waitingQueue1v1.length);
+  logger.debug('[1v1] tryMatch1v1 called. queue length =', waitingQueue1v1.length);
   while (waitingQueue1v1.length >= 2) {
     let a = waitingQueue1v1.shift();
     let b = waitingQueue1v1.shift();
     if (!a?.connected) a = null;
     if (!b?.connected) b = null;
     if (!a || !b) {
-      console.log('[1v1] skipped pairing due to disconnected socket(s)');
+      logger.debug('[1v1] skipped pairing due to disconnected socket(s)');
       continue;
     }
     const roomId = makeRoomId('duo');
@@ -361,7 +362,7 @@ function tryMatch1v1() {
         consecutiveLosses: 0
       });
     });
-    console.log('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
+    logger.debug('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
     broadcastRoomStatus1v1(roomId);
   }
 }
@@ -375,13 +376,13 @@ function broadcastRoomStatus1v1(roomId) {
     heroSelected: !!p.heroId
   }));
   const phase = getPhase1v1(room);
-  console.log('[1v1]', roomId, 'broadcast status phase=', phase, players);
+  logger.debug('[1v1]', roomId, 'broadcast status phase=', phase, players);
   io.to(roomId).emit('roomStatusUpdate', { players, phase });
   if (players.length === 2) {
     const allHeroes = players.every(p => p.heroSelected);
     const allReady = players.every(p => p.isReady);
     if (allHeroes && !allReady) {
-      console.log('[1v1]', roomId, 'proceedToRules');
+      logger.debug('[1v1]', roomId, 'proceedToRules');
       io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
     }
   }
@@ -409,9 +410,9 @@ function checkStart1v1(roomId) {
   if (players.length !== 2) return;
   const heroSelected = players.every(p => !!p.heroId);
   const ready = players.every(p => p.isReady);
-  console.log('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
+  logger.debug('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
   if (heroSelected && ready) {
-    console.log('[1v1]', roomId, 'EMIT gameStarting then start buffer/round lifecycle');
+    logger.debug('[1v1]', roomId, 'EMIT gameStarting then start buffer/round lifecycle');
     io.to(roomId).emit('gameStarting', { countdown: 3 });
     setTimeout(() => {
       const pArr = Array.from(room.players.values());
@@ -467,19 +468,19 @@ function createWaitingRoom(socket) {
   };
   room.players.set(socket.id, ps);
   
-  console.log('Created new waiting room:', roomId, 'with first player:', socket.data.name);
+  logger.debug('Created new waiting room:', roomId, 'with first player:', socket.data.name);
   broadcastWaitingRoom(roomId);
 }
 
 function tryCreateTournament() {
-  console.log('tryCreateTournament called but no longer needed');
+  logger.debug('tryCreateTournament called but no longer needed');
 }
 
 function broadcastWaitingRoom(roomId) {
-  console.log('broadcastWaitingRoom called for room:', roomId);
+  logger.debug('broadcastWaitingRoom called for room:', roomId);
   const room = rooms.get(roomId);
   if (!room || room.mode !== 'tournament') {
-    console.log('Room not found or not tournament mode:', room?.mode);
+    logger.debug('Room not found or not tournament mode:', room?.mode);
     return;
   }
   const playerCount = room.players.size;
@@ -492,11 +493,11 @@ function broadcastWaitingRoom(roomId) {
       name: p.name
     }))
   };
-  console.log('Broadcasting waitingRoomUpdate with payload:', payload);
+  logger.debug('Broadcasting waitingRoomUpdate with payload:', payload);
   io.to(roomId).emit('waitingRoomUpdate', payload);
   
   if (playerCount === 8 && !room.startCountdownTimer) {
-    console.log('Starting countdown timer for 8 players');
+    logger.debug('Starting countdown timer for 8 players');
     room.startCountdownTimer = setTimeout(() => {
       room.phase = 'lobby';
       broadcastLobby(roomId);
@@ -658,7 +659,7 @@ function startRound(roomId) {
 function handleClientBattleResult(roomId, data) {
   try {
     if (!data || !data.matchId || !data.winnerId) {
-      console.error('handleClientBattleResult: Invalid data', data);
+      logger.error('handleClientBattleResult: Invalid data', data);
       return;
     }
     const room = rooms.get(roomId);
@@ -668,7 +669,7 @@ function handleClientBattleResult(roomId, data) {
     finalizeMatch(roomId, data.matchId, data.winnerId, data.hpLost || 5);
     maybeCompleteRound(roomId);
   } catch (error) {
-    console.error('handleClientBattleResult error:', error);
+    logger.error('handleClientBattleResult error:', error);
   }
 }
 
@@ -783,11 +784,11 @@ function leaveRoom(socket) {
 }
 
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3001;
-try { console.log('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch(_) {}
+try { logger.info('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch(_) {}
 if (!server.listening) {
   server.listen(PORT, () => {
-    console.log(`Multiplayer server listening on ${PORT}`);
+    logger.info(`Multiplayer server listening on ${PORT}`);
   });
 } else {
-  console.log('Server already listening, skipping duplicate listen()');
+  logger.info('Server already listening, skipping duplicate listen()');
 }
