@@ -5,8 +5,12 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint *.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint *.js src/**/*.js",
+    "lint:fix": "eslint *.js src/**/*.js --fix",
     "start:server": "npm --prefix server install && npm --prefix server run start",
     "railway:build": "cd server && npm ci",
     "railway:start": "cd server && npm start",
@@ -19,7 +23,12 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.34.0",
+    "@testing-library/dom": "^10.4.1",
+    "@vitest/ui": "^4.0.3",
     "eslint": "^9.34.0",
-    "globals": "^16.3.0"
+    "globals": "^16.3.0",
+    "happy-dom": "^20.0.8",
+    "jsdom": "^27.0.1",
+    "vitest": "^4.0.3"
   }
 }
