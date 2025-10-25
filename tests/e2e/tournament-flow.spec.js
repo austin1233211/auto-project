@@ -2,6 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Single Player Tournament Flow', () => {
   test('should complete full tournament flow: hero selection → buy ability → reroll → minion round → artifact round', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER:', msg.text()));
+    page.on('pageerror', error => console.error('PAGE ERROR:', error));
+    
     await page.goto('/');
     
     await expect(page.locator('h1').first()).toContainText('Choose Game Mode');
@@ -54,7 +57,14 @@ test.describe('Single Player Tournament Flow', () => {
     
     await page.click('button#close-combat-shop');
     
-    await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('#rounds-shop-container')).toBeHidden({ timeout: 3000 });
+    
+    await page.waitForFunction(() => {
+      const timerElement = document.querySelector('#round-timer');
+      return timerElement && timerElement.textContent.includes('Round Timer');
+    }, { timeout: 35000 });
+    
+    await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 10000 });
     
     await page.waitForTimeout(2000);
     
@@ -143,6 +153,9 @@ test.describe('Single Player Tournament Flow', () => {
   });
 
   test('should display combat correctly', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER:', msg.text()));
+    page.on('pageerror', error => console.error('PAGE ERROR:', error));
+    
     await page.goto('/');
     
     await page.click('[data-mode-id="casual"]');
@@ -162,7 +175,12 @@ test.describe('Single Player Tournament Flow', () => {
     
     await expect(page.locator('text=Pre-Round')).toBeVisible({ timeout: 15000 });
     
-    await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 30000 });
+    await page.waitForFunction(() => {
+      const timerElement = document.querySelector('#round-timer');
+      return timerElement && timerElement.textContent.includes('Round Timer');
+    }, { timeout: 35000 });
+    
+    await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 10000 });
     
     await expect(page.locator('h3:has-text("Battle Log")')).toBeVisible({ timeout: 5000 });
     
