@@ -2,6 +2,14 @@
  * Performance utilities for optimizing DOM updates and computations
  */
 
+const rAF = typeof globalThis.requestAnimationFrame === 'function'
+  ? globalThis.requestAnimationFrame
+  : (cb) => setTimeout(cb, 16);
+
+const cAF = typeof globalThis.cancelAnimationFrame === 'function'
+  ? globalThis.cancelAnimationFrame
+  : (id) => clearTimeout(id);
+
 /**
  * Creates a throttled function that only executes at most once per animation frame
  * @param {Function} fn - Function to throttle
@@ -15,7 +23,7 @@ export function throttleAnimationFrame(fn) {
     lastArgs = args;
     
     if (rafId === null) {
-      rafId = requestAnimationFrame(() => {
+      rafId = rAF(() => {
         fn.apply(this, lastArgs);
         rafId = null;
         lastArgs = null;
@@ -31,7 +39,7 @@ export function throttleAnimationFrame(fn) {
  * @returns {Object} Object with update() and flush() methods
  */
 export function batchUpdates(fn) {
-  let pending = false;
+  let rafId = null;
   let updates = [];
 
   function flush() {
@@ -39,23 +47,23 @@ export function batchUpdates(fn) {
       fn(updates);
       updates = [];
     }
-    pending = false;
+    rafId = null;
   }
 
   return {
     update(...args) {
       updates.push(args);
       
-      if (!pending) {
-        pending = true;
-        requestAnimationFrame(flush);
+      if (rafId === null) {
+        rafId = rAF(flush);
       }
     },
     flush() {
-      if (pending) {
-        cancelAnimationFrame(pending);
-        flush();
+      if (rafId !== null) {
+        cAF(rafId);
+        rafId = null;
       }
+      flush();
     }
   };
 }
