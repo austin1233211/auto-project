@@ -492,6 +492,7 @@ export class RoundsManager {
           </div>
           <div class="tournament-controls">
             <button class="action-button secondary" id="back-to-selection" style="display: none;">Back to Hero Selection</button>
+            <button class="action-button danger" id="quit-tournament">Quit Tournament</button>
           </div>
         </div>
         
