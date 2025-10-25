@@ -235,6 +235,8 @@ export class MultiplayerTournament {
         </div>
 
         <button class="start-button play-btn" id="mt-ready" disabled>Ready</button>
+        
+        <button class="action-button danger" id="mt-quit-lobby" style="margin-top:1rem;width:100%;">Quit to Menu</button>
 
         <div class="game-mode-details" style="margin-top:1rem;">
           <div class="selected-mode-name">Multiplayer Tournament</div>
@@ -263,6 +265,17 @@ export class MultiplayerTournament {
         this.client.updateName({ name: this.player.name });
       });
     }
+    
+    const quitLobbyBtn = this.container.querySelector('#mt-quit-lobby');
+    if (quitLobbyBtn) {
+      quitLobbyBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will leave the tournament lobby.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
+      });
+    }
+    
     this.reattachHeroCardListeners();
     const readyBtn = this.container.querySelector('#mt-ready');
     if (readyBtn) {
@@ -310,8 +323,19 @@ export class MultiplayerTournament {
         <div class="waiting-room-info">
           <p>🚀 The tournament will start automatically when all 8 players join!</p>
         </div>
+        <button class="action-button danger" id="mt-quit-waiting" style="margin-top:1rem;width:100%;max-width:300px;">Quit to Menu</button>
       </div>
     `;
+    
+    const quitWaitingBtn = this.container.querySelector('#mt-quit-waiting');
+    if (quitWaitingBtn) {
+      quitWaitingBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will leave the waiting room.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
+      });
+    }
   }
 
   updateWaitingRoom(payload) {
@@ -373,6 +397,7 @@ export class MultiplayerTournament {
           <div id="battle-area" class="battle-area"></div>
           <div class="tournament-controls">
             <button class="action-button secondary" id="mt-exit">Exit</button>
+            <button class="action-button danger" id="mt-quit">Quit Tournament</button>
           </div>
         </div>
         <div class="players-sidebar">
@@ -388,6 +413,17 @@ export class MultiplayerTournament {
         if (this.onExitToMenu) this.onExitToMenu();
       });
     }
+    
+    const quitBtn = this.container.querySelector('#mt-quit');
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will be disconnected from the tournament.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
+      });
+    }
+    
     this.heroStatsCard.init();
   }
 
