@@ -391,7 +391,14 @@ export const EffectRegistry = {
 };
 
 /**
+ * Cache for effect instances to avoid repeated instantiation
+ * Key format: "effectName:value"
+ */
+const effectInstanceCache = new Map();
+
+/**
  * Creates an effect instance from an ability object.
+ * Uses caching to reuse instances with the same effect and value.
  * @param {Object} ability - Ability with effect and value properties
  * @returns {BaseEffect} Effect instance
  */
@@ -403,5 +410,18 @@ export function createEffect(ability) {
     return null;
   }
   
-  return new EffectClass(ability.value);
+  const cacheKey = `${ability.effect}:${ability.value}`;
+  
+  if (!effectInstanceCache.has(cacheKey)) {
+    effectInstanceCache.set(cacheKey, new EffectClass(ability.value));
+  }
+  
+  return effectInstanceCache.get(cacheKey);
+}
+
+/**
+ * Clears the effect instance cache (useful for testing)
+ */
+export function clearEffectCache() {
+  effectInstanceCache.clear();
 }
