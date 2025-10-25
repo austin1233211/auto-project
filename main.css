@@ -787,6 +787,16 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
+.action-button.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.action-button.danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
 /* Desktop enhancements for combat */
 @media (min-width: 768px) {
   .combat-container {
