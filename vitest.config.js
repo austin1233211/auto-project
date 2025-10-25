@@ -5,6 +5,14 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: ['./tests/setup.js'],
+    include: ['tests/**/*.{test,spec}.js'],
+    exclude: [
+      'tests/e2e/**',
+      '**/*.e2e.*',
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.{idea,git,cache,output,temp}/**'
+    ],
     environmentMatchGlobs: [
       ['tests/dom/**', 'jsdom']
     ],
