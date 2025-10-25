@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:8080',
+    baseURL: 'https://auto-project-production.up.railway.app',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
