@@ -32,6 +32,10 @@ export class MultiplayerDuel {
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
     this.client.on('tournamentEnd', (payload) => this.handleDuelEnd(payload));
+    
+    this.client.on('disconnecting', (reason) => this.handleDisconnecting(reason));
+    this.client.on('reconnected', (data) => this.handleReconnected(data));
+    this.client.on('reconnectionFailed', (reason) => this.handleReconnectionFailed(reason));
   }
 
   renderLobby() {
@@ -48,6 +52,7 @@ export class MultiplayerDuel {
           <div class="selected-mode-description">Head-to-head battle</div>
           <div id="duel-players"></div>
         </div>
+        <button class="action-button danger" id="duel-quit-lobby" style="margin-top:1rem;width:100%;">Quit to Menu</button>
         <div style="display:flex; gap:.5rem; margin-top:.5rem;">
           <input id="duel-name" value="${this.player.name}" style="flex:1;"/>
           <button class="action-button secondary" id="duel-apply-name" style="flex:0 0 auto;">Apply</button>
@@ -87,6 +92,16 @@ export class MultiplayerDuel {
       applyBtn.addEventListener('click', () => {
         this.player.name = nameInput.value || this.player.name;
         this.client.updateName({ name: this.player.name });
+      });
+    }
+    
+    const quitLobbyBtn = this.container.querySelector('#duel-quit-lobby');
+    if (quitLobbyBtn) {
+      quitLobbyBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will leave the lobby.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
       });
     }
     this.container.addEventListener('click', (e) => {
@@ -211,6 +226,7 @@ export class MultiplayerDuel {
           <div id="battle-area" class="battle-area"></div>
           <div class="tournament-controls">
             <button class="action-button secondary" id="duel-exit">Exit</button>
+            <button class="action-button danger" id="duel-quit">Quit Game</button>
           </div>
         </div>
         <div class="players-sidebar">
@@ -224,6 +240,16 @@ export class MultiplayerDuel {
       exitBtn.addEventListener('click', () => {
         this.client.leaveRoom();
         if (this.onExitToMenu) this.onExitToMenu();
+      });
+    }
+    
+    const quitBtn = this.container.querySelector('#duel-quit');
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will be disconnected from the game.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
       });
     }
     this.heroStatsCard.init();
@@ -333,5 +359,62 @@ export class MultiplayerDuel {
     const winner = payload?.winner;
     alert(`Duel Winner: ${winner?.name || 'Unknown'}`);
     if (this.onExitToMenu) this.onExitToMenu();
+  }
+  
+  handleDisconnecting(reason) {
+    console.log('[1v1] Disconnected:', reason);
+    this.showReconnectingOverlay();
+  }
+  
+  handleReconnected(data) {
+    console.log('[1v1] Reconnected successfully!', data);
+    this.hideReconnectingOverlay();
+    
+    if (data.roomState) {
+      const state = data.roomState;
+      if (state.phase === 'buffer' || state.phase === 'round') {
+        this.currentPhase = 'rounds';
+        this.renderDuelScaffold();
+        if (state.players) {
+          this.updateRoundState({
+            roundNumber: state.currentRound,
+            phase: state.phase,
+            time: 0,
+            players: state.players
+          });
+        }
+      }
+    }
+  }
+  
+  handleReconnectionFailed(reason) {
+    console.warn('[1v1] Reconnection failed:', reason);
+    this.hideReconnectingOverlay();
+    alert(`Failed to reconnect: ${reason}\nReturning to menu...`);
+    if (this.onExitToMenu) this.onExitToMenu();
+  }
+  
+  showReconnectingOverlay() {
+    let overlay = this.container.querySelector('.reconnecting-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'reconnecting-overlay';
+      overlay.innerHTML = `
+        <div class="reconnecting-message">
+          <div class="reconnecting-spinner"></div>
+          <h2>Connection Lost</h2>
+          <p>Attempting to reconnect...</p>
+        </div>
+      `;
+      this.container.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+  }
+  
+  hideReconnectingOverlay() {
+    const overlay = this.container.querySelector('.reconnecting-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
   }
 }
