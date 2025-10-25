@@ -87,7 +87,9 @@ test.describe('Single Player Tournament Flow', () => {
     
     await page.click('[data-mode-id="casual"]');
     
-    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#hero-selection.active')).toBeVisible({ timeout: 10000 });
+    
+    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 5000 });
     const firstHero = page.locator('.hero-card').first();
     await firstHero.click();
     
@@ -139,7 +141,9 @@ test.describe('Single Player Tournament Flow', () => {
     
     await page.click('[data-mode-id="casual"]');
     
-    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#hero-selection.active')).toBeVisible({ timeout: 10000 });
+    
+    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 5000 });
     const firstHero = page.locator('.hero-card').first();
     await firstHero.click();
     
