@@ -6,6 +6,7 @@ import { AbilitySystem } from '../core/abilities.js';
 import { CombatShop } from '../shops/combat-shop-v2.js';
 import { debugTools } from '../components/debug-tools.js';
 import { GameLoop } from './game-loop.js';
+import { throttleAnimationFrame, DirtyFlag } from '../utils/performance.js';
 
 /**
  * Combat system managing player vs enemy battles with abilities, timers, and shops.
@@ -37,6 +38,12 @@ export class Combat {
     }
 
     this.heroStatsCard = heroStatsCard;
+    
+    this.throttledUpdateHealthBars = throttleAnimationFrame(this._updateHealthBarsImmediate.bind(this));
+    this.throttledUpdateManaBars = throttleAnimationFrame(this._updateManaBarsImmediate.bind(this));
+    
+    this.playerStatsDirty = new DirtyFlag();
+    this.enemyStatsDirty = new DirtyFlag();
   }
 
   /**
@@ -506,6 +513,10 @@ export class Combat {
   }
 
   updateHealthBars() {
+    this.throttledUpdateHealthBars();
+  }
+
+  _updateHealthBarsImmediate() {
     if (!this.playerHero || !this.enemyHero) return;
     
     const playerHealthPercent = (this.playerHero.currentHealth / this.playerHero.stats.health) * 100;
@@ -533,6 +544,10 @@ export class Combat {
   }
 
   updateManaBars() {
+    this.throttledUpdateManaBars();
+  }
+
+  _updateManaBarsImmediate() {
     if (!this.playerHero || !this.enemyHero) return;
     
     const playerManaPercent = (this.playerHero.currentMana / this.playerHero.maxMana) * 100;
