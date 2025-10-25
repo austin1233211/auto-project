@@ -32,12 +32,14 @@ export class Combat {
     this.heroStatsCard = heroStatsCard;
   }
 
-  init(playerHero, playerMoney = 0) {
+  init(playerHero, playerMoney = 0, options = {}) {
     try {
       if (!playerHero || !playerHero.stats) {
         console.error('Combat.init: Invalid playerHero', playerHero);
         throw new Error('Invalid player hero data');
       }
+
+      const { autoStart = true } = options;
 
       this.playerHero = StatsCalculator.processHeroStats({ 
         ...playerHero, 
@@ -63,7 +65,10 @@ export class Combat {
       
       this.render();
       this.initCombatShop();
-      this.startBattle();
+      
+      if (autoStart) {
+        this.startBattle();
+      }
     } catch (error) {
       console.error('Combat.init error:', error);
       throw error;

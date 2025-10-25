@@ -248,6 +248,29 @@ export class MultiplayerDuel {
         timerEl.textContent = `Round Timer: ${timeString}${multiplierText}`;
       }
     }
+    
+    if (state.phase === 'buffer' && !this.combat && state.players && state.players.length >= 2) {
+      const me = state.players.find(p => p.name === this.player.name) || 
+                 state.players.find(p => p.heroId === this.selectedHero?.id);
+      const opponent = state.players.find(p => p !== me);
+      
+      if (me && opponent) {
+        const myHero = heroes.find(h => h.id === me.heroId);
+        const oppHero = heroes.find(h => h.id === opponent.heroId);
+        
+        if (myHero && oppHero) {
+          const combatContainer = this.container.querySelector('#battle-area');
+          if (combatContainer) {
+            this.combat = new Combat(combatContainer, this.heroStatsCard);
+            this.combat.selectRandomEnemy = () => ({ ...oppHero });
+            this.combat.init(myHero, me.gold || 0, { autoStart: false });
+            this.heroStatsCard.updateHero(myHero);
+            console.log('[1v1] Created Combat UI during buffer phase');
+          }
+        }
+      }
+    }
+    
     if (state.players) {
       const list = this.container.querySelector('#players-list');
       if (list) list.innerHTML = state.players.map(p => {
@@ -282,17 +305,25 @@ export class MultiplayerDuel {
     const myHero = heroes.find(h => h.id === me.heroId);
     const oppHero = heroes.find(h => h.id === opp.heroId);
     const combatContainer = this.container.querySelector('#battle-area');
+    
     if (this.combat) {
-      this.combat.clearTimers();
-      this.combat = null;
+      this.combat.setOnBattleEnd((result) => {
+        const winnerId = result === 'victory' ? me.id : opp.id;
+        this.client.sendBattleResult({ matchId: match.matchId, winnerId, hpLost: 5 });
+      });
+      this.combat.selectRandomEnemy = () => ({ ...oppHero });
+      this.combat.startBattle();
+      console.log('[1v1] Starting battle with existing Combat instance');
+    } else {
+      this.combat = new Combat(combatContainer, this.heroStatsCard);
+      this.combat.setOnBattleEnd((result) => {
+        const winnerId = result === 'victory' ? me.id : opp.id;
+        this.client.sendBattleResult({ matchId: match.matchId, winnerId, hpLost: 5 });
+      });
+      this.combat.selectRandomEnemy = () => ({ ...oppHero });
+      this.combat.init(myHero, match.myGold || 0);
+      console.log('[1v1] Created new Combat instance (fallback)');
     }
-    this.combat = new Combat(combatContainer, this.heroStatsCard);
-    this.combat.setOnBattleEnd((result) => {
-      const winnerId = result === 'victory' ? me.id : opp.id;
-      this.client.sendBattleResult({ matchId: match.matchId, winnerId, hpLost: 5 });
-    });
-    this.combat.selectRandomEnemy = () => ({ ...oppHero });
-    this.combat.init(myHero, match.myGold || 0);
   }
 
   handleRoundComplete(_payload) {
