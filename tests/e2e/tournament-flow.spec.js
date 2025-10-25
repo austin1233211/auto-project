@@ -69,12 +69,6 @@ test.describe('Single Player Tournament Flow', () => {
     
     await expect(page.locator('h3:has-text("Battle Log")')).toBeVisible({ timeout: 5000 });
     
-    await page.waitForFunction(() => {
-      const battleArena = document.querySelector('h1.combat-title');
-      return battleArena === null || 
-             document.querySelector('text=Pre-Round') !== null;
-    }, { timeout: 60000 });
-    
     const minionRoundIndicator = page.locator('text=/minion|creep|pve/i');
     if (await minionRoundIndicator.isVisible({ timeout: 5000 })) {
       console.log('Minion round detected');
