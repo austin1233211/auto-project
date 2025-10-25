@@ -120,9 +120,10 @@ export class RoundsManager {
         return;
       }
       
-      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-        this.artifactSelectionShown = true;
-        this.startArtifactRound();
+      if ([3, 8, 13].includes(this.currentRound)) {
+        if (!this.isArtifactSelectionActive) {
+          this.startArtifactRound();
+        }
         return;
       }
       
@@ -837,6 +838,11 @@ export class RoundsManager {
   }
 
   handleArtifactSelection(artifact) {
+    if (!this.isArtifactSelectionActive) {
+      console.warn('handleArtifactSelection called but artifact selection not active');
+      return;
+    }
+    
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer) {
       userPlayer.hero = this.artifactSystem.applyArtifactToHero(userPlayer.hero, artifact);
@@ -883,9 +889,8 @@ export class RoundsManager {
       combatContainer.innerHTML = '';
     }
     
-    this.currentRound++;
-    this.artifactSelectionShown = false;
     this.isArtifactSelectionActive = false;
+    this.currentRound++;
     
     setTimeout(() => {
       this.startInterRoundTimer();
