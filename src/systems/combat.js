@@ -5,6 +5,7 @@ import { StatsCalculator } from '../core/stats-calculator.js';
 import { AbilitySystem } from '../core/abilities.js';
 import { CombatShop } from '../shops/combat-shop-v2.js';
 import { debugTools } from '../components/debug-tools.js';
+import { GameLoop } from './game-loop.js';
 
 /**
  * Combat system managing player vs enemy battles with abilities, timers, and shops.
@@ -24,12 +25,9 @@ export class Combat {
     this.isGameOver = false;
     this.onBattleEnd = null;
     this.abilitySystem = new AbilitySystem(this);
-    this.playerAttackTimer = null;
-    this.enemyAttackTimer = null;
-    this.playerManaTimer = null;
-    this.enemyManaTimer = null;
-    this.manaUITimer = null;
-    this.statusEffectsTimer = null;
+    this.gameLoop = new GameLoop();
+    this.playerAttackAccumulator = 0;
+    this.enemyAttackAccumulator = 0;
     this.speedMultiplier = 1;
     this.damageMultiplier = 1;
     this.combatShop = null;
@@ -184,9 +182,8 @@ export class Combat {
 
   startManaRegeneration() {
     const manaInterval = 250;
-    const manaPerTick = Math.ceil(11 * (manaInterval / 1000));
     
-    this.playerManaTimer = setInterval(() => {
+    this.gameLoop.register('player_mana', () => {
       if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
         const debuffs = (this.playerHero.equipmentState && Array.isArray(this.playerHero.equipmentState.manaRegenDebuffs))
           ? this.playerHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
@@ -196,9 +193,8 @@ export class Combat {
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
     }, manaInterval);
-    debugTools.registerTimer('combat_player_mana', 'combat_player_mana', manaInterval, 'Player mana regeneration');
     
-    this.enemyManaTimer = setInterval(() => {
+    this.gameLoop.register('enemy_mana', () => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
         const debuffs = (this.enemyHero.equipmentState && Array.isArray(this.enemyHero.equipmentState.manaRegenDebuffs))
           ? this.enemyHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
@@ -208,18 +204,16 @@ export class Combat {
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
       }
     }, manaInterval);
-    debugTools.registerTimer('combat_enemy_mana', 'combat_enemy_mana', manaInterval, 'Enemy mana regeneration');
     
-    this.manaUITimer = setInterval(() => {
+    this.gameLoop.register('mana_ui', () => {
       if (!this.isGameOver) {
         this.updateManaBars();
       }
     }, 250);
-    debugTools.registerTimer('combat_mana_ui', 'combat_ui', 250, 'Mana UI updates');
   }
 
   startStatusEffectsTimer() {
-    this.statusEffectsTimer = setInterval(() => {
+    this.gameLoop.register('status_effects', () => {
       if (!this.isGameOver) {
         this.abilitySystem.processStatusEffects(this.playerHero);
         this.abilitySystem.processStatusEffects(this.enemyHero);
@@ -233,51 +227,45 @@ export class Combat {
         this.updateHealthBars();
       }
     }, 1000);
-    debugTools.registerTimer('combat_status_effects', 'combat_effects', 1000, 'Status effects processing');
     
-    this.enhancedRegenTimer = setInterval(() => {
+    this.gameLoop.register('enhanced_regen', () => {
       if (!this.isGameOver) {
         this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'enhanced_tick');
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'enhanced_tick');
         this.updateHealthBars();
       }
     }, 800);
-    debugTools.registerTimer('combat_enhanced_regen', 'combat_effects', 800, 'Enhanced regeneration processing');
     
-    this.hpLossTimer = setInterval(() => {
+    this.gameLoop.register('hp_loss', () => {
       if (!this.isGameOver) {
         this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'hp_loss_tick');
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'hp_loss_tick');
       }
     }, 1500);
-    debugTools.registerTimer('combat_hp_loss', 'combat_effects', 1500, 'HP loss abilities processing');
     
-    this.drumsTimer = setInterval(() => {
+    this.gameLoop.register('drums', () => {
       if (!this.isGameOver) {
         this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'drums_tick');
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'drums_tick');
         this.updateHealthBars();
       }
     }, 2000);
-    debugTools.registerTimer('combat_drums', 'combat_effects', 2000, 'Drums of Slom processing');
     
-    this.frostNovaTimer = setInterval(() => {
+    this.gameLoop.register('frost_nova', () => {
       if (!this.isGameOver) {
         this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'frost_nova_tick');
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'frost_nova_tick');
         this.updateHealthBars();
       }
     }, 2000);
-    debugTools.registerTimer('combat_frost_nova', 'combat_effects', 2000, 'Frost Nova processing');
     
-    this.shieldLossTimer = setInterval(() => {
+    this.gameLoop.register('shield_loss', () => {
       if (!this.isGameOver) {
         this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'shield_loss_tick');
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'shield_loss_tick');
         this.updateHealthBars();
       }
     }, 1800);
-    debugTools.registerTimer('combat_shield_loss', 'combat_effects', 1800, 'Shield loss damage processing');
   }
 
   /**
@@ -285,69 +273,16 @@ export class Combat {
    * Should be called when combat ends or component unmounts.
    */
   clearTimers() {
-    debugTools.logDebug('🧹 Combat: Clearing all timers');
-    
-    if (this.playerAttackTimer) {
-      clearInterval(this.playerAttackTimer);
-      debugTools.unregisterTimer('combat_player_attack');
-      this.playerAttackTimer = null;
-    }
-    if (this.enemyAttackTimer) {
-      clearInterval(this.enemyAttackTimer);
-      debugTools.unregisterTimer('combat_enemy_attack');
-      this.enemyAttackTimer = null;
-    }
-    if (this.playerManaTimer) {
-      clearInterval(this.playerManaTimer);
-      debugTools.unregisterTimer('combat_player_mana');
-      this.playerManaTimer = null;
-    }
-    if (this.enemyManaTimer) {
-      clearInterval(this.enemyManaTimer);
-      debugTools.unregisterTimer('combat_enemy_mana');
-      this.enemyManaTimer = null;
-    }
-    if (this.manaUITimer) {
-      clearInterval(this.manaUITimer);
-      debugTools.unregisterTimer('combat_mana_ui');
-      this.manaUITimer = null;
-    }
-    if (this.statusEffectsTimer) {
-      clearInterval(this.statusEffectsTimer);
-      debugTools.unregisterTimer('combat_status_effects');
-      this.statusEffectsTimer = null;
-    }
-    if (this.enhancedRegenTimer) {
-      clearInterval(this.enhancedRegenTimer);
-      debugTools.unregisterTimer('combat_enhanced_regen');
-      this.enhancedRegenTimer = null;
-    }
-    if (this.hpLossTimer) {
-      clearInterval(this.hpLossTimer);
-      debugTools.unregisterTimer('combat_hp_loss');
-      this.hpLossTimer = null;
-    }
-    if (this.drumsTimer) {
-      clearInterval(this.drumsTimer);
-      debugTools.unregisterTimer('combat_drums');
-      this.drumsTimer = null;
-    }
-    if (this.frostNovaTimer) {
-      clearInterval(this.frostNovaTimer);
-      debugTools.unregisterTimer('combat_frost_nova');
-      this.frostNovaTimer = null;
-    }
-    if (this.shieldLossTimer) {
-      clearInterval(this.shieldLossTimer);
-      debugTools.unregisterTimer('combat_shield_loss');
-      this.shieldLossTimer = null;
-    }
+    debugTools.logDebug('🧹 Combat: Clearing all timers via game loop');
+    this.gameLoop.stop();
   }
 
   startBattle() {
     this.isGameOver = false;
     this.playerHero.currentMana = 0;
     this.enemyHero.currentMana = 0;
+    this.playerAttackAccumulator = 0;
+    this.enemyAttackAccumulator = 0;
     
     this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'battle_start');
     this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'battle_start');
@@ -356,6 +291,7 @@ export class Combat {
     this.updateManaBars();
     
     this.initializeCombatTimers();
+    this.gameLoop.start();
   }
 
   initializeCombatTimers() {
@@ -369,19 +305,25 @@ export class Combat {
     
     this.addToLog(`${this.playerHero.name} attacks ${this.playerHero.effectiveStats.speed.toFixed(2)} times/sec | ${this.enemyHero.name} attacks ${this.enemyHero.effectiveStats.speed.toFixed(2)} times/sec`);
     
-    this.playerAttackTimer = setInterval(() => {
+    this.gameLoop.register('player_attack', () => {
       if (!this.isGameOver) {
-        this.executeAttack(this.playerHero, this.enemyHero);
+        this.playerAttackAccumulator += this.gameLoop.tickRate;
+        if (this.playerAttackAccumulator >= playerAttackInterval) {
+          this.executeAttack(this.playerHero, this.enemyHero);
+          this.playerAttackAccumulator = 0;
+        }
       }
-    }, playerAttackInterval);
-    debugTools.registerTimer('combat_player_attack', 'combat_player_attack', playerAttackInterval, `Player attacks (${this.playerHero.effectiveStats.speed.toFixed(2)}/sec)`);
+    }, this.gameLoop.tickRate);
     
-    this.enemyAttackTimer = setInterval(() => {
+    this.gameLoop.register('enemy_attack', () => {
       if (!this.isGameOver) {
-        this.executeAttack(this.enemyHero, this.playerHero);
+        this.enemyAttackAccumulator += this.gameLoop.tickRate;
+        if (this.enemyAttackAccumulator >= enemyAttackInterval) {
+          this.executeAttack(this.enemyHero, this.playerHero);
+          this.enemyAttackAccumulator = 0;
+        }
       }
-    }, enemyAttackInterval);
-    debugTools.registerTimer('combat_enemy_attack', 'combat_enemy_attack', enemyAttackInterval, `Enemy attacks (${this.enemyHero.effectiveStats.speed.toFixed(2)}/sec)`);
+    }, this.gameLoop.tickRate);
     
     this.startManaRegeneration();
     this.startStatusEffectsTimer();
