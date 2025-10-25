@@ -102,41 +102,45 @@ export class RoundsManager {
   }
 
   startRound() {
-    console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
-    
-    if (this.isArtifactSelectionActive) {
-      console.log('Artifact selection is active, preventing startRound()');
-      return;
+    try {
+      console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+      
+      if (this.isArtifactSelectionActive) {
+        console.log('Artifact selection is active, preventing startRound()');
+        return;
+      }
+      
+      if (this.activePlayers.length <= 1) {
+        this.endTournament();
+        return;
+      }
+      
+      if ([5, 10, 15, 20].includes(this.currentRound)) {
+        this.startMinionRound();
+        return;
+      }
+      
+      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+        this.artifactSelectionShown = true;
+        this.startArtifactRound();
+        return;
+      }
+      
+      this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+      this.currentMatches = this.generateMatches();
+      this.currentMatchIndex = 0;
+      this.userBattleCompleted = false;
+      this.isProcessingRoundResults = false;
+      this.updateRoundDisplay();
+      
+      this.timer.startBuffer(() => {
+        this.hideRoundsShop();
+        this.timer.startRound();
+        this.startSimultaneousMatches();
+      });
+    } catch (error) {
+      console.error('RoundsManager.startRound error:', error);
     }
-    
-    if (this.activePlayers.length <= 1) {
-      this.endTournament();
-      return;
-    }
-    
-    if ([5, 10, 15, 20].includes(this.currentRound)) {
-      this.startMinionRound();
-      return;
-    }
-    
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-      this.artifactSelectionShown = true;
-      this.startArtifactRound();
-      return;
-    }
-    
-    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
-    this.currentMatches = this.generateMatches();
-    this.currentMatchIndex = 0;
-    this.userBattleCompleted = false;
-    this.isProcessingRoundResults = false; // Reset flag for new round
-    this.updateRoundDisplay();
-    
-    this.timer.startBuffer(() => {
-      this.hideRoundsShop();
-      this.timer.startRound();
-      this.startSimultaneousMatches();
-    });
   }
 
   startSimultaneousMatches() {
