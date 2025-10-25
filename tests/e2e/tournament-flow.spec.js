@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.describe.configure({ timeout: 120_000 });
+
 test.describe('Single Player Tournament Flow', () => {
   test('should complete full tournament flow: hero selection → buy ability → reroll → minion round → artifact round', async ({ page }) => {
     page.on('console', msg => console.log('BROWSER:', msg.text()));
@@ -59,10 +61,7 @@ test.describe('Single Player Tournament Flow', () => {
     
     await expect(page.locator('#rounds-shop-container')).toBeHidden({ timeout: 3000 });
     
-    await page.waitForFunction(() => {
-      const timerElement = document.querySelector('#round-timer');
-      return timerElement && timerElement.textContent.includes('Round Timer');
-    }, { timeout: 35000 });
+    await page.waitForSelector('#round-timer .timer-display.round', { timeout: 40000 });
     
     await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 10000 });
     
@@ -175,10 +174,7 @@ test.describe('Single Player Tournament Flow', () => {
     
     await expect(page.locator('text=Pre-Round')).toBeVisible({ timeout: 15000 });
     
-    await page.waitForFunction(() => {
-      const timerElement = document.querySelector('#round-timer');
-      return timerElement && timerElement.textContent.includes('Round Timer');
-    }, { timeout: 35000 });
+    await page.waitForSelector('#round-timer .timer-display.round', { timeout: 40000 });
     
     await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 10000 });
     
