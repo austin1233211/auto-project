@@ -32,6 +32,10 @@ export class MultiplayerDuel {
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
     this.client.on('tournamentEnd', (payload) => this.handleDuelEnd(payload));
+    
+    this.client.on('disconnecting', (reason) => this.handleDisconnecting(reason));
+    this.client.on('reconnected', (data) => this.handleReconnected(data));
+    this.client.on('reconnectionFailed', (reason) => this.handleReconnectionFailed(reason));
   }
 
   renderLobby() {
@@ -333,5 +337,62 @@ export class MultiplayerDuel {
     const winner = payload?.winner;
     alert(`Duel Winner: ${winner?.name || 'Unknown'}`);
     if (this.onExitToMenu) this.onExitToMenu();
+  }
+  
+  handleDisconnecting(reason) {
+    console.log('[1v1] Disconnected:', reason);
+    this.showReconnectingOverlay();
+  }
+  
+  handleReconnected(data) {
+    console.log('[1v1] Reconnected successfully!', data);
+    this.hideReconnectingOverlay();
+    
+    if (data.roomState) {
+      const state = data.roomState;
+      if (state.phase === 'buffer' || state.phase === 'round') {
+        this.currentPhase = 'rounds';
+        this.renderDuelScaffold();
+        if (state.players) {
+          this.updateRoundState({
+            roundNumber: state.currentRound,
+            phase: state.phase,
+            time: 0,
+            players: state.players
+          });
+        }
+      }
+    }
+  }
+  
+  handleReconnectionFailed(reason) {
+    console.warn('[1v1] Reconnection failed:', reason);
+    this.hideReconnectingOverlay();
+    alert(`Failed to reconnect: ${reason}\nReturning to menu...`);
+    if (this.onExitToMenu) this.onExitToMenu();
+  }
+  
+  showReconnectingOverlay() {
+    let overlay = this.container.querySelector('.reconnecting-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'reconnecting-overlay';
+      overlay.innerHTML = `
+        <div class="reconnecting-message">
+          <div class="reconnecting-spinner"></div>
+          <h2>Connection Lost</h2>
+          <p>Attempting to reconnect...</p>
+        </div>
+      `;
+      this.container.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+  }
+  
+  hideReconnectingOverlay() {
+    const overlay = this.container.querySelector('.reconnecting-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
   }
 }

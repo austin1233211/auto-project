@@ -72,6 +72,10 @@ export class MultiplayerTournament {
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
     this.client.on('tournamentEnd', (payload) => this.handleTournamentEnd(payload));
     this.client.on('queueStatus', (qs) => this.updateQueueStatus(qs));
+    
+    this.client.on('disconnecting', (reason) => this.handleDisconnecting(reason));
+    this.client.on('reconnected', (data) => this.handleReconnected(data));
+    this.client.on('reconnectionFailed', (reason) => this.handleReconnectionFailed(reason));
   }
 
   getRandomHeroes(count) {

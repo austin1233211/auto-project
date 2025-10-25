@@ -1,3 +1,5 @@
+import { ReconnectionManager } from '../src/utils/reconnection.js';
+
 export class MultiplayerClient {
   constructor(url = (typeof window !== 'undefined' ? (window.GAME_SERVER_URL || 'http://localhost:3001') : undefined)) {
     this.url = url;
@@ -5,6 +7,7 @@ export class MultiplayerClient {
     this.handlers = {};
     this._autoRequestMatch = false;
     this.playerName = null;
+    this.reconnectionManager = null;
   }
 
   get isConnected() {
@@ -22,6 +25,21 @@ export class MultiplayerClient {
     };
     
     this.socket = window.io(this.url, socketOptions);
+    
+    this.reconnectionManager = new ReconnectionManager(this.socket);
+    this.reconnectionManager.onReconnectSuccess = (data) => {
+      console.log('[MultiplayerClient] Reconnection successful!', data);
+      this._emit('reconnected', data);
+    };
+    this.reconnectionManager.onReconnectFailed = (reason) => {
+      console.warn('[MultiplayerClient] Reconnection failed:', reason);
+      this._emit('reconnectionFailed', reason);
+    };
+    this.reconnectionManager.onDisconnected = (reason) => {
+      console.log('[MultiplayerClient] Disconnected:', reason);
+      this._emit('disconnecting', reason);
+    };
+    
     this.socket.on('connect', () => {
       this._emit('connected');
       if (this._autoRequestMatch) {
@@ -58,12 +76,28 @@ export class MultiplayerClient {
   selectHero(hero) { this.socket.emit('selectHero', { heroId: hero.id }); }
   updateName(data) { this.socket.emit('updateName', data); }
   sendBattleResult(data) { this.socket.emit('clientBattleResult', data); }
-  leaveRoom() { this.socket.emit('leaveRoom'); }
+  leaveRoom() { 
+    if (this.reconnectionManager) {
+      this.reconnectionManager.clearSession();
+    }
+    this.socket.emit('leaveRoom'); 
+  }
   enableAutoRequestMatch(playerName) {
     this.playerName = playerName;
     this._autoRequestMatch = true;
     if (this.isConnected) {
       this.requestMatch({ name: playerName });
+    }
+  }
+  
+  disconnect() {
+    if (this.reconnectionManager) {
+      this.reconnectionManager.destroy();
+      this.reconnectionManager = null;
+    }
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
     }
   }
 
