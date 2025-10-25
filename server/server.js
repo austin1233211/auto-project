@@ -77,6 +77,32 @@ const rateLimitMap = new Map();
 
 function makeRoomId(prefix='room') { return prefix + '_' + Math.random().toString(36).slice(2,8); }
 
+function checkRateLimit(socketId, eventName, maxPerSecond = 10) {
+  const key = `${socketId}:${eventName}`;
+  const now = Date.now();
+  
+  if (!rateLimitMap.has(key)) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + 1000 });
+    return true;
+  }
+  
+  const limit = rateLimitMap.get(key);
+  
+  if (now > limit.resetTime) {
+    limit.count = 1;
+    limit.resetTime = now + 1000;
+    return true;
+  }
+  
+  if (limit.count >= maxPerSecond) {
+    console.warn(`Rate limit exceeded for ${socketId} on ${eventName}`);
+    return false;
+  }
+  
+  limit.count++;
+  return true;
+}
+
 function sanitizePlayerName(name) {
   if (!name || typeof name !== 'string') {
     return `Player_${Math.floor(Math.random()*100000)}`;
