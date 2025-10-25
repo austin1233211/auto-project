@@ -1,68 +1,73 @@
 import { test, expect } from '@playwright/test';
 
+test.describe.configure({ timeout: 120_000 });
+
 test.describe('Single Player Tournament Flow', () => {
   test('should complete full tournament flow: hero selection → buy ability → reroll → minion round → artifact round', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER:', msg.text()));
+    page.on('pageerror', error => console.error('PAGE ERROR:', error));
+    
     await page.goto('/');
     
     await expect(page.locator('h1').first()).toContainText('Choose Game Mode');
     
-    await page.click('button.game-mode-card:has-text("Single Player")');
+    await page.click('[data-mode-id="casual"]');
     
-    await expect(page.locator('.hero-selection-container, .hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
+    await page.click('button#start-play-btn');
     
-    const firstHero = page.locator('.hero-card, .hero-option').first();
+    await expect(page.locator('#hero-selection.active')).toBeVisible({ timeout: 10000 });
+    
+    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 5000 });
+    
+    const firstHero = page.locator('.hero-card').first();
     await expect(firstHero).toBeVisible({ timeout: 5000 });
     await firstHero.click();
     
     await page.waitForTimeout(1000);
     
-    const startButton = page.locator('button:has-text("Start"), button:has-text("Ready"), button:has-text("Begin")');
-    if (await startButton.isVisible()) {
-      await startButton.click();
-    }
+    const startButton = page.locator('button#start-tournament-btn');
+    await expect(startButton).toBeVisible({ timeout: 5000 });
+    await startButton.click();
     
-    await expect(page.locator('.shop, .ability-shop, #shop')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Pre-Round')).toBeVisible({ timeout: 15000 });
     
-    const goldBefore = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
+    await page.click('button#rounds-shop-toggle');
+    
+    await expect(page.locator('h3:has-text("🏪 Abilities Shop")')).toBeVisible({ timeout: 5000 });
+    
+    const goldBefore = await page.locator('.player-gold-mini').textContent();
     console.log('Gold before purchase:', goldBefore);
     
-    const buyButton = page.locator('button:has-text("Buy"), button:has-text("Purchase")').first();
+    const buyButton = page.locator('button.buy-btn-mini').first();
     if (await buyButton.isVisible()) {
       await buyButton.click();
       await page.waitForTimeout(500);
       
-      const goldAfter = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
+      const goldAfter = await page.locator('.player-gold-mini').textContent();
       console.log('Gold after purchase:', goldAfter);
     }
     
-    const rerollButton = page.locator('button:has-text("Reroll"), button:has-text("Refresh")');
+    const rerollButton = page.locator('button#global-reroll-btn');
     if (await rerollButton.isVisible()) {
-      const goldBeforeReroll = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
+      const goldBeforeReroll = await page.locator('.player-gold-mini').textContent();
       await rerollButton.click();
       await page.waitForTimeout(500);
       
-      const goldAfterReroll = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
+      const goldAfterReroll = await page.locator('.player-gold-mini').textContent();
       console.log('Gold before reroll:', goldBeforeReroll, 'after:', goldAfterReroll);
     }
     
-    const readyButton = page.locator('button:has-text("Ready"), button:has-text("Done"), button:has-text("Continue")');
-    if (await readyButton.isVisible()) {
-      await readyButton.click();
-    }
+    await page.click('button#close-combat-shop');
     
-    await expect(page.locator('.combat, .battle, [class*="combat"]')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('#rounds-shop-container')).toBeHidden({ timeout: 3000 });
+    
+    await page.waitForSelector('#round-timer .timer-display.round', { timeout: 40000 });
+    
+    await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 10000 });
     
     await page.waitForTimeout(2000);
     
-    const healthBar = page.locator('.health, .hp, [class*="health"]').first();
-    await expect(healthBar).toBeVisible({ timeout: 5000 });
-    
-    await page.waitForFunction(() => {
-      const combatElements = document.querySelectorAll('.combat, .battle, [class*="combat"]');
-      return combatElements.length === 0 || 
-             document.querySelector('.shop, .ability-shop') !== null ||
-             document.querySelector('button:has-text("Continue")') !== null;
-    }, { timeout: 60000 });
+    await expect(page.locator('h3:has-text("Battle Log")')).toBeVisible({ timeout: 5000 });
     
     const minionRoundIndicator = page.locator('text=/minion|creep|pve/i');
     if (await minionRoundIndicator.isVisible({ timeout: 5000 })) {
@@ -87,81 +92,91 @@ test.describe('Single Player Tournament Flow', () => {
   test('should handle shop interactions correctly', async ({ page }) => {
     await page.goto('/');
     
-    await page.click('button.game-mode-card:has-text("Single Player")');
+    await page.click('[data-mode-id="casual"]');
     
-    await expect(page.locator('.hero-selection-container, .hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
-    const firstHero = page.locator('.hero-card, .hero-option').first();
+    await page.click('button#start-play-btn');
+    
+    await expect(page.locator('#hero-selection.active')).toBeVisible({ timeout: 10000 });
+    
+    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 5000 });
+    const firstHero = page.locator('.hero-card').first();
     await firstHero.click();
     
     await page.waitForTimeout(1000);
-    const startButton = page.locator('button:has-text("Start"), button:has-text("Ready"), button:has-text("Begin")');
-    if (await startButton.isVisible()) {
-      await startButton.click();
-    }
+    const startButton = page.locator('button#start-tournament-btn');
+    await expect(startButton).toBeVisible({ timeout: 5000 });
+    await startButton.click();
     
-    await expect(page.locator('.shop, .ability-shop, #shop')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Pre-Round')).toBeVisible({ timeout: 15000 });
     
-    const initialGoldText = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
+    await page.click('button#rounds-shop-toggle');
+    
+    await expect(page.locator('h3:has-text("🏪 Abilities Shop")')).toBeVisible({ timeout: 5000 });
+    
+    const initialGoldText = await page.locator('.player-gold-mini').textContent();
     const initialGold = parseInt(initialGoldText.replace(/\D/g, ''));
     console.log('Initial gold:', initialGold);
     
-    const rerollButton = page.locator('button:has-text("Reroll"), button:has-text("Refresh")');
-    if (await rerollButton.isVisible()) {
-      await rerollButton.click();
-      await page.waitForTimeout(500);
-      
-      const afterRerollText = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
-      const afterRerollGold = parseInt(afterRerollText.replace(/\D/g, ''));
-      console.log('Gold after reroll:', afterRerollGold);
-      
-      expect(afterRerollGold).toBeLessThan(initialGold);
-    }
+    const rerollButton = page.locator('button#global-reroll-btn');
+    await expect(rerollButton).toBeVisible({ timeout: 5000 });
+    await rerollButton.click();
+    await page.waitForTimeout(500);
     
-    const buyButton = page.locator('button:has-text("Buy"), button:has-text("Purchase")').first();
-    if (await buyButton.isVisible()) {
-      const beforePurchaseText = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
-      const beforePurchaseGold = parseInt(beforePurchaseText.replace(/\D/g, ''));
-      
-      await buyButton.click();
-      await page.waitForTimeout(500);
-      
-      const afterPurchaseText = await page.locator('.gold, .player-gold, [class*="gold"]').first().textContent();
-      const afterPurchaseGold = parseInt(afterPurchaseText.replace(/\D/g, ''));
-      console.log('Gold before purchase:', beforePurchaseGold, 'after:', afterPurchaseGold);
-      
-      expect(afterPurchaseGold).toBeLessThan(beforePurchaseGold);
-    }
+    const afterRerollText = await page.locator('.player-gold-mini').textContent();
+    const afterRerollGold = parseInt(afterRerollText.replace(/\D/g, ''));
+    console.log('Gold after reroll:', afterRerollGold);
+    
+    expect(afterRerollGold).toBeLessThan(initialGold);
+    
+    const buyButton = page.locator('button.buy-btn-mini').first();
+    await expect(buyButton).toBeVisible({ timeout: 5000 });
+    
+    const beforePurchaseText = await page.locator('.player-gold-mini').textContent();
+    const beforePurchaseGold = parseInt(beforePurchaseText.replace(/\D/g, ''));
+    
+    await buyButton.click();
+    await page.waitForTimeout(500);
+    
+    const afterPurchaseText = await page.locator('.player-gold-mini').textContent();
+    const afterPurchaseGold = parseInt(afterPurchaseText.replace(/\D/g, ''));
+    console.log('Gold before purchase:', beforePurchaseGold, 'after:', afterPurchaseGold);
+    
+    expect(afterPurchaseGold).toBeLessThan(beforePurchaseGold);
+    
+    console.log('Shop interactions test completed successfully');
   });
 
   test('should display combat correctly', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER:', msg.text()));
+    page.on('pageerror', error => console.error('PAGE ERROR:', error));
+    
     await page.goto('/');
     
-    await page.click('button.game-mode-card:has-text("Single Player")');
+    await page.click('[data-mode-id="casual"]');
     
-    await expect(page.locator('.hero-selection-container, .hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
-    const firstHero = page.locator('.hero-card, .hero-option').first();
+    await page.click('button#start-play-btn');
+    
+    await expect(page.locator('#hero-selection.active')).toBeVisible({ timeout: 10000 });
+    
+    await expect(page.locator('.hero-selection-container')).toBeVisible({ timeout: 5000 });
+    const firstHero = page.locator('.hero-card').first();
     await firstHero.click();
     
     await page.waitForTimeout(1000);
-    const startButton = page.locator('button:has-text("Start"), button:has-text("Ready"), button:has-text("Begin")');
-    if (await startButton.isVisible()) {
-      await startButton.click();
-    }
+    const startButton = page.locator('button#start-tournament-btn');
+    await expect(startButton).toBeVisible({ timeout: 5000 });
+    await startButton.click();
     
-    await expect(page.locator('.shop, .ability-shop, #shop')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Pre-Round')).toBeVisible({ timeout: 15000 });
     
-    const readyButton = page.locator('button:has-text("Ready"), button:has-text("Done"), button:has-text("Continue")');
-    if (await readyButton.isVisible()) {
-      await readyButton.click();
-    }
+    await page.waitForSelector('#round-timer .timer-display.round', { timeout: 40000 });
     
-    await expect(page.locator('.combat, .battle, [class*="combat"]')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('h1.combat-title:has-text("Battle Arena")')).toBeVisible({ timeout: 10000 });
     
-    const playerHealth = page.locator('.player-health, .player .health, [class*="player"] [class*="health"]').first();
-    await expect(playerHealth).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h3:has-text("Battle Log")')).toBeVisible({ timeout: 5000 });
     
-    const enemyHealth = page.locator('.enemy-health, .enemy .health, [class*="enemy"] [class*="health"]').first();
-    await expect(enemyHealth).toBeVisible({ timeout: 5000 });
+    const playerHeroCard = page.locator('.hero-stats-card').first();
+    await expect(playerHeroCard).toBeVisible({ timeout: 5000 });
     
     await page.waitForTimeout(5000);
     
