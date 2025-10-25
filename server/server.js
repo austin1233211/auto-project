@@ -21,7 +21,7 @@ app.use(cors({
     if (!origin || allowlist.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, false);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
@@ -62,7 +62,7 @@ const io = new Server(server, {
       if (!origin || allowlist.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, false);
+        callback(new Error('Not allowed by CORS'));
       }
     },
     methods: ['GET','POST'],
@@ -77,30 +77,15 @@ const rateLimitMap = new Map();
 
 function makeRoomId(prefix='room') { return prefix + '_' + Math.random().toString(36).slice(2,8); }
 
-function checkRateLimit(socketId, eventName, maxPerSecond = 10) {
-  const key = `${socketId}:${eventName}`;
-  const now = Date.now();
-  
-  if (!rateLimitMap.has(key)) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + 1000 });
-    return true;
+function sanitizePlayerName(name) {
+  if (!name || typeof name !== 'string') {
+    return `Player_${Math.floor(Math.random()*100000)}`;
   }
-  
-  const limit = rateLimitMap.get(key);
-  
-  if (now > limit.resetTime) {
-    limit.count = 1;
-    limit.resetTime = now + 1000;
-    return true;
-  }
-  
-  if (limit.count >= maxPerSecond) {
-    console.warn(`Rate limit exceeded for ${socketId} on ${eventName}`);
-    return false;
-  }
-  
-  limit.count++;
-  return true;
+  return name
+    .replace(/<[^>]*>/g, '')
+    .replace(/[<>'"]/g, '')
+    .trim()
+    .substring(0, 20) || `Player_${Math.floor(Math.random()*100000)}`;
 }
 
 io.on('connection', (socket) => {
@@ -108,7 +93,7 @@ io.on('connection', (socket) => {
   
   socket.on('requestMatch', (playerData) => {
     console.log('[1v1] requestMatch from', socket.id, 'name=', playerData?.name, 'existingRoom=', socket.data?.roomId);
-    socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
+    socket.data.name = sanitizePlayerName(playerData?.name);
     if (socket.data.roomId) {
       leaveRoom(socket);
     }
@@ -194,7 +179,7 @@ io.on('connection', (socket) => {
 
   socket.on('requestTournament', (playerData) => {
     console.log('Tournament request received from:', socket.id, playerData);
-    socket.data.name = playerData?.name || `Player_${socket.id.slice(0,4)}`;
+    socket.data.name = sanitizePlayerName(playerData?.name);
     
     let joinedExistingRoom = false;
     for (const [roomId, room] of rooms.entries()) {
@@ -236,7 +221,7 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId);
     const ps = room.players.get(socket.id);
     if (!ps) return;
-    ps.name = name || ps.name;
+    ps.name = sanitizePlayerName(name) || ps.name;
     broadcastLobby(roomId);
   });
 
@@ -246,6 +231,10 @@ io.on('connection', (socket) => {
     const roomId = socket.data.roomId;
     console.log('[1v1] selectHero from', socket.id, 'room=', roomId, 'heroId=', heroId);
     if (!roomId || !rooms.has(roomId)) return;
+    if (!heroId || typeof heroId !== 'string') {
+      console.log('[1v1] selectHero invalid heroId:', heroId);
+      return;
+    }
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (!player) {
