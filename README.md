@@ -102,6 +102,7 @@ Each hero has unique:
 
 ### Prerequisites
 - Modern web browser with ES6 module support
+- Node.js 18+ (for testing and development)
 - Local web server (Python, Node.js, or any HTTP server)
 
 ### Running Locally
@@ -109,6 +110,9 @@ Each hero has unique:
 # Clone the repository
 git clone <repository-url>
 cd auto-gladiators
+
+# Install dependencies
+npm install
 
 # Start a local web server
 python3 -m http.server 8080
@@ -120,11 +124,38 @@ php -S localhost:8080
 # Open browser to http://localhost:8080
 ```
 
+### Testing
+
+The project includes a comprehensive test suite using Vitest:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with UI
+npm run test:ui
+
+# Generate coverage report
+npm run test:coverage
+
+# Run linter
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+```
+
+See [tests/README.md](tests/README.md) for more details on writing and running tests.
+
 ### File Structure Guidelines
 - Keep components modular and separate
 - Use ES6 modules for imports/exports
 - Mobile-first responsive design
 - Maintain consistent code style
+- Write tests for new features
 
 ## 📱 Responsive Design
 
