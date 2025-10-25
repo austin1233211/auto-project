@@ -5,6 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from './logger.js';
+import { sessionManager } from './session-manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -118,6 +119,71 @@ function sanitizePlayerName(name) {
 io.on('connection', (socket) => {
   logger.debug('New WebSocket connection established:', socket.id, new Date().toISOString());
   
+  socket.on('reconnect', ({ sessionToken }) => {
+    if (!checkRateLimit(socket.id, 'reconnect', 5)) {
+      socket.emit('reconnectFailed', { reason: 'Rate limit exceeded' });
+      return;
+    }
+
+    logger.info('[Reconnect] Attempt from socket', socket.id, 'with token', sessionToken?.substring(0, 8) + '...');
+    
+    const session = sessionManager.reconnect(sessionToken, socket.id);
+    
+    if (!session) {
+      logger.warn('[Reconnect] Failed for socket', socket.id);
+      socket.emit('reconnectFailed', { reason: 'Invalid or expired session' });
+      return;
+    }
+
+    const roomId = session.roomId;
+    const room = rooms.get(roomId);
+    
+    if (!room) {
+      logger.warn('[Reconnect] Room no longer exists', roomId);
+      sessionManager.destroySession(socket.id);
+      socket.emit('reconnectFailed', { reason: 'Room no longer exists' });
+      return;
+    }
+
+    const playerData = session.playerData;
+    room.players.set(socket.id, playerData);
+    
+    socket.join(roomId);
+    socket.data.roomId = roomId;
+    socket.data.name = playerData.name;
+    
+    logger.info('[Reconnect] Success! Player', playerData.name, 'reconnected to room', roomId);
+    
+    socket.emit('reconnectSuccess', {
+      roomId,
+      playerData,
+      roomState: {
+        mode: room.mode,
+        phase: room.phase,
+        currentRound: room.currentRound,
+        players: Array.from(room.players.values()),
+        currentMatches: room.currentMatches,
+        activePlayers: room.activePlayers,
+        ghostPlayers: room.ghostPlayers
+      }
+    });
+
+    socket.to(roomId).emit('playerReconnected', {
+      playerId: socket.id,
+      playerName: playerData.name
+    });
+
+    if (room.mode === '1v1') {
+      broadcastRoomStatus1v1(roomId);
+    } else if (room.mode === 'tournament') {
+      if (room.phase === 'waiting') {
+        broadcastWaitingRoom(roomId);
+      } else {
+        broadcastLobby(roomId);
+      }
+    }
+  });
+  
   socket.on('requestMatch', (playerData) => {
     logger.debug('[1v1] requestMatch from', socket.id, 'name=', playerData?.name, 'existingRoom=', socket.data?.roomId);
     socket.data.name = sanitizePlayerName(playerData?.name);
@@ -195,6 +261,13 @@ io.on('connection', (socket) => {
               consecutiveLosses: 0
             });
           });
+          
+          [a, b].forEach((s) => {
+            const playerData = room.players.get(s.id);
+            const token = sessionManager.createSession(s.id, roomId, playerData);
+            s.emit('sessionCreated', { sessionToken: token });
+          });
+          
           logger.debug('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
           broadcastRoomStatus1v1(roomId);
         }
@@ -230,6 +303,10 @@ io.on('connection', (socket) => {
           consecutiveLosses: 0
         };
         room.players.set(socket.id, ps);
+        
+        const token = sessionManager.createSession(socket.id, roomId, ps);
+        socket.emit('sessionCreated', { sessionToken: token });
+        
         broadcastWaitingRoom(roomId);
         joinedExistingRoom = true;
         break;
@@ -316,8 +393,39 @@ io.on('connection', (socket) => {
 
   socket.on('confirmRules', () => {});
 
-  socket.on('leaveRoom', () => { leaveRoom(socket); broadcastQueueStatusTournament(); });
-  socket.on('disconnect', () => { leaveRoom(socket); broadcastQueueStatusTournament(); });
+  socket.on('leaveRoom', () => { 
+    sessionManager.destroySession(socket.id);
+    leaveRoom(socket); 
+    broadcastQueueStatusTournament(); 
+  });
+  
+  socket.on('disconnect', () => { 
+    logger.info('[Disconnect] Socket', socket.id, 'disconnected');
+    
+    const session = sessionManager.markDisconnected(socket.id);
+    
+    if (session) {
+      const roomId = session.roomId;
+      const room = rooms.get(roomId);
+      
+      if (room) {
+        socket.to(roomId).emit('playerDisconnected', {
+          playerId: socket.id,
+          playerName: session.playerData.name,
+          canReconnect: true,
+          reconnectWindow: sessionManager.reconnectionWindow / 1000
+        });
+        
+        logger.info('[Disconnect] Player', session.playerData.name, 'can reconnect within', sessionManager.reconnectionWindow / 1000, 'seconds');
+        
+        return;
+      }
+    }
+    
+    sessionManager.destroySession(socket.id);
+    leaveRoom(socket); 
+    broadcastQueueStatusTournament(); 
+  });
 });
 
 function tryMatch1v1() {
@@ -467,6 +575,9 @@ function createWaitingRoom(socket) {
     consecutiveLosses: 0
   };
   room.players.set(socket.id, ps);
+  
+  const token = sessionManager.createSession(socket.id, roomId, ps);
+  socket.emit('sessionCreated', { sessionToken: token });
   
   logger.debug('Created new waiting room:', roomId, 'with first player:', socket.data.name);
   broadcastWaitingRoom(roomId);
