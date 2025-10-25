@@ -118,31 +118,32 @@ test.describe('Single Player Tournament Flow', () => {
     console.log('Initial gold:', initialGold);
     
     const rerollButton = page.locator('button#global-reroll-btn');
-    if (await rerollButton.isVisible()) {
-      await rerollButton.click();
-      await page.waitForTimeout(500);
-      
-      const afterRerollText = await page.locator('.player-gold-mini').textContent();
-      const afterRerollGold = parseInt(afterRerollText.replace(/\D/g, ''));
-      console.log('Gold after reroll:', afterRerollGold);
-      
-      expect(afterRerollGold).toBeLessThan(initialGold);
-    }
+    await expect(rerollButton).toBeVisible({ timeout: 5000 });
+    await rerollButton.click();
+    await page.waitForTimeout(500);
+    
+    const afterRerollText = await page.locator('.player-gold-mini').textContent();
+    const afterRerollGold = parseInt(afterRerollText.replace(/\D/g, ''));
+    console.log('Gold after reroll:', afterRerollGold);
+    
+    expect(afterRerollGold).toBeLessThan(initialGold);
     
     const buyButton = page.locator('button.buy-btn-mini').first();
-    if (await buyButton.isVisible()) {
-      const beforePurchaseText = await page.locator('.player-gold-mini').textContent();
-      const beforePurchaseGold = parseInt(beforePurchaseText.replace(/\D/g, ''));
-      
-      await buyButton.click();
-      await page.waitForTimeout(500);
-      
-      const afterPurchaseText = await page.locator('.player-gold-mini').textContent();
-      const afterPurchaseGold = parseInt(afterPurchaseText.replace(/\D/g, ''));
-      console.log('Gold before purchase:', beforePurchaseGold, 'after:', afterPurchaseGold);
-      
-      expect(afterPurchaseGold).toBeLessThan(beforePurchaseGold);
-    }
+    await expect(buyButton).toBeVisible({ timeout: 5000 });
+    
+    const beforePurchaseText = await page.locator('.player-gold-mini').textContent();
+    const beforePurchaseGold = parseInt(beforePurchaseText.replace(/\D/g, ''));
+    
+    await buyButton.click();
+    await page.waitForTimeout(500);
+    
+    const afterPurchaseText = await page.locator('.player-gold-mini').textContent();
+    const afterPurchaseGold = parseInt(afterPurchaseText.replace(/\D/g, ''));
+    console.log('Gold before purchase:', beforePurchaseGold, 'after:', afterPurchaseGold);
+    
+    expect(afterPurchaseGold).toBeLessThan(beforePurchaseGold);
+    
+    console.log('Shop interactions test completed successfully');
   });
 
   test('should display combat correctly', async ({ page }) => {
