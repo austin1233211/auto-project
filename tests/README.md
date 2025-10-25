@@ -33,7 +33,14 @@ tests/
 
 ## Writing Tests
 
-Tests use [Vitest](https://vitest.dev/) with JSDOM for DOM testing.
+Tests use [Vitest](https://vitest.dev/) with a Node.js environment by default for better compatibility across Node versions (18.x and 20.x).
+
+### Test Environments
+
+- **Default**: `node` environment for pure JavaScript logic tests (RNG, StatsCalculator, Economy, etc.)
+- **DOM Tests**: Place DOM-dependent tests in `tests/dom/**` to automatically use the `jsdom` environment
+
+This approach avoids loading jsdom dependencies for tests that don't need DOM, improving compatibility and performance.
 
 ### Example Test
 
