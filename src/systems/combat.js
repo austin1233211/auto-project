@@ -8,6 +8,38 @@ import { debugTools } from '../components/debug-tools.js';
 import { GameLoop } from './game-loop.js';
 
 /**
+ * @typedef {import('../core/stats-calculator.js').Hero} Hero
+ * @typedef {import('../core/stats-calculator.js').HeroStats} HeroStats
+ */
+
+/**
+ * @typedef {Object} CombatHero
+ * @property {string} name
+ * @property {string} id
+ * @property {HeroStats} stats
+ * @property {HeroStats} effectiveStats
+ * @property {number} currentHealth
+ * @property {number} currentMana
+ * @property {number} maxMana
+ * @property {Array} [purchasedAbilities]
+ * @property {Array} [equipment]
+ * @property {Array} [statusEffects]
+ */
+
+/**
+ * @typedef {Object} CombatOptions
+ * @property {boolean} [autoStart=true] - Whether to automatically start the battle
+ */
+
+/**
+ * @typedef {Object} BattleEndResult
+ * @property {boolean} playerWon
+ * @property {CombatHero} playerHero
+ * @property {CombatHero} enemyHero
+ * @property {number} playerMoney
+ */
+
+/**
  * Combat system managing player vs enemy battles with abilities, timers, and shops.
  * Handles attack cycles, mana regeneration, status effects, and battle resolution.
  */
@@ -15,7 +47,7 @@ export class Combat {
   /**
    * Creates a new Combat instance.
    * @param {HTMLElement} container - DOM container for combat UI
-   * @param {Object} heroStatsCard - Optional hero stats card component for UI updates
+   * @param {Object|null} heroStatsCard - Optional hero stats card component for UI updates
    */
   constructor(container, heroStatsCard = null) {
     this.container = container;
@@ -41,9 +73,9 @@ export class Combat {
 
   /**
    * Initializes combat with player hero and optional settings.
-   * @param {Object} playerHero - Player's hero object with stats and abilities
+   * @param {Hero} playerHero - Player's hero object with stats and abilities
    * @param {number} playerMoney - Starting gold amount for shop purchases
-   * @param {Object} options - Configuration options (autoStart: boolean)
+   * @param {CombatOptions} options - Configuration options
    */
   init(playerHero, playerMoney = 0, options = {}) {
     try {
@@ -88,12 +120,19 @@ export class Combat {
     }
   }
 
+  /**
+   * Select a random enemy hero different from the player's hero
+   * @returns {Hero} A random enemy hero
+   */
   selectRandomEnemy() {
     const availableEnemies = heroes.filter(hero => hero.id !== this.playerHero.id);
     const randomIndex = Math.floor(Math.random() * availableEnemies.length);
     return { ...availableEnemies[randomIndex] };
   }
 
+  /**
+   * Render the combat UI
+   */
   render() {
     this.container.innerHTML = `
       <div class="combat-container">
@@ -277,6 +316,9 @@ export class Combat {
     this.gameLoop.stop();
   }
 
+  /**
+   * Start the battle between player and enemy
+   */
   startBattle() {
     this.isGameOver = false;
     this.playerHero.currentMana = 0;
@@ -294,6 +336,9 @@ export class Combat {
     this.gameLoop.start();
   }
 
+  /**
+   * Initialize combat timers for attacks, mana regen, and status effects
+   */
   initializeCombatTimers() {
     this.clearTimers();
     
@@ -329,6 +374,11 @@ export class Combat {
     this.startStatusEffectsTimer();
   }
 
+  /**
+   * Execute an attack from attacker to target
+   * @param {CombatHero} attacker - The attacking hero
+   * @param {CombatHero} target - The target hero
+   */
   executeAttack(attacker, target) {
     if (this.isGameOver) return;
 

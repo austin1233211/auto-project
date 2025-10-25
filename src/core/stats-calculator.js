@@ -1,18 +1,134 @@
 import { createEffect } from './ability-effects/effect-registry.js';
 
+/**
+ * @typedef {Object} HeroStats
+ * @property {number} health
+ * @property {number} attack
+ * @property {number} armor
+ * @property {number} speed
+ * @property {number} [manaRegeneration]
+ * @property {number} [critChance]
+ * @property {number} [critDamage]
+ * @property {number} [evasionChance]
+ * @property {number} [physicalDamageReduction]
+ * @property {number} [magicDamageReduction]
+ * @property {number} [abilityEffectiveness]
+ * @property {number} [extraShieldStacks]
+ * @property {number} [extraPoisonStacks]
+ * @property {number} [extraFrostStacks]
+ * @property {number} [extraRegenStacks]
+ * @property {number} [enemyRegenReductionPct]
+ * @property {number} [attackDamagePct]
+ * @property {number} [healthRegenPct]
+ * @property {number} [critDamageTakenReduction]
+ * @property {number} [magicDamageAmplification]
+ * @property {number} [enemyMissChanceBonusPct]
+ * @property {number} [stunResistancePct]
+ * @property {number} [lifestealPct]
+ * @property {number} [poisonDamageMultiplierPct]
+ * @property {number} [poisonPerStackBonus]
+ * @property {boolean} [poisonCanCrit]
+ */
+
+/**
+ * @typedef {Object} Ability
+ * @property {string} name
+ * @property {string} effect
+ * @property {number} value
+ * @property {string} [tier]
+ */
+
+/**
+ * @typedef {Object} EquipmentEffects
+ * @property {number} [maxHpFlat]
+ * @property {number} [manaRegenPerSec]
+ * @property {number} [attackFlat]
+ * @property {number} [attackSpeedPct]
+ * @property {number} [critDamagePct]
+ * @property {number} [critChancePct]
+ * @property {number} [physicalDamageReductionPct]
+ * @property {number} [magicDamageReductionPct]
+ * @property {number} [abilityEffectivenessPct]
+ * @property {number} [extraShieldStacks]
+ * @property {number} [extraPoisonStacks]
+ * @property {number} [extraFrostStacks]
+ * @property {number} [extraRegenStacks]
+ * @property {number} [enemyHealRegenReductionPct]
+ * @property {number} [attackDamagePct]
+ * @property {number} [healthRegenPct]
+ * @property {number} [critDamageTakenReductionPct]
+ * @property {number} [evasionChancePct]
+ * @property {number} [magicDamageAmplificationPct]
+ * @property {number} [enemyMissChanceBonusPct]
+ * @property {number} [stunResistancePct]
+ * @property {number} [lifestealPct]
+ * @property {number} [poisonDamageMultiplierPct]
+ * @property {number} [poisonPerStackBonus]
+ * @property {boolean} [poisonCanCrit]
+ */
+
+/**
+ * @typedef {Object} Equipment
+ * @property {string} name
+ * @property {string} type
+ * @property {EquipmentEffects} [effects]
+ */
+
+/**
+ * @typedef {Object} StatusEffect
+ * @property {string} type
+ * @property {number} [ticksRemaining]
+ * @property {number} [bonus]
+ * @property {number} [stacks]
+ * @property {number} [duration]
+ * @property {number} [startTime]
+ */
+
+/**
+ * @typedef {Object} Hero
+ * @property {string} name
+ * @property {HeroStats} stats
+ * @property {Ability[]} [purchasedAbilities]
+ * @property {Equipment[]} [equipment]
+ * @property {StatusEffect[]} [statusEffects]
+ * @property {HeroStats} [effectiveStats]
+ */
+
 export class StatsCalculator {
+  /**
+   * Calculate effective attack with diminishing returns above 100
+   * @param {number} baseAttack - Base attack value
+   * @returns {number} Effective attack value
+   */
   static calculateEffectiveAttack(baseAttack) {
     return this.applyDiminishingReturns(baseAttack, 100, 0.6);
   }
 
+  /**
+   * Calculate effective armor with diminishing returns above 100
+   * @param {number} baseArmor - Base armor value
+   * @returns {number} Effective armor value
+   */
   static calculateEffectiveArmor(baseArmor) {
     return this.applyDiminishingReturns(baseArmor, 100, 0.6);
   }
 
+  /**
+   * Calculate effective speed with diminishing returns above 2.0
+   * @param {number} baseSpeed - Base speed value
+   * @returns {number} Effective speed value
+   */
   static calculateEffectiveSpeed(baseSpeed) {
     return this.applyDiminishingReturns(baseSpeed, 2.0, 0.6);
   }
 
+  /**
+   * Apply diminishing returns to a stat value above a threshold
+   * @param {number} value - The stat value
+   * @param {number} threshold - The threshold above which diminishing returns apply
+   * @param {number} diminishingFactor - The factor to apply to excess value (0-1)
+   * @returns {number} Value with diminishing returns applied
+   */
   static applyDiminishingReturns(value, threshold, diminishingFactor) {
     if (value <= threshold) {
       return value;
@@ -23,6 +139,11 @@ export class StatsCalculator {
     return threshold + diminishedExcess;
   }
 
+  /**
+   * Process hero stats by applying abilities, equipment, and status effects
+   * @param {Hero} hero - The hero object
+   * @returns {Hero} Hero with effectiveStats calculated
+   */
   static processHeroStats(hero) {
     let modifiedStats = { ...hero.stats };
     

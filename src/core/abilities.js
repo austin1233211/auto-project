@@ -784,6 +784,9 @@ export class AbilitySystem {
   triggerAbilities(hero, target, triggerType, extraData = {}) {
     if (!hero.purchasedAbilities) return;
     
+    const now = Date.now();
+    const opp = target; // Alias for opponent/target
+    
     for (const ability of hero.purchasedAbilities) {
       switch (ability.effect) {
         case 'attack_poison_chance':
@@ -998,7 +1001,6 @@ export class AbilitySystem {
           break;
         case 'blade_dance':
           if (triggerType === 'on_crit') {
-            const now = Date.now();
             if (!hero.bladeDanceLastUse || now - hero.bladeDanceLastUse >= 1500) {
               const hpDamage = Math.round(target.stats.health * (ability.value / 100));
               target.currentHealth = Math.max(0, target.currentHealth - hpDamage);
@@ -1018,7 +1020,6 @@ export class AbilitySystem {
       }
     }
   if (!hero.equipmentState) hero.equipmentState = {};
-  const now = Date.now();
   const es = hero.equipmentState;
 
   if (!es.initT3T4) {
@@ -1033,8 +1034,6 @@ export class AbilitySystem {
   }
 
   if (triggerType === 'status_tick') {
-    const opp = target;
-    const dt = 1000;
     if (hero.effectiveStats.healPerSecondPctMaxHp) {
       const heal = Math.floor((hero.stats.health + (hero.effectiveStats.healthBonus || 0)) * (hero.effectiveStats.healPerSecondPctMaxHp / 100));
       hero.currentHealth = Math.min(hero.stats.health, hero.currentHealth + heal);
@@ -1248,7 +1247,6 @@ export class AbilitySystem {
     }
     if (hero.equipment && hero.equipment.find(it => it.type === 'revenant_brooch')) {
       if (Math.random() < 0.50) {
-        const now = Date.now();
         const bonus = Math.round((hero.effectiveStats.attack || 0) * 0.15);
         const dealt = this.combat?.calculateDamage ? this.combat.calculateDamage(bonus, opp, 'physical') : bonus;
         opp.currentHealth = Math.max(0, opp.currentHealth - dealt);
@@ -1575,7 +1573,6 @@ export class AbilitySystem {
           }
         }
       if (triggerType === 'on_damage_taken') {
-        if (fx.onPhysicalDamageGainShield && target && target === attacker && false) {}
         if (fx.onPhysicalDamageGainShield) {
           if (extraData && extraData.damageType === 'physical') {
             if (Math.random() < (fx.onPhysicalDamageGainShield.chancePct / 100)) {
