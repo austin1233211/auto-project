@@ -4,11 +4,11 @@ test.describe('Single Player Tournament Flow', () => {
   test('should complete full tournament flow: hero selection → buy ability → reroll → minion round → artifact round', async ({ page }) => {
     await page.goto('/');
     
-    await expect(page.locator('h1')).toContainText('Auto Gladiators');
+    await expect(page.locator('h1').first()).toContainText('Choose Game Mode');
     
-    await page.click('button:has-text("Single Player Tournament")');
+    await page.click('button.game-mode-card:has-text("Single Player")');
     
-    await expect(page.locator('.hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.hero-selection-container, .hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
     
     const firstHero = page.locator('.hero-card, .hero-option').first();
     await expect(firstHero).toBeVisible({ timeout: 5000 });
@@ -87,9 +87,9 @@ test.describe('Single Player Tournament Flow', () => {
   test('should handle shop interactions correctly', async ({ page }) => {
     await page.goto('/');
     
-    await page.click('button:has-text("Single Player Tournament")');
+    await page.click('button.game-mode-card:has-text("Single Player")');
     
-    await expect(page.locator('.hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.hero-selection-container, .hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
     const firstHero = page.locator('.hero-card, .hero-option').first();
     await firstHero.click();
     
@@ -136,9 +136,9 @@ test.describe('Single Player Tournament Flow', () => {
   test('should display combat correctly', async ({ page }) => {
     await page.goto('/');
     
-    await page.click('button:has-text("Single Player Tournament")');
+    await page.click('button.game-mode-card:has-text("Single Player")');
     
-    await expect(page.locator('.hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.hero-selection-container, .hero-selection, #hero-selection')).toBeVisible({ timeout: 10000 });
     const firstHero = page.locator('.hero-card, .hero-option').first();
     await firstHero.click();
     
