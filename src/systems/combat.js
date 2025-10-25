@@ -6,7 +6,16 @@ import { AbilitySystem } from '../core/abilities.js';
 import { CombatShop } from '../shops/combat-shop-v2.js';
 import { debugTools } from '../components/debug-tools.js';
 
+/**
+ * Combat system managing player vs enemy battles with abilities, timers, and shops.
+ * Handles attack cycles, mana regeneration, status effects, and battle resolution.
+ */
 export class Combat {
+  /**
+   * Creates a new Combat instance.
+   * @param {HTMLElement} container - DOM container for combat UI
+   * @param {Object} heroStatsCard - Optional hero stats card component for UI updates
+   */
   constructor(container, heroStatsCard = null) {
     this.container = container;
     this.playerHero = null;
@@ -32,6 +41,12 @@ export class Combat {
     this.heroStatsCard = heroStatsCard;
   }
 
+  /**
+   * Initializes combat with player hero and optional settings.
+   * @param {Object} playerHero - Player's hero object with stats and abilities
+   * @param {number} playerMoney - Starting gold amount for shop purchases
+   * @param {Object} options - Configuration options (autoStart: boolean)
+   */
   init(playerHero, playerMoney = 0, options = {}) {
     try {
       if (!playerHero || !playerHero.stats) {
@@ -265,6 +280,10 @@ export class Combat {
     debugTools.registerTimer('combat_shield_loss', 'combat_effects', 1800, 'Shield loss damage processing');
   }
 
+  /**
+   * Clears all combat timers to prevent memory leaks.
+   * Should be called when combat ends or component unmounts.
+   */
   clearTimers() {
     debugTools.logDebug('🧹 Combat: Clearing all timers');
     
@@ -663,14 +682,26 @@ export class Combat {
     return this.combatShop ? this.combatShop.purchasedItems : [];
   }
 
+  /**
+   * Sets callback function to be called when battle ends.
+   * @param {Function} callback - Callback receiving battle result ('victory' or 'defeat')
+   */
   setOnBattleEnd(callback) {
     this.onBattleEnd = callback;
   }
 
+  /**
+   * Sets damage multiplier for escalation mechanics.
+   * @param {number} multiplier - Damage multiplier (1.0 = normal, >1.0 = increased)
+   */
   setDamageMultiplier(multiplier) {
     this.damageMultiplier = multiplier;
   }
 
+  /**
+   * Sets callback for gold amount changes.
+   * @param {Function} callback - Callback receiving new gold amount
+   */
   setOnMoneyChange(callback) {
     this.onMoneyChange = callback;
   }
