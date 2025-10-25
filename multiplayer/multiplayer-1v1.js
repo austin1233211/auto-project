@@ -52,6 +52,7 @@ export class MultiplayerDuel {
           <div class="selected-mode-description">Head-to-head battle</div>
           <div id="duel-players"></div>
         </div>
+        <button class="action-button danger" id="duel-quit-lobby" style="margin-top:1rem;width:100%;">Quit to Menu</button>
         <div style="display:flex; gap:.5rem; margin-top:.5rem;">
           <input id="duel-name" value="${this.player.name}" style="flex:1;"/>
           <button class="action-button secondary" id="duel-apply-name" style="flex:0 0 auto;">Apply</button>
@@ -91,6 +92,16 @@ export class MultiplayerDuel {
       applyBtn.addEventListener('click', () => {
         this.player.name = nameInput.value || this.player.name;
         this.client.updateName({ name: this.player.name });
+      });
+    }
+    
+    const quitLobbyBtn = this.container.querySelector('#duel-quit-lobby');
+    if (quitLobbyBtn) {
+      quitLobbyBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will leave the lobby.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
       });
     }
     this.container.addEventListener('click', (e) => {
@@ -215,6 +226,7 @@ export class MultiplayerDuel {
           <div id="battle-area" class="battle-area"></div>
           <div class="tournament-controls">
             <button class="action-button secondary" id="duel-exit">Exit</button>
+            <button class="action-button danger" id="duel-quit">Quit Game</button>
           </div>
         </div>
         <div class="players-sidebar">
@@ -228,6 +240,16 @@ export class MultiplayerDuel {
       exitBtn.addEventListener('click', () => {
         this.client.leaveRoom();
         if (this.onExitToMenu) this.onExitToMenu();
+      });
+    }
+    
+    const quitBtn = this.container.querySelector('#duel-quit');
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? You will be disconnected from the game.')) {
+          this.client.disconnect();
+          if (this.onExitToMenu) this.onExitToMenu();
+        }
       });
     }
     this.heroStatsCard.init();
