@@ -157,10 +157,6 @@ export class CombatShop extends AbilitiesShop {
   purchaseItem(slotIndex) {
     super.purchaseItem(slotIndex);
     
-    if (this.onGoldChange) {
-      this.onGoldChange(this.playerGold);
-    }
-    
     if (this.onAbilityPurchased) {
       this.onAbilityPurchased();
     }

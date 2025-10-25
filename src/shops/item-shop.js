@@ -20,6 +20,7 @@ export class ItemShop {
     this.globalRerollCost = 20;
     this.player = null;
     this.rerollCount = 0;
+    this.onGoldChange = null;
   }
 
   init() {
@@ -117,6 +118,10 @@ export class ItemShop {
       }
     }
     
+    if (this.onGoldChange) {
+      this.onGoldChange(this.playerGold);
+    }
+    
     this.updateGoldDisplay();
     this.updateGlobalRerollButton();
     return true;
@@ -163,6 +168,10 @@ export class ItemShop {
         if (rebate > 0) {
           this.playerGold += rebate;
         }
+      }
+      
+      if (this.onGoldChange) {
+        this.onGoldChange(this.playerGold);
       }
       
       this.updateSlotDisplay(slotIndex);
@@ -369,6 +378,10 @@ export class ItemShop {
 
   setOnShopComplete(callback) {
     this.onShopComplete = callback;
+  }
+
+  setOnGoldChange(callback) {
+    this.onGoldChange = callback;
   }
 
   updateGlobalRerollButton() {
