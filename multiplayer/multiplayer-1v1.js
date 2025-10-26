@@ -27,7 +27,10 @@ export class MultiplayerDuel {
     });
     this.client.on('roomStatusUpdate', (status) => this.updateRoomStatus(status));
     this.client.on('proceedToRules', (data) => this.showRules(data));
-    this.client.on('gameStarting', (data) => this.showStartingCountdown(data));
+    this.client.on('startingCountdown', (data) => this.showStartingCountdown(data));
+    this.client.on('gameStarting', (data) => {
+      console.log('[1v1] Game starting!', data);
+    });
     this.client.on('roundState', (state) => this.updateRoundState(state));
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
