@@ -7,6 +7,7 @@ import { CombatShop } from '../shops/combat-shop-v2.js';
 import { debugTools } from '../components/debug-tools.js';
 import { GameLoop } from './game-loop.js';
 import { throttleAnimationFrame, DirtyFlag } from '../utils/performance.js';
+import { COMBAT_CONSTANTS } from '../core/constants.js';
 
 /**
  * @typedef {import('../core/stats-calculator.js').Hero} Hero
@@ -97,7 +98,7 @@ export class Combat {
         ...playerHero, 
         currentHealth: playerHero.stats.health,
         currentMana: 0,
-        maxMana: 100
+        maxMana: COMBAT_CONSTANTS.MAX_MANA
       });
       this.playerMoney = playerMoney;
       this.enemyHero = this.selectRandomEnemy();
@@ -110,7 +111,7 @@ export class Combat {
       this.enemyHero = StatsCalculator.processHeroStats(this.enemyHero);
       this.enemyHero.currentHealth = this.enemyHero.stats.health;
       this.enemyHero.currentMana = 0;
-      this.enemyHero.maxMana = 100;
+      this.enemyHero.maxMana = COMBAT_CONSTANTS.MAX_MANA;
       this.battleLog = [];
       this.isGameOver = false;
       this.clearTimers();
@@ -227,35 +228,33 @@ export class Combat {
   }
 
   startManaRegeneration() {
-    const manaInterval = 250;
-    
     this.gameLoop.register('player_mana', () => {
       if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
         const debuffs = (this.playerHero.equipmentState && Array.isArray(this.playerHero.equipmentState.manaRegenDebuffs))
           ? this.playerHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
           : 0;
-        const totalRegen = Math.max(0, 11 + (this.playerHero.effectiveStats.manaRegeneration || 0) + debuffs);
-        const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
+        const totalRegen = Math.max(0, COMBAT_CONSTANTS.BASE_MANA_REGEN_PER_SEC + (this.playerHero.effectiveStats.manaRegeneration || 0) + debuffs);
+        const regenAmount = Math.ceil(totalRegen * (COMBAT_CONSTANTS.MANA_REGEN_INTERVAL / 1000));
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
       }
-    }, manaInterval);
+    }, COMBAT_CONSTANTS.MANA_REGEN_INTERVAL);
     
     this.gameLoop.register('enemy_mana', () => {
       if (!this.isGameOver && this.enemyHero.currentMana < this.enemyHero.maxMana) {
         const debuffs = (this.enemyHero.equipmentState && Array.isArray(this.enemyHero.equipmentState.manaRegenDebuffs))
           ? this.enemyHero.equipmentState.manaRegenDebuffs.reduce((sum, d) => sum + (d.delta || 0), 0)
           : 0;
-        const totalRegen = Math.max(0, 11 + (this.enemyHero.effectiveStats.manaRegeneration || 0) + debuffs);
-        const regenAmount = Math.ceil(totalRegen * (manaInterval / 1000));
+        const totalRegen = Math.max(0, COMBAT_CONSTANTS.BASE_MANA_REGEN_PER_SEC + (this.enemyHero.effectiveStats.manaRegeneration || 0) + debuffs);
+        const regenAmount = Math.ceil(totalRegen * (COMBAT_CONSTANTS.MANA_REGEN_INTERVAL / 1000));
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
       }
-    }, manaInterval);
+    }, COMBAT_CONSTANTS.MANA_REGEN_INTERVAL);
     
     this.gameLoop.register('mana_ui', () => {
       if (!this.isGameOver) {
         this.updateManaBars();
       }
-    }, 250);
+    }, COMBAT_CONSTANTS.MANA_REGEN_INTERVAL);
   }
 
   startStatusEffectsTimer() {

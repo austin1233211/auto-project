@@ -11,6 +11,7 @@ import { EquipmentReward } from '../components/equipment-reward.js';
 import { ArtifactSystem } from '../core/artifacts.js';
 import { ArtifactEffects } from '../core/artifact-effects.js';
 import { debugTools } from '../components/debug-tools.js';
+import { PLAYER_CONSTANTS } from '../core/constants.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -64,7 +65,7 @@ export class RoundsManager {
         isEliminated: false,
         wins: 0,
         losses: 0,
-        gold: 300,
+        gold: PLAYER_CONSTANTS.STARTING_GOLD,
         consecutiveWins: 0,
         consecutiveLosses: 0
       };
@@ -430,7 +431,7 @@ export class RoundsManager {
         ...player,
         name: `👻 Ghost of ${cleanName}`,
         isGhost: true,
-        playerHealth: { currentHealth: 0, maxHealth: 50 },
+        playerHealth: { currentHealth: 0, maxHealth: PLAYER_CONSTANTS.MAX_HEALTH },
         losses: 0
       };
       this.ghostPlayers.push(ghostPlayer);
@@ -640,7 +641,7 @@ export class RoundsManager {
     this.roundsShopContainer = this.container.querySelector('#rounds-shop-container');
     if (this.roundsShopContainer) {
       const userPlayer = this.players.find(p => p.name === "You");
-      const playerGold = userPlayer ? userPlayer.gold : 300;
+      const playerGold = userPlayer ? userPlayer.gold : PLAYER_CONSTANTS.STARTING_GOLD;
       
       this.roundsShop = new CombatShop(this.roundsShopContainer, null, this.currentRound);
       if (userPlayer) {
