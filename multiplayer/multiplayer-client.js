@@ -51,6 +51,7 @@ export class MultiplayerClient {
     this.socket.on('error', (err) => this._emit('socketError', err?.message || 'error'));
     this.socket.on('roomStatusUpdate', (status) => this._emit('roomStatusUpdate', status));
     this.socket.on('proceedToRules', (data) => this._emit('proceedToRules', data));
+    this.socket.on('startingCountdown', (data) => this._emit('startingCountdown', data));
     this.socket.on('gameStarting', (data) => this._emit('gameStarting', data));
     this.socket.on('gameStart', (data) => this._emit('gameStart', data));
     this.socket.on('lobbyUpdate', (data) => this._emit('lobbyUpdate', data));

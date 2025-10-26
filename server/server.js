@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from './logger.js';
 import { sessionManager } from './session-manager.js';
+import { heroes } from '../src/core/heroes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -339,6 +340,14 @@ io.on('connection', (socket) => {
       logger.debug('[1v1] selectHero invalid heroId:', heroId);
       return;
     }
+    
+    const validHeroIds = heroes.map(h => h.id);
+    if (!validHeroIds.includes(heroId)) {
+      logger.warn(`[Security] Invalid heroId: ${heroId} from socket ${socket.id}`);
+      socket.emit('error', { message: 'Invalid hero selection' });
+      return;
+    }
+    
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (!player) {
@@ -388,10 +397,65 @@ io.on('connection', (socket) => {
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     if (room.mode !== 'tournament' && room.mode !== '1v1') return;
+    
+    if (!data || !data.matchId || !data.winnerId) {
+      logger.warn(`[Security] Invalid battle result data from socket ${socket.id}`);
+      return;
+    }
+    
+    const player = room.players.get(socket.id);
+    if (!player) {
+      logger.warn(`[Security] Battle result from non-player socket ${socket.id}`);
+      return;
+    }
+    
+    const match = room.currentMatches?.find(m => 
+      m.matchId === data.matchId && 
+      (m.player1Id === player.id || m.player2Id === player.id)
+    );
+    
+    if (!match) {
+      logger.warn(`[Security] Battle result for non-owned match from socket ${socket.id}, matchId: ${data.matchId}`);
+      return;
+    }
+    
+    if (room.phase !== 'round') {
+      logger.warn(`[Security] Battle result in wrong phase: ${room.phase} from socket ${socket.id}`);
+      return;
+    }
+    
     handleClientBattleResult(roomId, data);
   });
 
-  socket.on('confirmRules', () => {});
+  socket.on('confirmRules', () => {
+    const roomId = socket.data.roomId;
+    if (!roomId || !rooms.has(roomId)) return;
+    const room = rooms.get(roomId);
+    if (room.mode !== '1v1') return;
+    
+    const player = room.players.get(socket.id);
+    if (!player) return;
+    
+    player.rulesConfirmed = true;
+    logger.debug('[1v1] Rules confirmed by', player.name);
+    
+    const allConfirmed = Array.from(room.players.values())
+      .every(p => p.rulesConfirmed);
+    
+    if (allConfirmed) {
+      logger.debug('[1v1] All players confirmed rules, starting game');
+      io.to(roomId).emit('startingCountdown', { 
+        message: 'Both players ready! Starting in 3 seconds...',
+        countdown: 3
+      });
+      
+      setTimeout(() => {
+        checkStart1v1(roomId);
+      }, 3000);
+    } else {
+      broadcastRoomStatus1v1(roomId);
+    }
+  });
 
   socket.on('leaveRoom', () => { 
     sessionManager.destroySession(socket.id);

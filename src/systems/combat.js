@@ -423,7 +423,7 @@ export class Combat {
         this.addToLog(`${target.name} evades with equipment, reducing damage to ${finalDamage}!`);
         this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
       } else {
-        const enemyMissBonus = (target.equipmentState && target.equipmentState.enemyMissChanceBonusPct) ? target.equipmentState.enemyMissChanceBonusPct / 100 : 0;
+        const enemyMissBonus = (target.effectiveStats && target.effectiveStats.enemyMissChanceBonusPct) ? target.effectiveStats.enemyMissChanceBonusPct / 100 : 0;
         if (enemyMissBonus > 0 && Math.random() < enemyMissBonus) {
           wasEvaded = true;
           finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
