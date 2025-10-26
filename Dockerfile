@@ -23,6 +23,9 @@ RUN apk add --no-cache nginx curl
 # Create app directory
 WORKDIR /app
 
+# Copy root package.json to set type=module for ES modules
+COPY package.json ./
+
 # Copy server files and dependencies from builder
 COPY --from=builder /app/server /app/server
 
