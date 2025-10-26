@@ -573,14 +573,6 @@ function broadcastRoomStatus1v1(roomId) {
   const phase = getPhase1v1(room);
   logger.debug('[1v1]', roomId, 'broadcast status phase=', phase, players);
   io.to(roomId).emit('roomStatusUpdate', { players, phase });
-  if (players.length === 2) {
-    const allHeroes = players.every(p => p.heroSelected);
-    const allReady = players.every(p => p.isReady);
-    if (allHeroes && !allReady) {
-      logger.debug('[1v1]', roomId, 'proceedToRules');
-      io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
-    }
-  }
 }
 
 function getPhase1v1(room) {
