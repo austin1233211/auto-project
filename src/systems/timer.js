@@ -1,9 +1,10 @@
 import { debugTools } from '../components/debug-tools.js';
+import { TIMER_CONSTANTS } from '../core/constants.js';
 
 export class Timer {
   constructor() {
-    this.roundDuration = 50;
-    this.bufferDuration = 30;
+    this.roundDuration = TIMER_CONSTANTS.ROUND_DURATION;
+    this.bufferDuration = TIMER_CONSTANTS.BUFFER_DURATION;
     this.currentTime = 0;
     this.isRunning = false;
     this.isBufferPhase = false;
@@ -57,7 +58,7 @@ export class Timer {
     this.timerInterval = setInterval(() => {
       this.currentTime--;
       
-      if (this.currentTime === 30 && !this.damageEscalationActive) {
+      if (this.currentTime === TIMER_CONSTANTS.DAMAGE_ESCALATION_FLAG_AT_REMAINING && !this.damageEscalationActive) {
         this.damageEscalationActive = true;
         debugTools.logDebug('⏱️ Timer: Damage escalation activated');
         if (this.onDamageEscalation) {
@@ -66,7 +67,9 @@ export class Timer {
       }
       
       const secondsElapsed = this.roundDuration - this.currentTime;
-      const damageMultiplier = secondsElapsed >= 20 ? 1 + (0.06 * (secondsElapsed - 20)) : 1;
+      const damageMultiplier = secondsElapsed >= TIMER_CONSTANTS.DAMAGE_ESCALATION_THRESHOLD_ELAPSED 
+        ? 1 + (TIMER_CONSTANTS.DAMAGE_ESCALATION_RATE * (secondsElapsed - TIMER_CONSTANTS.DAMAGE_ESCALATION_THRESHOLD_ELAPSED)) 
+        : 1;
       
       if (this.onTimerUpdate) {
         this.onTimerUpdate({
@@ -127,7 +130,7 @@ export class Timer {
     this.onDamageEscalation = callback;
   }
 
-  startSelection(duration = 50) {
+  startSelection(duration = TIMER_CONSTANTS.SELECTION_DURATION) {
     this.stopTimer();
     this.isBufferPhase = false;
     this.currentPhase = 'selection';
