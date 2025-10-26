@@ -432,6 +432,7 @@ io.on('connection', (socket) => {
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     if (room.mode !== '1v1') return;
+    if (room.duelPhase !== 'rules') return;
     
     const player = room.players.get(socket.id);
     if (!player) return;
@@ -439,18 +440,38 @@ io.on('connection', (socket) => {
     player.rulesConfirmed = true;
     logger.debug('[1v1] Rules confirmed by', player.name);
     
-    const allConfirmed = Array.from(room.players.values())
-      .every(p => p.rulesConfirmed);
+    const players = Array.from(room.players.values());
+    const allConfirmed = players.every(p => p.rulesConfirmed);
     
-    if (allConfirmed) {
-      logger.debug('[1v1] All players confirmed rules, starting game');
+    if (allConfirmed && !room.countdownTimer) {
+      room.duelPhase = 'countdown';
+      logger.debug('[1v1] All players confirmed rules, starting countdown');
       io.to(roomId).emit('startingCountdown', { 
         message: 'Both players ready! Starting in 3 seconds...',
         countdown: 3
       });
       
-      setTimeout(() => {
-        checkStart1v1(roomId);
+      room.countdownTimer = setTimeout(() => {
+        room.countdownTimer = null;
+        room.duelPhase = 'round';
+        logger.debug('[1v1]', roomId, 'Starting game after countdown');
+        io.to(roomId).emit('gameStarting', { countdown: 3 });
+        const pArr = Array.from(room.players.values());
+        room.activePlayers = pArr.map(p => ({
+          id: p.id,
+          name: p.name,
+          heroId: p.heroId,
+          hp: p.hp,
+          isEliminated: p.isEliminated,
+          isGhost: p.isGhost,
+          wins: p.wins || 0,
+          losses: p.losses || 0,
+          gold: p.gold || 300
+        }));
+        room.ghostPlayers = [];
+        room.currentRound = 1;
+        room.phase = 'buffer';
+        startBuffer(roomId);
       }, 3000);
     } else {
       broadcastRoomStatus1v1(roomId);
@@ -512,7 +533,9 @@ function tryMatch1v1() {
       ghostPlayers: [],
       currentMatches: [],
       timer: null,
-      phase: 'lobby'
+      phase: 'lobby',
+      duelPhase: 'lobby',
+      countdownTimer: null
     };
     rooms.set(roomId, room);
     [a,b].forEach((s, idx) => {
@@ -582,28 +605,22 @@ function checkStart1v1(roomId) {
   if (players.length !== 2) return;
   const heroSelected = players.every(p => !!p.heroId);
   const ready = players.every(p => p.isReady);
-  logger.debug('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
-  if (heroSelected && ready) {
-    logger.debug('[1v1]', roomId, 'EMIT gameStarting then start buffer/round lifecycle');
-    io.to(roomId).emit('gameStarting', { countdown: 3 });
-    setTimeout(() => {
-      const pArr = Array.from(room.players.values());
-      room.activePlayers = pArr.map(p => ({
-        id: p.id,
-        name: p.name,
-        heroId: p.heroId,
-        hp: p.hp,
-        isEliminated: p.isEliminated,
-        isGhost: p.isGhost,
-        wins: p.wins || 0,
-        losses: p.losses || 0,
-        gold: p.gold || 300
-      }));
-      room.ghostPlayers = [];
-      room.currentRound = 1;
-      room.phase = 'buffer';
-      startBuffer(roomId);
-    }, 3000);
+  logger.debug('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, 'duelPhase=', room.duelPhase, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
+  
+  if (room.duelPhase !== 'waiting_for_ready' && heroSelected && !ready) {
+    room.duelPhase = 'waiting_for_ready';
+    broadcastRoomStatus1v1(roomId);
+  }
+  
+  if ((room.duelPhase === 'waiting_for_ready' || room.duelPhase === 'lobby') && heroSelected && ready) {
+    if (room.duelPhase !== 'rules') {
+      room.duelPhase = 'rules';
+      players.forEach(p => p.rulesConfirmed = false);
+      logger.debug('[1v1]', roomId, 'proceedToRules');
+      io.to(roomId).emit('proceedToRules', { 
+        gameRules: { mode: '1v1', win: 'KO' }
+      });
+    }
   }
 }
 

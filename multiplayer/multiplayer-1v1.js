@@ -210,6 +210,12 @@ export class MultiplayerDuel {
   }
 
   showRules(data) {
+    const existing = this.container.querySelector('.rules-modal');
+    if (existing) {
+      console.log('[1v1] Rules modal already exists, skipping duplicate');
+      return;
+    }
+    
     const modal = document.createElement('div');
     modal.className = 'rules-modal';
     modal.style.cssText = `
