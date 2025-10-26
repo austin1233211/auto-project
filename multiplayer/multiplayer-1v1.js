@@ -27,7 +27,10 @@ export class MultiplayerDuel {
     });
     this.client.on('roomStatusUpdate', (status) => this.updateRoomStatus(status));
     this.client.on('proceedToRules', (data) => this.showRules(data));
-    this.client.on('gameStarting', (data) => this.showStartingCountdown(data));
+    this.client.on('startingCountdown', (data) => this.showStartingCountdown(data));
+    this.client.on('gameStarting', (data) => {
+      console.log('[1v1] Game starting!', data);
+    });
     this.client.on('roundState', (state) => this.updateRoundState(state));
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
     this.client.on('roundComplete', (payload) => this.handleRoundComplete(payload));
@@ -207,9 +210,86 @@ export class MultiplayerDuel {
   }
 
   showRules(data) {
+    const existing = this.container.querySelector('.rules-modal');
+    if (existing) {
+      console.log('[1v1] Rules modal already exists, skipping duplicate');
+      return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'rules-modal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+      <div style="background: #2a2a2a; padding: 2rem; border-radius: 8px; max-width: 500px; text-align: center;">
+        <h2 style="color: #fff; margin-bottom: 1rem;">1v1 Duel Rules</h2>
+        <div style="color: #ccc; text-align: left; margin-bottom: 1.5rem;">
+          <p><strong>Game Mode:</strong> ${data.gameRules?.mode || '1v1 Duel'}</p>
+          <p><strong>Win Condition:</strong> ${data.gameRules?.win || 'Reduce opponent HP to 0'}</p>
+          <p><strong>Starting HP:</strong> 50</p>
+          <p><strong>Starting Gold:</strong> 300</p>
+          <p><strong>Rounds:</strong> Best of multiple rounds</p>
+        </div>
+        <button id="confirm-rules-btn" style="
+          padding: 0.75rem 2rem;
+          background: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          font-size: 1rem;
+          cursor: pointer;
+        ">I Understand - Ready to Play</button>
+      </div>
+    `;
+    
+    this.container.appendChild(modal);
+    
+    const confirmBtn = modal.querySelector('#confirm-rules-btn');
+    confirmBtn.addEventListener('click', () => {
+      this.client.confirmRules();
+      modal.remove();
+    });
   }
 
   showStartingCountdown(data) {
+    const overlay = document.createElement('div');
+    overlay.className = 'starting-countdown-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="text-align: center;">
+        <h1 style="color: #4CAF50; font-size: 3rem; margin-bottom: 1rem;">${data.message || 'Starting Soon...'}</h1>
+        <div style="color: #fff; font-size: 5rem; font-weight: bold;">${data.countdown || 3}</div>
+      </div>
+    `;
+    
+    this.container.appendChild(overlay);
+    
+    setTimeout(() => {
+      overlay.remove();
+    }, 3000);
   }
 
   renderDuelScaffold() {

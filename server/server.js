@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from './logger.js';
 import { sessionManager } from './session-manager.js';
+import { heroes } from '../src/core/heroes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -339,6 +340,14 @@ io.on('connection', (socket) => {
       logger.debug('[1v1] selectHero invalid heroId:', heroId);
       return;
     }
+    
+    const validHeroIds = heroes.map(h => h.id);
+    if (!validHeroIds.includes(heroId)) {
+      logger.warn(`[Security] Invalid heroId: ${heroId} from socket ${socket.id}`);
+      socket.emit('error', { message: 'Invalid hero selection' });
+      return;
+    }
+    
     const room = rooms.get(roomId);
     const player = room.players.get(socket.id);
     if (!player) {
@@ -388,10 +397,86 @@ io.on('connection', (socket) => {
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
     if (room.mode !== 'tournament' && room.mode !== '1v1') return;
+    
+    if (!data || !data.matchId || !data.winnerId) {
+      logger.warn(`[Security] Invalid battle result data from socket ${socket.id}`);
+      return;
+    }
+    
+    const player = room.players.get(socket.id);
+    if (!player) {
+      logger.warn(`[Security] Battle result from non-player socket ${socket.id}`);
+      return;
+    }
+    
+    const match = room.currentMatches?.find(m => 
+      m.matchId === data.matchId && 
+      (m.player1Id === player.id || m.player2Id === player.id)
+    );
+    
+    if (!match) {
+      logger.warn(`[Security] Battle result for non-owned match from socket ${socket.id}, matchId: ${data.matchId}`);
+      return;
+    }
+    
+    if (room.phase !== 'round') {
+      logger.warn(`[Security] Battle result in wrong phase: ${room.phase} from socket ${socket.id}`);
+      return;
+    }
+    
     handleClientBattleResult(roomId, data);
   });
 
-  socket.on('confirmRules', () => {});
+  socket.on('confirmRules', () => {
+    const roomId = socket.data.roomId;
+    if (!roomId || !rooms.has(roomId)) return;
+    const room = rooms.get(roomId);
+    if (room.mode !== '1v1') return;
+    if (room.duelPhase !== 'rules') return;
+    
+    const player = room.players.get(socket.id);
+    if (!player) return;
+    
+    player.rulesConfirmed = true;
+    logger.debug('[1v1] Rules confirmed by', player.name);
+    
+    const players = Array.from(room.players.values());
+    const allConfirmed = players.every(p => p.rulesConfirmed);
+    
+    if (allConfirmed && !room.countdownTimer) {
+      room.duelPhase = 'countdown';
+      logger.debug('[1v1] All players confirmed rules, starting countdown');
+      io.to(roomId).emit('startingCountdown', { 
+        message: 'Both players ready! Starting in 3 seconds...',
+        countdown: 3
+      });
+      
+      room.countdownTimer = setTimeout(() => {
+        room.countdownTimer = null;
+        room.duelPhase = 'round';
+        logger.debug('[1v1]', roomId, 'Starting game after countdown');
+        io.to(roomId).emit('gameStarting', { countdown: 3 });
+        const pArr = Array.from(room.players.values());
+        room.activePlayers = pArr.map(p => ({
+          id: p.id,
+          name: p.name,
+          heroId: p.heroId,
+          hp: p.hp,
+          isEliminated: p.isEliminated,
+          isGhost: p.isGhost,
+          wins: p.wins || 0,
+          losses: p.losses || 0,
+          gold: p.gold || 300
+        }));
+        room.ghostPlayers = [];
+        room.currentRound = 1;
+        room.phase = 'buffer';
+        startBuffer(roomId);
+      }, 3000);
+    } else {
+      broadcastRoomStatus1v1(roomId);
+    }
+  });
 
   socket.on('leaveRoom', () => { 
     sessionManager.destroySession(socket.id);
@@ -448,7 +533,9 @@ function tryMatch1v1() {
       ghostPlayers: [],
       currentMatches: [],
       timer: null,
-      phase: 'lobby'
+      phase: 'lobby',
+      duelPhase: 'lobby',
+      countdownTimer: null
     };
     rooms.set(roomId, room);
     [a,b].forEach((s, idx) => {
@@ -486,14 +573,6 @@ function broadcastRoomStatus1v1(roomId) {
   const phase = getPhase1v1(room);
   logger.debug('[1v1]', roomId, 'broadcast status phase=', phase, players);
   io.to(roomId).emit('roomStatusUpdate', { players, phase });
-  if (players.length === 2) {
-    const allHeroes = players.every(p => p.heroSelected);
-    const allReady = players.every(p => p.isReady);
-    if (allHeroes && !allReady) {
-      logger.debug('[1v1]', roomId, 'proceedToRules');
-      io.to(roomId).emit('proceedToRules', { gameRules: { mode: '1v1', win: 'KO' } });
-    }
-  }
 }
 
 function getPhase1v1(room) {
@@ -518,28 +597,22 @@ function checkStart1v1(roomId) {
   if (players.length !== 2) return;
   const heroSelected = players.every(p => !!p.heroId);
   const ready = players.every(p => p.isReady);
-  logger.debug('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
-  if (heroSelected && ready) {
-    logger.debug('[1v1]', roomId, 'EMIT gameStarting then start buffer/round lifecycle');
-    io.to(roomId).emit('gameStarting', { countdown: 3 });
-    setTimeout(() => {
-      const pArr = Array.from(room.players.values());
-      room.activePlayers = pArr.map(p => ({
-        id: p.id,
-        name: p.name,
-        heroId: p.heroId,
-        hp: p.hp,
-        isEliminated: p.isEliminated,
-        isGhost: p.isGhost,
-        wins: p.wins || 0,
-        losses: p.losses || 0,
-        gold: p.gold || 300
-      }));
-      room.ghostPlayers = [];
-      room.currentRound = 1;
-      room.phase = 'buffer';
-      startBuffer(roomId);
-    }, 3000);
+  logger.debug('[1v1]', roomId, 'checkStart heroSelected=', heroSelected, 'ready=', ready, 'duelPhase=', room.duelPhase, players.map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
+  
+  if (room.duelPhase !== 'waiting_for_ready' && heroSelected && !ready) {
+    room.duelPhase = 'waiting_for_ready';
+    broadcastRoomStatus1v1(roomId);
+  }
+  
+  if ((room.duelPhase === 'waiting_for_ready' || room.duelPhase === 'lobby') && heroSelected && ready) {
+    if (room.duelPhase !== 'rules') {
+      room.duelPhase = 'rules';
+      players.forEach(p => p.rulesConfirmed = false);
+      logger.debug('[1v1]', roomId, 'proceedToRules');
+      io.to(roomId).emit('proceedToRules', { 
+        gameRules: { mode: '1v1', win: 'KO' }
+      });
+    }
   }
 }
 

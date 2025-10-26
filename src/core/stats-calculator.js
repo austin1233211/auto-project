@@ -202,6 +202,7 @@ export class StatsCalculator {
       effectiveStats: {
         ...modifiedStats,
         attack: this.calculateEffectiveAttack(modifiedStats.attack),
+        armor: this.calculateEffectiveArmor(modifiedStats.armor),
         speed: effectiveSpeed
       }
     };
