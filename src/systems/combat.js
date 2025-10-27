@@ -699,6 +699,18 @@ export class Combat {
   }
 
   /**
+   * Updates the money display in the Battle Arena header
+   * @param {number} newGold - The new gold amount to display
+   */
+  updateMoneyDisplay(newGold) {
+    this.playerMoney = newGold;
+    const moneyDisplay = this.container.querySelector('.player-money-display');
+    if (moneyDisplay) {
+      moneyDisplay.textContent = `💰 Money: ${newGold}`;
+    }
+  }
+
+  /**
    * Sets callback for gold amount changes.
    * @param {Function} callback - Callback receiving new gold amount
    */

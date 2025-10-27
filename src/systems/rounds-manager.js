@@ -775,7 +775,13 @@ export class RoundsManager {
       ArtifactEffects.decrementLoanRounds(player);
     });
     
+    const userPlayer = this.players.find(p => p.name === 'You');
+    if (userPlayer && this.combat) {
+      this.combat.updateMoneyDisplay(userPlayer.gold);
+    }
+    
     this.updatePlayersList();
+    this.updateRoundsShopMoney();
     
     // Setup for the next round
     if ([5, 10, 15, 20].includes(this.currentRound)) {
@@ -873,6 +879,7 @@ export class RoundsManager {
         this.handleEquipmentSelection(equipment);
       });
       
+      equipmentReward.context = 'minion_round';
       equipmentReward.init(result.playerWon, this.currentRound);
     }
   }
@@ -894,31 +901,55 @@ export class RoundsManager {
       if (artifact.effect === 'new_years_gift') {
         userPlayer.gold += artifact.value;
         this.updatePlayersList();
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        this.updateRoundsShopMoney();
       }
       
       if (artifact.effect === 'loan_agreement') {
         userPlayer.gold += artifact.value;
         this.updatePlayersList();
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        this.updateRoundsShopMoney();
       }
       
       if (artifact.effect === 'fate') {
         userPlayer.gold += artifact.value;
         this.updatePlayersList();
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        this.updateRoundsShopMoney();
       }
       
       if (artifact.effect === 'loan_agreement_2') {
         userPlayer.gold += artifact.value;
         this.updatePlayersList();
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        this.updateRoundsShopMoney();
       }
       
       if (artifact.effect === 'new_years_gift_2') {
         userPlayer.gold += artifact.value;
         this.updatePlayersList();
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        this.updateRoundsShopMoney();
       }
       
       if (artifact.effect === 'loan_agreement_3') {
         userPlayer.gold += artifact.value;
         this.updatePlayersList();
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        this.updateRoundsShopMoney();
       }
       
       this.updatePlayerHero();

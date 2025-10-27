@@ -707,10 +707,11 @@ export class EquipmentReward {
   }
 
   render() {
-    const title = this.playerWon ? 'Victory Rewards!' : 'Consolation Prize';
-    const subtitle = this.playerWon ? 
-      'Choose one piece of equipment as your reward' : 
-      'Choose one piece of equipment despite your defeat';
+    const isMinion = this.context === 'minion_round';
+    const title = isMinion ? 'Equipment Reward' : (this.playerWon ? 'Victory Rewards!' : 'Consolation Prize');
+    const subtitle = isMinion ? 
+      'Choose one piece of equipment to aid your battles' : 
+      (this.playerWon ? 'Choose one piece of equipment as your reward' : 'Choose one piece of equipment despite your defeat');
 
     this.container.innerHTML = `
       <div class="equipment-reward">
