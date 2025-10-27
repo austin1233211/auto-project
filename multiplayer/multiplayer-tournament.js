@@ -3,6 +3,7 @@ import { Combat } from '../src/systems/combat.js';
 import { HeroStatsCard } from '../src/ui/hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { Timer } from '../src/systems/timer.js';
+import { sanitizeHTML } from '../src/utils/sanitize.js';
 
 export class MultiplayerTournament {
   constructor(container, onExitToMenu) {
@@ -293,7 +294,7 @@ export class MultiplayerTournament {
     if (div) {
       div.innerHTML = this.players.map(p => `
         <div class="player-status">
-          <span>${p.name}</span>
+          <span>${sanitizeHTML(p.name)}</span>
           <span>${p.heroSelected ? '🛡️' : '⏳'}</span>
           <span>${p.isReady ? '✓' : '…'}</span>
         </div>
@@ -358,7 +359,7 @@ export class MultiplayerTournament {
         listEl.innerHTML = '<div class="waiting-player-placeholder">Waiting for players to join...</div>';
       } else {
         listEl.innerHTML = payload.players.map(p => `
-          <div class="waiting-player">👤 ${p.name}</div>
+          <div class="waiting-player">👤 ${sanitizeHTML(p.name)}</div>
         `).join('');
       }
     }
@@ -451,7 +452,7 @@ export class MultiplayerTournament {
         return `
           <div class="player-card ${p.isEliminated ? 'eliminated' : ''} ${p.isGhost ? 'ghost' : ''}">
             <div class="player-info">
-              <div class="player-name">${p.name}</div>
+              <div class="player-name">${sanitizeHTML(p.name)}</div>
               <div class="player-hero">${(heroes.find(h => h.id === p.heroId) || { avatar: '❓', name: 'Unknown' }).avatar} ${(heroes.find(h => h.id === p.heroId) || { name: 'Unknown' }).name}</div>
             </div>
             <div class="player-health">
@@ -516,7 +517,8 @@ export class MultiplayerTournament {
       this.combat = null;
     }
     if (combatContainer) {
-      combatContainer.innerHTML = `<div class="tournament-end">Winner: ${payload.winner.name}</div>`;
+      const winnerName = sanitizeHTML(payload.winner.name);
+      combatContainer.innerHTML = `<div class="tournament-end">Winner: ${winnerName}</div>`;
       setTimeout(() => {
         if (this.onExitToMenu) this.onExitToMenu();
       }, 3000);

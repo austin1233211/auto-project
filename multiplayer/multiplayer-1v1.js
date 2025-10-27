@@ -2,6 +2,7 @@ import { heroes } from '../src/core/heroes.js';
 import { Combat } from '../src/systems/combat.js';
 import { HeroStatsCard } from '../src/ui/hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
+import { sanitizeHTML } from '../src/utils/sanitize.js';
 
 export class MultiplayerDuel {
   constructor(container, onExitToMenu) {
@@ -185,7 +186,7 @@ export class MultiplayerDuel {
     const players = status.players || [];
     list.innerHTML = players.map(p => `
       <div class="player-status">
-        <span>${p.name || ''}</span>
+        <span>${sanitizeHTML(p.name || '')}</span>
         <span>${p.heroSelected ? '🛡️' : '⏳'}</span>
         <span>${p.isReady ? '✓' : '…'}</span>
       </div>
@@ -385,7 +386,7 @@ export class MultiplayerDuel {
         return `
           <div class="player-card ${p.isEliminated ? 'eliminated' : ''} ${p.isGhost ? 'ghost' : ''}">
             <div class="player-info">
-              <div class="player-name">${p.name}</div>
+              <div class="player-name">${sanitizeHTML(p.name)}</div>
               <div class="player-hero">${heroMeta.avatar} ${heroMeta.name}</div>
             </div>
             <div class="player-health">
@@ -437,7 +438,8 @@ export class MultiplayerDuel {
 
   handleDuelEnd(payload) {
     const winner = payload?.winner;
-    alert(`Duel Winner: ${winner?.name || 'Unknown'}`);
+    const winnerName = sanitizeHTML(winner?.name || 'Unknown');
+    alert(`Duel Winner: ${winnerName}`);
     if (this.onExitToMenu) this.onExitToMenu();
   }
   

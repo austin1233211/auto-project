@@ -1,5 +1,6 @@
 import { heroes } from '../src/core/heroes.js';
 import { MultiplayerClient } from './multiplayer-client.js';
+import { sanitizeHTML } from '../src/utils/sanitize.js';
 
 export class MultiplayerLobby {
   constructor(container, onStartBattle) {
@@ -234,7 +235,7 @@ export class MultiplayerLobby {
     if (div) {
       div.innerHTML = status.players.map(p => `
         <div class="player-status">
-          <span>${p.name}</span>
+          <span>${sanitizeHTML(p.name)}</span>
           <span>${p.heroSelected ? '🛡️' : '⏳'}</span>
           <span>${p.isReady ? '✓' : '…'}</span>
         </div>
