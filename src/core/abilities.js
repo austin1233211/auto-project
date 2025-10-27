@@ -12,6 +12,7 @@ import * as ImmunityEffect from './ability-system/effects/immunity.js';
 import * as SkeletonEffect from './ability-system/effects/skeleton.js';
 import * as FrostEffect from './ability-system/effects/frost.js';
 import * as ShieldEffect from './ability-system/effects/shield.js';
+import { processStatusEffects as processEffects } from './ability-system/effects/processor.js';
 
 export class AbilitySystem {
   constructor(combat) {
@@ -452,63 +453,12 @@ export class AbilitySystem {
   }
 
   processStatusEffects(hero) {
-    if (!hero.statusEffects) return;
-    
-    const activeEffects = [];
-    const now = Date.now();
-    
-    for (const effect of hero.statusEffects) {
-      if (effect.type === 'poison_stacks') {
-        if (!effect.lastTick) effect.lastTick = now;
-        
-        if (now - effect.lastTick >= 1000) {
-          const damage = Math.max(1, Math.floor(effect.stacks));
-          hero.currentHealth = Math.max(0, hero.currentHealth - damage);
-          this.combat.addToLog(`☠️ ${hero.name} takes ${damage} poison damage from ${effect.stacks} stacks!`);
-          
-          effect.stacks = Math.floor(effect.stacks * 0.7);
-          effect.lastTick = now;
-        }
-        
-        if (effect.stacks >= 1) activeEffects.push(effect);
-      } else if (effect.type === 'frost_stacks') {
-        if (!effect.lastTick) effect.lastTick = now;
-        
-        if (now - effect.lastTick >= 1000) {
-          effect.stacks = Math.floor(effect.stacks * 0.7);
-          effect.lastTick = now;
-        }
-        
-        if (effect.stacks >= 1) activeEffects.push(effect);
-      } else if (effect.type === 'shield_stacks') {
-        if (effect.stacks >= 1) activeEffects.push(effect);
-      } else if (effect.ticksRemaining > 0) {
-        if (effect.type === 'burn') {
-          const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
-          hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
-          this.combat.addToLog(`🔥 ${hero.name} takes ${escalatedDamage} burn damage!`);
-        } else if (effect.type === 'poison') {
-          const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
-          hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
-          this.combat.addToLog(`☠️ ${hero.name} takes ${escalatedDamage} poison damage!`);
-        } else if (effect.type === 'skeleton' && effect.target) {
-          const skeletonDamage = Math.round(hero.effectiveStats.attack * effect.attackPercent);
-          const damage = this.combat.calculateDamage(skeletonDamage, effect.target.effectiveStats.armor);
-          effect.target.currentHealth = Math.max(0, effect.target.currentHealth - damage);
-          this.combat.addToLog(`💀 ${hero.name}'s skeleton attacks for ${damage} damage!`);
-        }
-        
-        effect.ticksRemaining--;
-        
-        if (effect.ticksRemaining > 0) {
-          activeEffects.push(effect);
-        } else {
-          this.combat.addToLog(`${hero.name} recovers from ${effect.type}.`);
-        }
-      }
-    }
-    
-    hero.statusEffects = activeEffects;
+    const ctx = {
+      addToLog: this.combat.addToLog.bind(this.combat),
+      calculateDamage: this.combat.calculateDamage.bind(this.combat),
+      damageMultiplier: this.combat.damageMultiplier
+    };
+    processEffects(hero, ctx);
   }
 
   applyPoisonStacks(target, stacks) {
