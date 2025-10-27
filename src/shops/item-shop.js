@@ -1,4 +1,3 @@
-import { StatsCalculator } from '../core/stats-calculator.js';
 import { Economy } from './economy.js';
 import { ArtifactEffects } from '../core/artifact-effects.js';
 import { Tier3AbilitySelector } from '../components/tier3-ability-selector.js';
@@ -21,6 +20,7 @@ export class ItemShop {
     this.player = null;
     this.rerollCount = 0;
     this.onGoldChange = null;
+    this.eventListeners = [];
   }
 
   init() {
@@ -194,6 +194,15 @@ export class ItemShop {
     }
   }
 
+  removeEventListeners() {
+    this.eventListeners.forEach(({ element, event, handler }) => {
+      if (element) {
+        element.removeEventListener(event, handler);
+      }
+    });
+    this.eventListeners = [];
+  }
+
   updateSlotDisplay(slotIndex) {
     const slotElement = this.container.querySelector(`[data-slot="${slotIndex}"]`);
     if (slotElement) {
@@ -235,6 +244,7 @@ export class ItemShop {
   }
 
   render() {
+    this.removeEventListeners();
     this.container.innerHTML = `
       <div class="item-shop-container">
         <div class="shop-header">
@@ -283,17 +293,21 @@ export class ItemShop {
 
   attachEventListeners() {
     const continueBtn = this.container.querySelector('#continue-tournament');
-    continueBtn.addEventListener('click', () => {
+    const continueHandler = () => {
       if (this.onShopComplete) {
         this.onShopComplete(this.purchasedItems);
       }
-    });
+    };
+    continueBtn.addEventListener('click', continueHandler);
+    this.eventListeners.push({ element: continueBtn, event: 'click', handler: continueHandler });
 
     const globalRerollBtn = this.container.querySelector('#global-reroll-btn');
     if (globalRerollBtn) {
-      globalRerollBtn.addEventListener('click', () => {
+      const rerollHandler = () => {
         this.rerollAllItems();
-      });
+      };
+      globalRerollBtn.addEventListener('click', rerollHandler);
+      this.eventListeners.push({ element: globalRerollBtn, event: 'click', handler: rerollHandler });
     }
 
     this.itemSlots.forEach((slot, index) => {
@@ -308,10 +322,12 @@ export class ItemShop {
     const purchaseBtn = slotElement.querySelector('.purchase-btn');
 
     if (purchaseBtn) {
-      purchaseBtn.addEventListener('click', () => {
+      const purchaseHandler = () => {
         this.purchaseItem(slotIndex);
         this.updatePurchasedItemsDisplay();
-      });
+      };
+      purchaseBtn.addEventListener('click', purchaseHandler);
+      this.eventListeners.push({ element: purchaseBtn, event: 'click', handler: purchaseHandler });
     }
   }
 

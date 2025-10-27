@@ -13,7 +13,6 @@ import { RoundsManager } from '../systems/rounds-manager.js';
 import { HeroStatsCard } from '../ui/hero-stats-card.js';
 import { MultiplayerDuel } from '../../multiplayer/multiplayer-1v1.js';
 import { MultiplayerTournament } from '../../multiplayer/multiplayer-tournament.js';
-import { heroes } from '../core/heroes.js';
 
 console.log('MAIN_BOOT');
 class AutoGladiators {

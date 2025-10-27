@@ -1,5 +1,3 @@
-import { heroes } from '../core/heroes.js';
-
 export class GameModeSelection {
   constructor(container) {
     this.container = container;

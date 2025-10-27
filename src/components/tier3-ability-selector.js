@@ -81,7 +81,7 @@ export class Tier3AbilitySelector {
       });
     });
     
-    overlay.querySelectorAll('.tier3-ability-option').forEach((option, index) => {
+    overlay.querySelectorAll('.tier3-ability-option').forEach((option) => {
       option.addEventListener('click', (e) => {
         if (!e.target.classList.contains('select-tier3-button')) {
           overlay.querySelectorAll('.tier3-ability-option').forEach(opt => {

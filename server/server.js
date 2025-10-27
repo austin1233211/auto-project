@@ -321,13 +321,25 @@ io.on('connection', (socket) => {
   });
 
   socket.on('updateName', ({ name }) => {
+    if (!checkRateLimit(socket.id, 'updateName', 5)) return;
+    
     const roomId = socket.data.roomId;
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
+    
+    if (room.phase !== 'lobby' && room.phase !== 'waiting') {
+      logger.warn(`[Security] Name change attempt in wrong phase: ${room.phase} from socket ${socket.id}`);
+      return;
+    }
+    
     const ps = room.players.get(socket.id);
     if (!ps) return;
-    ps.name = sanitizePlayerName(name) || ps.name;
-    broadcastLobby(roomId);
+    
+    const sanitized = sanitizePlayerName(name);
+    if (sanitized && sanitized !== ps.name) {
+      ps.name = sanitized;
+      broadcastLobby(roomId);
+    }
   });
 
   socket.on('selectHero', ({ heroId }) => {
@@ -424,10 +436,31 @@ io.on('connection', (socket) => {
       return;
     }
     
+    const p1 = findById(room, match.player1Id);
+    const p2 = findById(room, match.player2Id);
+    
+    if (p1 && p2 && !p1.isGhost && !p2.isGhost) {
+      const serverValidation = simulateBattleForValidation(p1, p2);
+      
+      if (serverValidation.expectedWinnerId !== data.winnerId) {
+        if (!socket.data.suspiciousResults) socket.data.suspiciousResults = 0;
+        socket.data.suspiciousResults++;
+        
+        logger.warn(`[Security] Client result mismatch for socket ${socket.id}. Client: ${data.winnerId}, Server: ${serverValidation.expectedWinnerId}, Confidence: ${serverValidation.confidence.toFixed(2)}`);
+        
+        if (socket.data.suspiciousResults > 3) {
+          logger.error(`[Security] Multiple suspicious results from socket ${socket.id}, using server result`);
+          data.winnerId = serverValidation.expectedWinnerId;
+        }
+      }
+    }
+    
     handleClientBattleResult(roomId, data);
   });
 
   socket.on('confirmRules', () => {
+    if (!checkRateLimit(socket.id, 'confirmRules', 5)) return;
+    
     const roomId = socket.data.roomId;
     if (!roomId || !rooms.has(roomId)) return;
     const room = rooms.get(roomId);
@@ -487,6 +520,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => { 
     logger.info('[Disconnect] Socket', socket.id, 'disconnected');
     
+    const i1 = waitingQueue1v1.indexOf(socket);
+    if (i1 >= 0) waitingQueue1v1.splice(i1, 1);
+    const i2 = waitingQueueTournament.indexOf(socket);
+    if (i2 >= 0) waitingQueueTournament.splice(i2, 1);
+    
     const session = sessionManager.markDisconnected(socket.id);
     
     if (session) {
@@ -503,6 +541,7 @@ io.on('connection', (socket) => {
         
         logger.info('[Disconnect] Player', session.playerData.name, 'can reconnect within', sessionManager.reconnectionWindow / 1000, 'seconds');
         
+        broadcastQueueStatusTournament();
         return;
       }
     }
@@ -725,15 +764,22 @@ function checkStartTournament(roomId) {
 function startBuffer(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
+  
+  if (room.timer) {
+    clearInterval(room.timer);
+    room.timer = null;
+  }
+  
   room.phase = 'buffer';
   let time = 30;
   broadcastRoundState(roomId, { phase: 'buffer', time });
-  room.timer && clearInterval(room.timer);
+  
   room.timer = setInterval(() => {
     time--;
     broadcastRoundState(roomId, { phase: 'buffer', time });
     if (time <= 0) {
       clearInterval(room.timer);
+      room.timer = null;
       startRound(roomId);
     }
   }, 1000);
@@ -792,9 +838,29 @@ function findById(room, id) {
          room.ghostPlayers.find(g => g.id === id);
 }
 
+function simulateBattleForValidation(player1, player2) {
+  const p1Power = (player1.gold || 300) / 100; // Rough power estimate based on gold
+  const p2Power = (player2.gold || 300) / 100;
+  
+  const totalPower = p1Power + p2Power;
+  const p1WinChance = totalPower > 0 ? p1Power / totalPower : 0.5;
+  
+  return {
+    expectedWinnerId: Math.random() < p1WinChance ? player1.id : player2.id,
+    p1WinChance: p1WinChance,
+    confidence: Math.abs(p1WinChance - 0.5) * 2 // 0-1 scale
+  };
+}
+
 function startRound(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
+  
+  if (room.timer) {
+    clearInterval(room.timer);
+    room.timer = null;
+  }
+  
   room.phase = 'round';
   room.currentMatches = generateMatches(room);
   let time = 50;
@@ -821,7 +887,6 @@ function startRound(roomId) {
     }
   });
 
-  room.timer && clearInterval(room.timer);
   room.timer = setInterval(() => {
     time--;
     const secondsElapsed = 50 - time;
@@ -829,6 +894,7 @@ function startRound(roomId) {
     broadcastRoundState(roomId, { phase: 'round', time, damageMultiplier });
     if (time <= 0) {
       clearInterval(room.timer);
+      room.timer = null;
       room.currentMatches.filter(mx => !mx.completed).forEach(mx => {
         const p1 = findById(room, mx.player1Id);
         const p2 = findById(room, mx.player2Id);

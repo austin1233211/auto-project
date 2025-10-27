@@ -294,7 +294,6 @@ export class RoundsManager {
       match.winner = player1;
       if (!player1.isGhost) {
         player1.wins++;
-        const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player1.hero);
         this.economy.awardMoney(player1, true, 0, processedHero.effectiveStats.goldBonus || 0);
@@ -319,7 +318,6 @@ export class RoundsManager {
       match.winner = player2;
       if (!player2.isGhost) {
         player2.wins++;
-        const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player2.hero);
         this.economy.awardMoney(player2, true, 0, processedHero.effectiveStats.goldBonus || 0);
@@ -626,7 +624,7 @@ export class RoundsManager {
     });
 
 
-    this.timer.setOnDamageEscalation((isActive) => {
+    this.timer.setOnDamageEscalation(() => {
     });
   }
 
@@ -968,7 +966,7 @@ export class RoundsManager {
     this.processRoundResults();
   }
 
-  handleSpecialRoundResult(result) {
+  handleSpecialRoundResult() {
     this.processRoundResults();
   }
 
