@@ -14,6 +14,7 @@ import { HeroStatsCard } from '../ui/hero-stats-card.js';
 import { MultiplayerDuel } from '../../multiplayer/multiplayer-1v1.js';
 import { MultiplayerTournament } from '../../multiplayer/multiplayer-tournament.js';
 import { logger } from '../utils/logger.js';
+import { sanitizeHTML } from '../utils/sanitize.js';
 
 logger.debug('MAIN_BOOT');
 class AutoGladiators {
@@ -110,7 +111,9 @@ class AutoGladiators {
       } else if (result === 'quit') {
         this.switchScreen('game-mode-selection');
       } else if (result && result.name) {
-        alert(`Tournament Winner: ${result.name} with ${result.hero.name}!`);
+        const winnerName = sanitizeHTML(result.name);
+        const heroName = sanitizeHTML(result.hero.name);
+        alert(`Tournament Winner: ${winnerName} with ${heroName}!`);
         setTimeout(() => {
           this.switchScreen('hero-selection');
         }, 3000);
