@@ -1,6 +1,7 @@
 import { heroes } from '../src/core/heroes.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { sanitizeHTML } from '../src/utils/sanitize.js';
+import { logger } from '../src/utils/logger.js';
 
 export class MultiplayerLobby {
   constructor(container, onStartBattle) {
@@ -32,20 +33,20 @@ export class MultiplayerLobby {
       if (el) el.textContent = `Connection issue: ${msg}`;
     });
     this.client.on('roomStatusUpdate', (status) => {
-      console.log('[1v1] roomStatusUpdate', status);
+      logger.debug('[1v1] roomStatusUpdate', status);
       this.updateStatus(status);
       this.updateConnStatus(status.players && status.players.length === 2 ? 'paired' : null);
     });
     this.client.on('proceedToRules', (data) => {
-      console.log('[1v1] proceedToRules', data);
+      logger.debug('[1v1] proceedToRules', data);
       this.showRules();
     });
     this.client.on('gameStarting', (data) => {
-      console.log('[1v1] gameStarting', data);
+      logger.debug('[1v1] gameStarting', data);
       this.showCountdown(data.countdown);
     });
     this.client.on('gameStart', (data) => {
-      console.log('[1v1] gameStart', data);
+      logger.debug('[1v1] gameStart', data);
       const meRaw = data.players.find(p => p.name === this.player.name) || data.players[0];
       const opponentRaw = data.players.find(p => p.name !== this.player.name) || data.players[1];
       const normalize = (p) => ({ ...p, heroId: p.heroId ?? (p.hero && p.hero.id) ?? p.hero });
