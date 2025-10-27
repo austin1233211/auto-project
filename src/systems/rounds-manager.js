@@ -12,6 +12,8 @@ import { ArtifactSystem } from '../core/artifacts.js';
 import { ArtifactEffects } from '../core/artifact-effects.js';
 import { debugTools } from '../components/debug-tools.js';
 import { PLAYER_CONSTANTS } from '../core/constants.js';
+import { logger } from '../utils/logger.js';
+import { sanitizeHTML } from '../utils/sanitize.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -105,10 +107,10 @@ export class RoundsManager {
 
   startRound() {
     try {
-      console.log(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
+      logger.debug(`Starting round ${this.currentRound}, active players: ${this.activePlayers.length}`);
       
       if (this.isArtifactSelectionActive) {
-        console.log('Artifact selection is active, preventing startRound()');
+        logger.debug('Artifact selection is active, preventing startRound()');
         return;
       }
       
@@ -148,7 +150,7 @@ export class RoundsManager {
 
   startSimultaneousMatches() {
     if (this.isArtifactSelectionActive) {
-      console.log('Artifact selection is active, preventing startSimultaneousMatches()');
+      logger.debug('Artifact selection is active, preventing startSimultaneousMatches()');
       return;
     }
     
@@ -173,12 +175,12 @@ export class RoundsManager {
 
   simulateBackgroundMatches(matches) {
     if (this.isArtifactSelectionActive) {
-      console.log('Artifact selection is active, preventing simulateBackgroundMatches()');
+      logger.debug('Artifact selection is active, preventing simulateBackgroundMatches()');
       return;
     }
     
     if (this.isQuitting) {
-      console.log('Quitting, preventing simulateBackgroundMatches()');
+      logger.debug('Quitting, preventing simulateBackgroundMatches()');
       return;
     }
     
@@ -294,7 +296,6 @@ export class RoundsManager {
       match.winner = player1;
       if (!player1.isGhost) {
         player1.wins++;
-        const oldHealth = player1.playerHealth.currentHealth;
         player1.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player1.hero);
         this.economy.awardMoney(player1, true, 0, processedHero.effectiveStats.goldBonus || 0);
@@ -319,7 +320,6 @@ export class RoundsManager {
       match.winner = player2;
       if (!player2.isGhost) {
         player2.wins++;
-        const oldHealth = player2.playerHealth.currentHealth;
         player2.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player2.hero);
         this.economy.awardMoney(player2, true, 0, processedHero.effectiveStats.goldBonus || 0);
@@ -350,7 +350,7 @@ export class RoundsManager {
       this.currentMatchIndex++;
       
       if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
-        console.log(`User battle completed on artifact round ${this.currentRound}, showing artifact selection`);
+        logger.debug(`User battle completed on artifact round ${this.currentRound}, showing artifact selection`);
         this.artifactSelectionShown = true;
         setTimeout(() => {
           this.startArtifactRound();
@@ -377,48 +377,49 @@ export class RoundsManager {
   }
 
   checkRoundCompletion() {
-    const completedMatches = this.currentMatches.filter(match => match.completed).length;
-    const totalMatches = this.currentMatches.length;
-    
     if (this.isProcessingRoundResults) {
-      console.log(`Already processing round results for round ${this.currentRound}, skipping`);
+      logger.debug(`Already processing round results for round ${this.currentRound}, skipping`);
       return;
     }
     
     this.isProcessingRoundResults = true;
     
+    const completedMatches = this.currentMatches.filter(match => match.completed).length;
+    const totalMatches = this.currentMatches.length;
+    
     if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
-      console.log(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
+      logger.debug(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
       this.isProcessingRoundResults = false;
       return;
     }
     
     const allMatchesCompleted = this.currentMatches.every(match => match.completed);
     if (allMatchesCompleted) {
-      console.log(`All matches completed for round ${this.currentRound}, processing results`);
+      logger.debug(`All matches completed for round ${this.currentRound}, processing results`);
       setTimeout(() => {
         this.processRoundResults();
       }, 1000);
     } else {
-      console.log(`Still waiting for ${totalMatches - completedMatches} matches to complete`);
+      logger.debug(`Still waiting for ${totalMatches - completedMatches} matches to complete`);
       this.isProcessingRoundResults = false;
     }
   }
 
   processRoundResults() {
-    debugTools.logDebug(`🏁 Processing round ${this.currentRound} results`);
-    debugTools.validateBattleState(this.currentRound, this.userBattleCompleted, this.currentMatches, this.activePlayers);
-    
-    this.timer.stopTimer();
-    
-    if (this.combat) {
-      this.combat.clearTimers();
-      this.combat = null;
-    }
-    
-    debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
-    
-    this.players.forEach(player => {
+    try {
+      debugTools.logDebug(`🏁 Processing round ${this.currentRound} results`);
+      debugTools.validateBattleState(this.currentRound, this.userBattleCompleted, this.currentMatches, this.activePlayers);
+      
+      this.timer.stopTimer();
+      
+      if (this.combat) {
+        this.combat.clearTimers();
+        this.combat = null;
+      }
+      
+      debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
+      
+      this.players.forEach(player => {
       if (player.playerHealth.currentHealth <= 0 && !player.isEliminated) {
         const rescueResult = ArtifactEffects.processUltimateRescue(player);
         if (rescueResult.rescued) {
@@ -473,6 +474,11 @@ export class RoundsManager {
     } else {
       debugTools.logDebug('🏆 Tournament ending - only 1 player remaining');
       this.endTournament();
+    }
+    } catch (error) {
+      logger.error('Error processing round results:', error);
+      this.isProcessingRoundResults = false;
+      throw error;
     }
   }
 
@@ -530,8 +536,8 @@ export class RoundsManager {
       return `
         <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
           <div class="player-info">
-            <div class="player-name">${player.name}</div>
-            <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
+            <div class="player-name">${sanitizeHTML(player.name)}</div>
+            <div class="player-hero">${player.hero.avatar} ${sanitizeHTML(player.hero.name)}</div>
           </div>
           <div class="player-health">
             <div class="health-bar">
@@ -626,7 +632,7 @@ export class RoundsManager {
     });
 
 
-    this.timer.setOnDamageEscalation((isActive) => {
+    this.timer.setOnDamageEscalation(() => {
     });
   }
 
@@ -727,12 +733,12 @@ export class RoundsManager {
 
   startInterRoundTimer() {
     if (this.isArtifactSelectionActive) {
-      console.log('Artifact selection is active, preventing startInterRoundTimer()');
+      logger.debug('Artifact selection is active, preventing startInterRoundTimer()');
       return;
     }
     
     if (this.isQuitting) {
-      console.log('Quitting, preventing startInterRoundTimer()');
+      logger.debug('Quitting, preventing startInterRoundTimer()');
       return;
     }
     
@@ -805,13 +811,13 @@ export class RoundsManager {
   }
 
   startMinionRound() {
-    console.log(`Starting minion round ${this.currentRound}`);
+    logger.debug(`Starting minion round ${this.currentRound}`);
     this.isSpecialRound = true;
     this.updateRoundDisplay();
     
     const combatContainer = this.container.querySelector('#battle-area');
     if (combatContainer) {
-      console.log('Combat container found, creating MinionCombat');
+      logger.debug('Combat container found, creating MinionCombat');
       const minionCombat = new MinionCombat(combatContainer, this.heroStatsCard);
       
       minionCombat.setOnBattleEnd((result) => {
@@ -820,13 +826,13 @@ export class RoundsManager {
       
       const userPlayer = this.players.find(p => p.name === "You");
       if (userPlayer) {
-        console.log('User player found, initializing minion combat');
+        logger.debug('User player found, initializing minion combat');
         minionCombat.init(userPlayer.hero, userPlayer.gold, this.currentRound);
       } else {
-        console.log('User player not found!');
+        logger.warn('User player not found!');
       }
     } else {
-      console.log('Combat container not found!');
+      logger.warn('Combat container not found!');
     }
   }
 
@@ -968,7 +974,7 @@ export class RoundsManager {
     this.processRoundResults();
   }
 
-  handleSpecialRoundResult(result) {
+  handleSpecialRoundResult() {
     this.processRoundResults();
   }
 

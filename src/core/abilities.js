@@ -68,7 +68,7 @@ export class AbilitySystem {
     }
   }
 
-  processPassiveAbility(hero, target) {
+  processPassiveAbility(hero) {
     if (!hero.abilities || !hero.abilities.passive) return;
     
     const passiveName = hero.abilities.passive.name;
@@ -144,7 +144,7 @@ export class AbilitySystem {
     };
   }
 
-  executeShieldBlock(caster, target) {
+  executeShieldBlock(caster) {
     const config = ABILITY_CONFIG.SHIELD_BLOCK;
     this.applyDamageReductionEffect(caster, config.damageReduction, config.duration);
     
@@ -174,7 +174,7 @@ export class AbilitySystem {
     }
   }
 
-  executeMagicShield(caster, target) {
+  executeMagicShield(caster) {
     const config = ABILITY_CONFIG.MAGIC_SHIELD;
     this.applyAbsorptionEffect(caster, config.absorptionCount);
     
@@ -186,7 +186,7 @@ export class AbilitySystem {
     };
   }
 
-  executeTeleport(caster, target) {
+  executeTeleport(caster) {
     const config = ABILITY_CONFIG.TELEPORT;
     this.applyDodgeEffect(caster, config.dodgeChance, config.duration);
     
@@ -217,7 +217,7 @@ export class AbilitySystem {
     };
   }
 
-  executeEvasion(caster, target) {
+  executeEvasion(caster) {
     const config = ABILITY_CONFIG.EVASION;
     this.applyDodgeEffect(caster, config.dodgeChance, config.duration);
     
@@ -261,7 +261,7 @@ export class AbilitySystem {
     };
   }
 
-  executeStealth(caster, target) {
+  executeStealth(caster) {
     const config = ABILITY_CONFIG.STEALTH;
     this.applyStealthEffect(caster, config.nextAttackMultiplier, config.untargetableDuration);
     
@@ -273,7 +273,7 @@ export class AbilitySystem {
     };
   }
 
-  executePoisonBlade(caster, target) {
+  executePoisonBlade(caster) {
     const config = ABILITY_CONFIG.POISON_BLADE;
     this.applyPoisonBladeEffect(caster, config.poisonDamagePercent, config.poisonDuration, config.buffDuration);
     
@@ -326,7 +326,7 @@ export class AbilitySystem {
     };
   }
 
-  executeDivineShield(caster, target) {
+  executeDivineShield(caster) {
     const config = ABILITY_CONFIG.DIVINE_SHIELD;
     this.applyImmunityEffect(caster, config.immunityDuration);
     

@@ -395,7 +395,6 @@ export class Combat {
       }
 
       let damage;
-      let wasEvaded = false;
       let wasCrit = false;
 
       this.abilitySystem.triggerAbilities(attacker, target, 'on_attack');
@@ -413,10 +412,8 @@ export class Combat {
       let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical', attacker);
 
       if (attacker.equipmentState && attacker.equipmentState.forceNoEvasion) {
-        wasEvaded = false;
         attacker.equipmentState.forceNoEvasion = false;
       } else if (target.equipmentState && target.equipmentState.autoEvadeReady) {
-        wasEvaded = true;
         target.equipmentState.autoEvadeReady = false;
         finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
         this.addToLog(`${target.name} evades with equipment, reducing damage to ${finalDamage}!`);
@@ -424,12 +421,10 @@ export class Combat {
       } else {
         const enemyMissBonus = (target.effectiveStats && target.effectiveStats.enemyMissChanceBonusPct) ? target.effectiveStats.enemyMissChanceBonusPct / 100 : 0;
         if (enemyMissBonus > 0 && Math.random() < enemyMissBonus) {
-          wasEvaded = true;
           finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
           this.addToLog(`${attacker.name}'s attack misses due to aura!`);
           this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
         } else if (Math.random() < target.effectiveStats.evasionChance) {
-          wasEvaded = true;
           finalDamage = Math.round(finalDamage * (1 - (target.effectiveStats.evasionDamageReduction || 0)));
           this.addToLog(`${target.name} partially evades, reducing damage to ${finalDamage}!`);
           this.abilitySystem.triggerAbilities(target, attacker, 'on_evade');
@@ -479,7 +474,6 @@ export class Combat {
       }
     }
 
-    const oldHealth = target.currentHealth;
     if (target.equipmentState && typeof target.equipmentState.reduceIncomingFlat === 'number' && target.equipmentState.reduceIncomingFlat > 0) {
       damage = Math.max(0, damage - target.equipmentState.reduceIncomingFlat);
       target.equipmentState.reduceIncomingFlat = 0;

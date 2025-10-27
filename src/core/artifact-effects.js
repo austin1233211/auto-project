@@ -155,7 +155,7 @@ export class ArtifactEffects {
     return goldGained;
   }
   
-  static processPurchase(player, cost) {
+  static processPurchase(player) {
     if (!player.hero.persistentEffects) return 0;
     
     let goldRefund = 0;

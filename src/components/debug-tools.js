@@ -154,7 +154,7 @@ export class DebugTools {
     this.logDebug(`   Players remaining: ${playerCount}`);
     this.logDebug(`   Active timers before transition: ${this.activeTimers.size}`);
     
-    this.activeTimers.forEach((timer, id) => {
+    this.activeTimers.forEach((timer) => {
       const runningTime = Date.now() - timer.startTime;
       this.logDebug(`   Active timer: ${timer.type} - ${timer.description} (${runningTime}ms)`);
     });
