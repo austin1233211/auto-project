@@ -107,6 +107,8 @@ class AutoGladiators {
     this.rounds.setOnTournamentEnd((result) => {
       if (result === 'back') {
         this.switchScreen('hero-selection');
+      } else if (result === 'quit') {
+        this.switchScreen('game-mode-selection');
       } else if (result && result.name) {
         alert(`Tournament Winner: ${result.name} with ${result.hero.name}!`);
         setTimeout(() => {
