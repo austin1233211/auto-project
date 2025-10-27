@@ -13,8 +13,9 @@ import { RoundsManager } from '../systems/rounds-manager.js';
 import { HeroStatsCard } from '../ui/hero-stats-card.js';
 import { MultiplayerDuel } from '../../multiplayer/multiplayer-1v1.js';
 import { MultiplayerTournament } from '../../multiplayer/multiplayer-tournament.js';
+import { logger } from '../utils/logger.js';
 
-console.log('MAIN_BOOT');
+logger.debug('MAIN_BOOT');
 class AutoGladiators {
   constructor() {
     this.currentScreen = 'game-mode-selection';
