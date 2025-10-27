@@ -36,6 +36,7 @@ export class RoundsManager {
     this.artifactSelectionShown = false;
     this.isArtifactSelectionActive = false;
     this.isProcessingRoundResults = false;
+    this.isQuitting = false;
     this.setupTimer();
   }
 
@@ -176,6 +177,11 @@ export class RoundsManager {
       return;
     }
     
+    if (this.isQuitting) {
+      console.log('Quitting, preventing simulateBackgroundMatches()');
+      return;
+    }
+    
     debugTools.startProcess(`bg_matches_round_${this.currentRound}`, `${matches.length} background matches for round ${this.currentRound}`, 5000);
     
     matches.forEach((match, index) => {
@@ -184,6 +190,7 @@ export class RoundsManager {
       const matchId = debugTools.monitorBackgroundMatch(index, match.player1.name, match.player2.name, delay);
       
       setTimeout(() => {
+        if (this.isQuitting) return;
         const result = this.simulateBattle(match.player1, match.player2);
         this.processBattleResult(match.player1, match.player2, result, false);
         debugTools.endProcess(matchId);
@@ -566,6 +573,7 @@ export class RoundsManager {
   attachEventListeners() {
     const backBtn = this.container.querySelector('#back-to-selection');
     const shopToggleBtn = this.container.querySelector('#rounds-shop-toggle');
+    const quitBtn = this.container.querySelector('#quit-tournament');
     
     backBtn.addEventListener('click', () => {
       if (this.onTournamentEnd) {
@@ -577,6 +585,25 @@ export class RoundsManager {
       shopToggleBtn.addEventListener('click', () => {
         if (this.roundsShop) {
           this.roundsShop.toggle();
+        }
+      });
+    }
+
+    if (quitBtn) {
+      quitBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to quit? Progress will be lost.')) {
+          this.isQuitting = true;
+          this.timer.stopTimer();
+          if (this.combat) {
+            this.combat.clearTimers();
+          }
+          debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
+          if (this.roundsShop) {
+            this.roundsShop.hide();
+          }
+          if (this.onTournamentEnd) {
+            this.onTournamentEnd('quit');
+          }
         }
       });
     }
@@ -701,6 +728,11 @@ export class RoundsManager {
   startInterRoundTimer() {
     if (this.isArtifactSelectionActive) {
       console.log('Artifact selection is active, preventing startInterRoundTimer()');
+      return;
+    }
+    
+    if (this.isQuitting) {
+      console.log('Quitting, preventing startInterRoundTimer()');
       return;
     }
     
