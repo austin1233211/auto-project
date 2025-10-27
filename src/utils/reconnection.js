@@ -1,3 +1,5 @@
+import { logger } from './logger.js';
+
 /**
  * Client-side reconnection manager for multiplayer games
  * Handles automatic reconnection attempts when connection is lost
@@ -23,7 +25,7 @@ export class ReconnectionManager {
   setupListeners() {
     this.socket.on('sessionCreated', ({ sessionToken }) => {
       this.sessionToken = sessionToken;
-      console.log('[Reconnection] Session token received');
+      logger.debug('[Reconnection] Session token received');
       
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('multiplayerSessionToken', sessionToken);
@@ -31,7 +33,7 @@ export class ReconnectionManager {
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('[Reconnection] Disconnected:', reason);
+      logger.info('[Reconnection] Disconnected:', reason);
       
       if (this.onDisconnected) {
         this.onDisconnected(reason);
@@ -43,7 +45,7 @@ export class ReconnectionManager {
     });
 
     this.socket.on('reconnectSuccess', (data) => {
-      console.log('[Reconnection] Reconnection successful!', data);
+      logger.info('[Reconnection] Reconnection successful!', data);
       this.isReconnecting = false;
       this.reconnectAttempts = 0;
       
@@ -67,11 +69,11 @@ export class ReconnectionManager {
     });
 
     this.socket.on('playerDisconnected', ({ playerName, canReconnect, reconnectWindow }) => {
-      console.log(`[Reconnection] Player ${playerName} disconnected. Can reconnect: ${canReconnect} (${reconnectWindow}s window)`);
+      logger.info(`[Reconnection] Player ${playerName} disconnected. Can reconnect: ${canReconnect} (${reconnectWindow}s window)`);
     });
 
     this.socket.on('playerReconnected', ({ playerName }) => {
-      console.log(`[Reconnection] Player ${playerName} reconnected!`);
+      logger.info(`[Reconnection] Player ${playerName} reconnected!`);
     });
   }
 
@@ -80,17 +82,17 @@ export class ReconnectionManager {
    */
   attemptReconnection() {
     if (this.isReconnecting) {
-      console.log('[Reconnection] Already attempting reconnection');
+      logger.debug('[Reconnection] Already attempting reconnection');
       return;
     }
 
     if (!this.sessionToken) {
-      console.log('[Reconnection] No session token available');
+      logger.debug('[Reconnection] No session token available');
       return;
     }
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('[Reconnection] Max reconnection attempts reached');
+      logger.warn('[Reconnection] Max reconnection attempts reached');
       this.sessionToken = null;
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem('multiplayerSessionToken');
@@ -104,25 +106,25 @@ export class ReconnectionManager {
     this.isReconnecting = true;
     this.reconnectAttempts++;
 
-    console.log(`[Reconnection] Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${this.reconnectDelay}ms...`);
+    logger.info(`[Reconnection] Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${this.reconnectDelay}ms...`);
 
     setTimeout(() => {
       if (!this.socket.connected) {
-        console.log('[Reconnection] Socket not connected, connecting first...');
+        logger.debug('[Reconnection] Socket not connected, connecting first...');
         this.socket.connect();
         
         setTimeout(() => {
           if (this.socket.connected) {
-            console.log('[Reconnection] Socket connected, sending reconnect request...');
+            logger.debug('[Reconnection] Socket connected, sending reconnect request...');
             this.socket.emit('reconnect', { sessionToken: this.sessionToken });
           } else {
-            console.log('[Reconnection] Failed to connect socket, will retry...');
+            logger.warn('[Reconnection] Failed to connect socket, will retry...');
             this.isReconnecting = false;
             this.attemptReconnection();
           }
         }, 1000);
       } else {
-        console.log('[Reconnection] Socket already connected, sending reconnect request...');
+        logger.debug('[Reconnection] Socket already connected, sending reconnect request...');
         this.socket.emit('reconnect', { sessionToken: this.sessionToken });
       }
     }, this.reconnectDelay);
@@ -142,7 +144,7 @@ export class ReconnectionManager {
       return false;
     }
 
-    console.log('[Reconnection] Found stored session token, attempting to restore...');
+    logger.info('[Reconnection] Found stored session token, attempting to restore...');
     this.sessionToken = storedToken;
     
     if (this.socket.connected) {
@@ -167,7 +169,7 @@ export class ReconnectionManager {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('multiplayerSessionToken');
     }
-    console.log('[Reconnection] Session cleared');
+    logger.debug('[Reconnection] Session cleared');
   }
 
   /**
