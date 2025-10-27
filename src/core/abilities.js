@@ -1,4 +1,6 @@
 import { ABILITY_CONFIG } from './ability-system/config.js';
+import * as BurnEffect from './ability-system/effects/burn.js';
+import * as PoisonEffect from './ability-system/effects/poison.js';
 
 export class AbilitySystem {
   constructor(combat) {
@@ -395,16 +397,7 @@ export class AbilitySystem {
   }
 
   applyBurnEffect(target, burnDamage, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'burn',
-      damage: burnDamage,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    BurnEffect.apply(target, burnDamage, duration);
   }
 
   applyStunEffect(target, duration) {
@@ -420,16 +413,7 @@ export class AbilitySystem {
   }
 
   applyPoisonEffect(target, poisonDamage, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'poison',
-      damage: poisonDamage,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    PoisonEffect.apply(target, poisonDamage, duration);
   }
 
   applyDamageReductionEffect(target, reduction, duration) {
@@ -597,18 +581,7 @@ export class AbilitySystem {
   }
 
   applyPoisonStacks(target, stacks) {
-    if (!target.statusEffects) target.statusEffects = [];
-    
-    let existingPoison = target.statusEffects.find(e => e.type === 'poison_stacks');
-    if (existingPoison) {
-      existingPoison.stacks += stacks;
-    } else {
-      target.statusEffects.push({
-        type: 'poison_stacks',
-        stacks: stacks,
-        lastTick: Date.now()
-      });
-    }
+    PoisonEffect.applyStacks(target, stacks);
   }
 
   applyFrostStacks(target, stacks) {
