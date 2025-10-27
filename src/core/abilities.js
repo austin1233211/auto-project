@@ -473,11 +473,17 @@ export class AbilitySystem {
     ShieldEffect.applyStacks(target, stacks);
   }
 
-  triggerAbilities(hero, target, triggerType, extraData = {}) {
-    if (!hero.purchasedAbilities) return;
-    
-    const now = Date.now();
-    const opp = target; // Alias for opponent/target
+  /**
+   * Handles purchased ability effects based on trigger type.
+   * @param {Object} hero - The hero with purchased abilities
+   * @param {Object} target - The target hero
+   * @param {string} triggerType - The trigger type
+   * @param {Object} extraData - Additional data for the trigger
+   * @param {number} now - Current timestamp
+   * @returns {boolean} True if death save activated
+   */
+  handlePurchasedAbilities(hero, target, triggerType, extraData, now) {
+    if (!hero.purchasedAbilities) return false;
     
     for (const ability of hero.purchasedAbilities) {
       switch (ability.effect) {
@@ -711,6 +717,16 @@ export class AbilitySystem {
           break;
       }
     }
+    return false;
+  }
+
+  triggerAbilities(hero, target, triggerType, extraData = {}) {
+    const now = Date.now();
+    const opp = target; // Alias for opponent/target
+    
+    const deathSaved = this.handlePurchasedAbilities(hero, target, triggerType, extraData, now);
+    if (deathSaved) return true;
+    
   if (!hero.equipmentState) hero.equipmentState = {};
   const es = hero.equipmentState;
 
