@@ -405,19 +405,20 @@ export class RoundsManager {
   }
 
   processRoundResults() {
-    debugTools.logDebug(`🏁 Processing round ${this.currentRound} results`);
-    debugTools.validateBattleState(this.currentRound, this.userBattleCompleted, this.currentMatches, this.activePlayers);
-    
-    this.timer.stopTimer();
-    
-    if (this.combat) {
-      this.combat.clearTimers();
-      this.combat = null;
-    }
-    
-    debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
-    
-    this.players.forEach(player => {
+    try {
+      debugTools.logDebug(`🏁 Processing round ${this.currentRound} results`);
+      debugTools.validateBattleState(this.currentRound, this.userBattleCompleted, this.currentMatches, this.activePlayers);
+      
+      this.timer.stopTimer();
+      
+      if (this.combat) {
+        this.combat.clearTimers();
+        this.combat = null;
+      }
+      
+      debugTools.endProcess(`bg_matches_round_${this.currentRound}`);
+      
+      this.players.forEach(player => {
       if (player.playerHealth.currentHealth <= 0 && !player.isEliminated) {
         const rescueResult = ArtifactEffects.processUltimateRescue(player);
         if (rescueResult.rescued) {
@@ -472,6 +473,11 @@ export class RoundsManager {
     } else {
       debugTools.logDebug('🏆 Tournament ending - only 1 player remaining');
       this.endTournament();
+    }
+    } catch (error) {
+      logger.error('Error processing round results:', error);
+      this.isProcessingRoundResults = false;
+      throw error;
     }
   }
 
