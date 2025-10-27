@@ -1,145 +1,18 @@
-const ABILITY_CONFIG = {
-  CHARGE: {
-    damageMultiplier: 1.4,
-    stunDuration: 1,
-    emoji: '⚡',
-    message: 'charges forward with devastating force',
-    damageType: 'physical'
-  },
-  SHIELD_BLOCK: {
-    damageReduction: 0.5,
-    duration: 3,
-    emoji: '🛡️',
-    message: 'raises shield to block incoming attacks',
-    damageType: 'none'
-  },
-  BERSERKER: {
-    healthThreshold: 0.3,
-    attackSpeedBonus: 0.5,
-    duration: 5,
-    emoji: '🔴',
-    message: 'enters berserker rage',
-    damageType: 'none'
-  },
-  
-  FIREBALL: {
-    damageMultiplier: 1.6,
-    burnDamagePercent: 0.3,
-    burnDuration: 3,
-    emoji: '🔥',
-    message: 'launches a burning Fireball',
-    damageType: 'magic'
-  },
-  MAGIC_SHIELD: {
-    absorptionCount: 3,
-    emoji: '🔮',
-    message: 'conjures a magical shield',
-    damageType: 'none'
-  },
-  TELEPORT: {
-    dodgeChance: 0.5,
-    duration: 2,
-    emoji: '✨',
-    message: 'teleports to avoid attacks',
-    damageType: 'none'
-  },
-  
-  MULTI_SHOT: {
-    arrowCount: 3,
-    damagePerArrow: 0.7,
-    emoji: '🏹',
-    message: 'fires multiple arrows',
-    damageType: 'physical'
-  },
-  EVASION: {
-    dodgeChance: 0.75,
-    duration: 2,
-    emoji: '💨',
-    message: 'enters evasive stance',
-    damageType: 'none'
-  },
-  POISON_ARROW: {
-    damageMultiplier: 1.0,
-    poisonDamagePercent: 0.25,
-    poisonDuration: 4,
-    emoji: '🏹',
-    message: 'shoots a poison-tipped arrow',
-    damageType: 'physical'
-  },
-  
-  BACKSTAB: {
-    damageMultiplier: 2.5,
-    emoji: '🗡️',
-    message: 'strikes with deadly precision',
-    damageType: 'physical'
-  },
-  STEALTH: {
-    nextAttackMultiplier: 2.0,
-    untargetableDuration: 1,
-    emoji: '👤',
-    message: 'vanishes into the shadows',
-    damageType: 'none'
-  },
-  POISON_BLADE: {
-    poisonDamagePercent: 0.2,
-    poisonDuration: 3,
-    buffDuration: 3,
-    emoji: '🗡️',
-    message: 'coats blade with deadly poison',
-    damageType: 'physical'
-  },
-  
-  HOLY_STRIKE: {
-    damageMultiplier: 1.8,
-    ignoreArmor: true,
-    emoji: '⚡',
-    message: 'strikes with divine power',
-    damageType: 'magic'
-  },
-  HEAL: {
-    healPercent: 0.3,
-    healOverTimeDuration: 3,
-    emoji: '✨',
-    message: 'channels divine healing energy',
-    damageType: 'none'
-  },
-  DIVINE_SHIELD: {
-    immunityDuration: 2,
-    emoji: '🛡️',
-    message: 'becomes blessed with divine protection',
-    damageType: 'none'
-  },
-  
-  LIFE_DRAIN: {
-    damageMultiplier: 1.2,
-    healPercent: 0.5,
-    emoji: '💀',
-    message: 'drains life force',
-    damageType: 'magic'
-  },
-  SUMMON_SKELETON: {
-    skeletonAttackPercent: 0.5,
-    skeletonDuration: 3,
-    emoji: '💀',
-    message: 'summons an undead skeleton',
-    damageType: 'magic'
-  },
-  DEATH_COIL: {
-    damageMultiplier: 1.3,
-    healPercent: 0.4,
-    healthThreshold: 0.5,
-    emoji: '💀',
-    message: 'channels dark energy',
-    damageType: 'magic'
-  },
-  
-  GENERIC: {
-    damageMultiplier: 1.5,
-    emoji: '✨',
-    message: 'uses',
-    damageType: 'physical'
-  }
-};
+import { ABILITY_CONFIG } from './ability-system/config.js';
+import * as BurnEffect from './ability-system/effects/burn.js';
+import * as PoisonEffect from './ability-system/effects/poison.js';
+import * as StunEffect from './ability-system/effects/stun.js';
+import * as DamageReductionEffect from './ability-system/effects/damage-reduction.js';
+import * as AttackSpeedEffect from './ability-system/effects/attack-speed.js';
+import * as AbsorptionEffect from './ability-system/effects/absorption.js';
+import * as DodgeEffect from './ability-system/effects/dodge.js';
+import * as StealthEffect from './ability-system/effects/stealth.js';
+import * as PoisonBladeEffect from './ability-system/effects/poison-blade.js';
+import * as ImmunityEffect from './ability-system/effects/immunity.js';
+import * as SkeletonEffect from './ability-system/effects/skeleton.js';
+import * as FrostEffect from './ability-system/effects/frost.js';
+import * as ShieldEffect from './ability-system/effects/shield.js';
+import { processStatusEffects as processEffects } from './ability-system/effects/processor.js';
 
 export class AbilitySystem {
   constructor(combat) {
@@ -536,256 +409,81 @@ export class AbilitySystem {
   }
 
   applyBurnEffect(target, burnDamage, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'burn',
-      damage: burnDamage,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    BurnEffect.apply(target, burnDamage, duration);
   }
 
   applyStunEffect(target, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'stun',
-      duration: duration,
-      ticksRemaining: duration
-    });
+    StunEffect.apply(target, duration);
   }
 
   applyPoisonEffect(target, poisonDamage, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'poison',
-      damage: poisonDamage,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    PoisonEffect.apply(target, poisonDamage, duration);
   }
 
   applyDamageReductionEffect(target, reduction, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'damage_reduction',
-      reduction: reduction,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    DamageReductionEffect.apply(target, reduction, duration);
   }
 
   applyAttackSpeedEffect(target, bonus, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'attack_speed',
-      bonus: bonus,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    AttackSpeedEffect.apply(target, bonus, duration);
   }
 
   applyAbsorptionEffect(target, count) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'absorption',
-      count: count,
-      ticksRemaining: count
-    });
+    AbsorptionEffect.apply(target, count);
   }
 
   applyDodgeEffect(target, chance, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'dodge',
-      chance: chance,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    DodgeEffect.apply(target, chance, duration);
   }
 
-  applyStealthEffect(target, attackMultiplier, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'stealth',
-      attackMultiplier: attackMultiplier,
-      duration: duration,
-      ticksRemaining: duration
-    });
+  applyStealthEffect(target, nextAttackMultiplier, duration) {
+    StealthEffect.apply(target, nextAttackMultiplier, duration);
   }
 
   applyPoisonBladeEffect(target, poisonPercent, poisonDuration, buffDuration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'poison_blade',
-      poisonPercent: poisonPercent,
-      poisonDuration: poisonDuration,
-      duration: buffDuration,
-      ticksRemaining: buffDuration
-    });
+    PoisonBladeEffect.apply(target, poisonPercent, poisonDuration, buffDuration);
   }
 
   applyImmunityEffect(target, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'immunity',
-      duration: duration,
-      ticksRemaining: duration
-    });
+    ImmunityEffect.apply(target, duration);
   }
 
   applySkeletonEffect(caster, target, attackPercent, duration) {
-    if (!caster.statusEffects) {
-      caster.statusEffects = [];
-    }
-    
-    caster.statusEffects.push({
-      type: 'skeleton',
-      target: target,
-      attackPercent: attackPercent,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    SkeletonEffect.apply(caster, target, attackPercent, duration);
   }
 
   processStatusEffects(hero) {
-    if (!hero.statusEffects) return;
-    
-    const activeEffects = [];
-    const now = Date.now();
-    
-    for (const effect of hero.statusEffects) {
-      if (effect.type === 'poison_stacks') {
-        if (!effect.lastTick) effect.lastTick = now;
-        
-        if (now - effect.lastTick >= 1000) {
-          const damage = Math.max(1, Math.floor(effect.stacks));
-          hero.currentHealth = Math.max(0, hero.currentHealth - damage);
-          this.combat.addToLog(`☠️ ${hero.name} takes ${damage} poison damage from ${effect.stacks} stacks!`);
-          
-          effect.stacks = Math.floor(effect.stacks * 0.7);
-          effect.lastTick = now;
-        }
-        
-        if (effect.stacks >= 1) activeEffects.push(effect);
-      } else if (effect.type === 'frost_stacks') {
-        if (!effect.lastTick) effect.lastTick = now;
-        
-        if (now - effect.lastTick >= 1000) {
-          effect.stacks = Math.floor(effect.stacks * 0.7);
-          effect.lastTick = now;
-        }
-        
-        if (effect.stacks >= 1) activeEffects.push(effect);
-      } else if (effect.type === 'shield_stacks') {
-        if (effect.stacks >= 1) activeEffects.push(effect);
-      } else if (effect.ticksRemaining > 0) {
-        if (effect.type === 'burn') {
-          const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
-          hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
-          this.combat.addToLog(`🔥 ${hero.name} takes ${escalatedDamage} burn damage!`);
-        } else if (effect.type === 'poison') {
-          const escalatedDamage = Math.round(effect.damage * this.combat.damageMultiplier);
-          hero.currentHealth = Math.max(0, hero.currentHealth - escalatedDamage);
-          this.combat.addToLog(`☠️ ${hero.name} takes ${escalatedDamage} poison damage!`);
-        } else if (effect.type === 'skeleton' && effect.target) {
-          const skeletonDamage = Math.round(hero.effectiveStats.attack * effect.attackPercent);
-          const damage = this.combat.calculateDamage(skeletonDamage, effect.target.effectiveStats.armor);
-          effect.target.currentHealth = Math.max(0, effect.target.currentHealth - damage);
-          this.combat.addToLog(`💀 ${hero.name}'s skeleton attacks for ${damage} damage!`);
-        }
-        
-        effect.ticksRemaining--;
-        
-        if (effect.ticksRemaining > 0) {
-          activeEffects.push(effect);
-        } else {
-          this.combat.addToLog(`${hero.name} recovers from ${effect.type}.`);
-        }
-      }
-    }
-    
-    hero.statusEffects = activeEffects;
+    const ctx = {
+      addToLog: this.combat.addToLog.bind(this.combat),
+      calculateDamage: this.combat.calculateDamage.bind(this.combat),
+      damageMultiplier: this.combat.damageMultiplier
+    };
+    processEffects(hero, ctx);
   }
 
   applyPoisonStacks(target, stacks) {
-    if (!target.statusEffects) target.statusEffects = [];
-    
-    let existingPoison = target.statusEffects.find(e => e.type === 'poison_stacks');
-    if (existingPoison) {
-      existingPoison.stacks += stacks;
-    } else {
-      target.statusEffects.push({
-        type: 'poison_stacks',
-        stacks: stacks,
-        lastTick: Date.now()
-      });
-    }
+    PoisonEffect.applyStacks(target, stacks);
   }
 
   applyFrostStacks(target, stacks) {
-    if (!target.statusEffects) target.statusEffects = [];
-    
-    let existingFrost = target.statusEffects.find(e => e.type === 'frost_stacks');
-    if (existingFrost) {
-      existingFrost.stacks += stacks;
-    } else {
-      target.statusEffects.push({
-        type: 'frost_stacks',
-        stacks: stacks,
-        lastTick: Date.now()
-      });
-    }
+    FrostEffect.applyStacks(target, stacks);
   }
 
   applyShieldStacks(target, stacks) {
-    if (!target.statusEffects) target.statusEffects = [];
-    
-    let existingShield = target.statusEffects.find(e => e.type === 'shield_stacks');
-    if (existingShield) {
-      existingShield.stacks += stacks;
-    } else {
-      target.statusEffects.push({
-        type: 'shield_stacks',
-        stacks: stacks
-      });
-    }
+    ShieldEffect.applyStacks(target, stacks);
   }
 
-  triggerAbilities(hero, target, triggerType, extraData = {}) {
-    if (!hero.purchasedAbilities) return;
-    
-    const now = Date.now();
-    const opp = target; // Alias for opponent/target
+  /**
+   * Handles purchased ability effects based on trigger type.
+   * @param {Object} hero - The hero with purchased abilities
+   * @param {Object} target - The target hero
+   * @param {string} triggerType - The trigger type
+   * @param {Object} extraData - Additional data for the trigger
+   * @param {number} now - Current timestamp
+   * @returns {boolean} True if death save activated
+   */
+  handlePurchasedAbilities(hero, target, triggerType, extraData, now) {
+    if (!hero.purchasedAbilities) return false;
     
     for (const ability of hero.purchasedAbilities) {
       switch (ability.effect) {
@@ -1019,6 +717,20 @@ export class AbilitySystem {
           break;
       }
     }
+    return false;
+  }
+
+  /**
+   * Handles equipment effects based on trigger type.
+   * @param {Object} hero - The hero with equipment
+   * @param {Object} target - The target hero
+   * @param {string} triggerType - The trigger type
+   * @param {Object} extraData - Additional data for the trigger
+   * @param {number} now - Current timestamp
+   */
+  handleEquipmentEffects(hero, target, triggerType, extraData, now) {
+    const opp = target; // Alias for opponent/target
+    
   if (!hero.equipmentState) hero.equipmentState = {};
   const es = hero.equipmentState;
 
@@ -1604,7 +1316,17 @@ export class AbilitySystem {
         target.equipmentState.manaRegenDebuffs = target.equipmentState.manaRegenDebuffs.filter(d => d.expires > now);
       }
     }
+  }
 
+  triggerAbilities(hero, target, triggerType, extraData = {}) {
+    const now = Date.now();
+    
+    // Handle purchased abilities
+    const deathSaved = this.handlePurchasedAbilities(hero, target, triggerType, extraData, now);
+    if (deathSaved) return true;
+    
+    this.handleEquipmentEffects(hero, target, triggerType, extraData, now);
+    
     return false;
   }
 }
