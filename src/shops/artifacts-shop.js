@@ -1,4 +1,5 @@
 import { ArtifactSystem } from '../core/artifacts.js';
+import { sanitizeHTML } from '../utils/sanitize.js';
 
 export class ArtifactsShop {
   constructor(container, roundNumber) {
@@ -148,8 +149,8 @@ export class ArtifactsShop {
         <div class="parasite-player-option" data-player-id="${player.id}">
           <div class="player-avatar">${player.hero.avatar}</div>
           <div class="player-details">
-            <div class="player-name">${player.name}</div>
-            <div class="player-hero-name">${player.hero.name}</div>
+            <div class="player-name">${sanitizeHTML(player.name)}</div>
+            <div class="player-hero-name">${sanitizeHTML(player.hero.name)}</div>
           </div>
           <div class="player-stats-mini">
             <span>W: ${player.wins || 0}</span>
