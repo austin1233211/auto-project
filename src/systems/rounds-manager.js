@@ -13,6 +13,7 @@ import { ArtifactEffects } from '../core/artifact-effects.js';
 import { debugTools } from '../components/debug-tools.js';
 import { PLAYER_CONSTANTS } from '../core/constants.js';
 import { logger } from '../utils/logger.js';
+import { sanitizeHTML } from '../utils/sanitize.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -535,8 +536,8 @@ export class RoundsManager {
       return `
         <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
           <div class="player-info">
-            <div class="player-name">${player.name}</div>
-            <div class="player-hero">${player.hero.avatar} ${player.hero.name}</div>
+            <div class="player-name">${sanitizeHTML(player.name)}</div>
+            <div class="player-hero">${player.hero.avatar} ${sanitizeHTML(player.hero.name)}</div>
           </div>
           <div class="player-health">
             <div class="health-bar">
