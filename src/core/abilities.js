@@ -1,6 +1,17 @@
 import { ABILITY_CONFIG } from './ability-system/config.js';
 import * as BurnEffect from './ability-system/effects/burn.js';
 import * as PoisonEffect from './ability-system/effects/poison.js';
+import * as StunEffect from './ability-system/effects/stun.js';
+import * as DamageReductionEffect from './ability-system/effects/damage-reduction.js';
+import * as AttackSpeedEffect from './ability-system/effects/attack-speed.js';
+import * as AbsorptionEffect from './ability-system/effects/absorption.js';
+import * as DodgeEffect from './ability-system/effects/dodge.js';
+import * as StealthEffect from './ability-system/effects/stealth.js';
+import * as PoisonBladeEffect from './ability-system/effects/poison-blade.js';
+import * as ImmunityEffect from './ability-system/effects/immunity.js';
+import * as SkeletonEffect from './ability-system/effects/skeleton.js';
+import * as FrostEffect from './ability-system/effects/frost.js';
+import * as ShieldEffect from './ability-system/effects/shield.js';
 
 export class AbilitySystem {
   constructor(combat) {
@@ -401,15 +412,7 @@ export class AbilitySystem {
   }
 
   applyStunEffect(target, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'stun',
-      duration: duration,
-      ticksRemaining: duration
-    });
+    StunEffect.apply(target, duration);
   }
 
   applyPoisonEffect(target, poisonDamage, duration) {
@@ -417,107 +420,35 @@ export class AbilitySystem {
   }
 
   applyDamageReductionEffect(target, reduction, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'damage_reduction',
-      reduction: reduction,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    DamageReductionEffect.apply(target, reduction, duration);
   }
 
   applyAttackSpeedEffect(target, bonus, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'attack_speed',
-      bonus: bonus,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    AttackSpeedEffect.apply(target, bonus, duration);
   }
 
   applyAbsorptionEffect(target, count) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'absorption',
-      count: count,
-      ticksRemaining: count
-    });
+    AbsorptionEffect.apply(target, count);
   }
 
   applyDodgeEffect(target, chance, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'dodge',
-      chance: chance,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    DodgeEffect.apply(target, chance, duration);
   }
 
-  applyStealthEffect(target, attackMultiplier, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'stealth',
-      attackMultiplier: attackMultiplier,
-      duration: duration,
-      ticksRemaining: duration
-    });
+  applyStealthEffect(target, nextAttackMultiplier, duration) {
+    StealthEffect.apply(target, nextAttackMultiplier, duration);
   }
 
   applyPoisonBladeEffect(target, poisonPercent, poisonDuration, buffDuration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'poison_blade',
-      poisonPercent: poisonPercent,
-      poisonDuration: poisonDuration,
-      duration: buffDuration,
-      ticksRemaining: buffDuration
-    });
+    PoisonBladeEffect.apply(target, poisonPercent, poisonDuration, buffDuration);
   }
 
   applyImmunityEffect(target, duration) {
-    if (!target.statusEffects) {
-      target.statusEffects = [];
-    }
-    
-    target.statusEffects.push({
-      type: 'immunity',
-      duration: duration,
-      ticksRemaining: duration
-    });
+    ImmunityEffect.apply(target, duration);
   }
 
   applySkeletonEffect(caster, target, attackPercent, duration) {
-    if (!caster.statusEffects) {
-      caster.statusEffects = [];
-    }
-    
-    caster.statusEffects.push({
-      type: 'skeleton',
-      target: target,
-      attackPercent: attackPercent,
-      duration: duration,
-      ticksRemaining: duration
-    });
+    SkeletonEffect.apply(caster, target, attackPercent, duration);
   }
 
   processStatusEffects(hero) {
@@ -585,32 +516,11 @@ export class AbilitySystem {
   }
 
   applyFrostStacks(target, stacks) {
-    if (!target.statusEffects) target.statusEffects = [];
-    
-    let existingFrost = target.statusEffects.find(e => e.type === 'frost_stacks');
-    if (existingFrost) {
-      existingFrost.stacks += stacks;
-    } else {
-      target.statusEffects.push({
-        type: 'frost_stacks',
-        stacks: stacks,
-        lastTick: Date.now()
-      });
-    }
+    FrostEffect.applyStacks(target, stacks);
   }
 
   applyShieldStacks(target, stacks) {
-    if (!target.statusEffects) target.statusEffects = [];
-    
-    let existingShield = target.statusEffects.find(e => e.type === 'shield_stacks');
-    if (existingShield) {
-      existingShield.stacks += stacks;
-    } else {
-      target.statusEffects.push({
-        type: 'shield_stacks',
-        stacks: stacks
-      });
-    }
+    ShieldEffect.applyStacks(target, stacks);
   }
 
   triggerAbilities(hero, target, triggerType, extraData = {}) {
