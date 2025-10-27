@@ -8,6 +8,7 @@ import { debugTools } from '../components/debug-tools.js';
 import { GameLoop } from './game-loop.js';
 import { throttleAnimationFrame, DirtyFlag } from '../utils/performance.js';
 import { COMBAT_CONSTANTS } from '../core/constants.js';
+import { BattleRendererThree } from '../renderers/three/battle-renderer-three.js';
 
 /**
  * @typedef {import('../core/stats-calculator.js').Hero} Hero
@@ -66,6 +67,8 @@ export class Combat {
     this.damageMultiplier = 1;
     this.combatShop = null;
     this.combatShopContainer = null;
+    this.battleRenderer = null;
+    this.rendererContainer = null;
     if (typeof devTestPanel !== 'undefined' && devTestPanel && devTestPanel.attachCombat) {
       devTestPanel.attachCombat(this);
     }
@@ -149,6 +152,8 @@ export class Combat {
           <div class="player-money-display">💰 Money: ${this.playerMoney || 0}</div>
         </div>
         
+        <div id="battle-renderer-container" class="battle-renderer-container"></div>
+        
         <div class="battle-field">
           <div class="hero-battle-card player">
             <div class="hero-avatar">${this.playerHero.avatar}</div>
@@ -203,6 +208,38 @@ export class Combat {
     `;
 
     this.attachEventListeners();
+    
+    setTimeout(() => {
+      this.initBattleRenderer();
+    }, 0);
+  }
+
+  async initBattleRenderer() {
+    try {
+      this.rendererContainer = this.container.querySelector('#battle-renderer-container');
+      if (!this.rendererContainer) {
+        console.warn('Battle renderer container not found');
+        return;
+      }
+
+      if (typeof window.THREE === 'undefined') {
+        console.warn('Three.js not loaded, skipping 3D renderer');
+        return;
+      }
+
+      this.battleRenderer = new BattleRendererThree(this.rendererContainer);
+      await this.battleRenderer.init();
+      
+      if (this.playerHero && this.enemyHero) {
+        await this.battleRenderer.spawnHero(this.playerHero, 'player');
+        await this.battleRenderer.spawnHero(this.enemyHero, 'enemy');
+      }
+      
+      console.log('3D Battle Renderer initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize 3D renderer:', error);
+      this.battleRenderer = null;
+    }
   }
 
   attachEventListeners() {
@@ -320,6 +357,11 @@ export class Combat {
   clearTimers() {
     debugTools.logDebug('🧹 Combat: Clearing all timers via game loop');
     this.gameLoop.stop();
+    
+    if (this.battleRenderer) {
+      this.battleRenderer.dispose();
+      this.battleRenderer = null;
+    }
   }
 
   /**
@@ -402,11 +444,18 @@ export class Combat {
 
     const passiveResult = this.abilitySystem.processPassiveAbility(attacker, target);
     
+    const attackerSide = attacker === this.playerHero ? 'player' : 'enemy';
+    const targetSide = target === this.playerHero ? 'player' : 'enemy';
+    
     if (attacker.currentMana >= attacker.maxMana) {
       const ultimateAbility = attacker.abilities.ultimate;
       const abilityResult = this.abilitySystem.executeAbility(attacker, target, ultimateAbility.name);
       damage = abilityResult.damage;
       attacker.currentMana = 0;
+      
+      if (this.battleRenderer) {
+        this.battleRenderer.playAnimation(attackerSide, 'ultimate');
+      }
       
       this.abilitySystem.triggerAbilities(attacker, target, 'on_ultimate');
     } else {
@@ -454,6 +503,10 @@ export class Combat {
         this.addToLog(`${attacker.name} attacks for ${finalDamage} damage!`);
       }
       
+      if (this.battleRenderer) {
+        this.battleRenderer.playAnimation(attackerSide, 'attack');
+      }
+      
       damage = finalDamage;
 
       if (attacker.equipmentState && attacker.equipmentState.onHitBonusMagic) {
@@ -487,6 +540,11 @@ export class Combat {
     target.currentHealth = Math.max(0, target.currentHealth - damage);
     
     if (damage > 0) {
+      if (this.battleRenderer) {
+        this.battleRenderer.playAnimation(targetSide, 'hit');
+        this.battleRenderer.showDamage(targetSide, damage, wasCrit);
+      }
+      
       this.abilitySystem.triggerAbilities(target, attacker, 'on_damage_taken', { wasCrit, damageType: 'physical' });
       this.abilitySystem.triggerAbilities(attacker, target, 'on_damage_dealt');
       
@@ -498,6 +556,9 @@ export class Combat {
       this.updateHealthBars();
 
       if (target.currentHealth <= 0) {
+        if (this.battleRenderer) {
+          this.battleRenderer.playAnimation(targetSide, 'death');
+        }
         const result = target === this.enemyHero ? 'victory' : 'defeat';
         this.endBattle(result);
         return;
