@@ -720,12 +720,16 @@ export class AbilitySystem {
     return false;
   }
 
-  triggerAbilities(hero, target, triggerType, extraData = {}) {
-    const now = Date.now();
+  /**
+   * Handles equipment effects based on trigger type.
+   * @param {Object} hero - The hero with equipment
+   * @param {Object} target - The target hero
+   * @param {string} triggerType - The trigger type
+   * @param {Object} extraData - Additional data for the trigger
+   * @param {number} now - Current timestamp
+   */
+  handleEquipmentEffects(hero, target, triggerType, extraData, now) {
     const opp = target; // Alias for opponent/target
-    
-    const deathSaved = this.handlePurchasedAbilities(hero, target, triggerType, extraData, now);
-    if (deathSaved) return true;
     
   if (!hero.equipmentState) hero.equipmentState = {};
   const es = hero.equipmentState;
@@ -1312,7 +1316,17 @@ export class AbilitySystem {
         target.equipmentState.manaRegenDebuffs = target.equipmentState.manaRegenDebuffs.filter(d => d.expires > now);
       }
     }
+  }
 
+  triggerAbilities(hero, target, triggerType, extraData = {}) {
+    const now = Date.now();
+    
+    // Handle purchased abilities
+    const deathSaved = this.handlePurchasedAbilities(hero, target, triggerType, extraData, now);
+    if (deathSaved) return true;
+    
+    this.handleEquipmentEffects(hero, target, triggerType, extraData, now);
+    
     return false;
   }
 }
