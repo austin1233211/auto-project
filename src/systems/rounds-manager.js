@@ -250,7 +250,7 @@ export class RoundsManager {
     this.combat.setOnMoneyChange((newMoney) => {
       if (player1.name === "You") {
         player1.gold = newMoney;
-        this.updatePlayersList();
+        this.syncGoldUI();
       }
     });
 
@@ -684,7 +684,7 @@ export class RoundsManager {
       this.roundsShop.setOnGoldChange((newGold) => {
         if (userPlayer) {
           userPlayer.gold = newGold;
-          this.updatePlayersList();
+          this.syncGoldUI();
           this.updatePlayerHero();
         }
       });
@@ -728,6 +728,19 @@ export class RoundsManager {
         this.roundsShop.setPlayerGold(userPlayer.gold);
         this.roundsShop.updateGoldDisplay();
       }
+    }
+  }
+
+  syncGoldUI() {
+    const userPlayer = this.players.find(p => p.name === 'You');
+    if (userPlayer) {
+      this.updatePlayersList();
+      
+      if (this.combat) {
+        this.combat.updateMoneyDisplay(userPlayer.gold);
+      }
+      
+      this.updateRoundsShopMoney();
     }
   }
 
@@ -775,7 +788,7 @@ export class RoundsManager {
       ArtifactEffects.decrementLoanRounds(player);
     });
     
-    this.updatePlayersList();
+    this.syncGoldUI();
     
     // Setup for the next round
     if ([5, 10, 15, 20].includes(this.currentRound)) {
@@ -873,6 +886,7 @@ export class RoundsManager {
         this.handleEquipmentSelection(equipment);
       });
       
+      equipmentReward.context = 'minion_round';
       equipmentReward.init(result.playerWon, this.currentRound);
     }
   }
@@ -893,34 +907,29 @@ export class RoundsManager {
       
       if (artifact.effect === 'new_years_gift') {
         userPlayer.gold += artifact.value;
-        this.updatePlayersList();
       }
       
       if (artifact.effect === 'loan_agreement') {
         userPlayer.gold += artifact.value;
-        this.updatePlayersList();
       }
       
       if (artifact.effect === 'fate') {
         userPlayer.gold += artifact.value;
-        this.updatePlayersList();
       }
       
       if (artifact.effect === 'loan_agreement_2') {
         userPlayer.gold += artifact.value;
-        this.updatePlayersList();
       }
       
       if (artifact.effect === 'new_years_gift_2') {
         userPlayer.gold += artifact.value;
-        this.updatePlayersList();
       }
       
       if (artifact.effect === 'loan_agreement_3') {
         userPlayer.gold += artifact.value;
-        this.updatePlayersList();
       }
       
+      this.syncGoldUI();
       this.updatePlayerHero();
     }
     
