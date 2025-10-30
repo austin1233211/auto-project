@@ -1,3 +1,5 @@
+import { ROUND_CONSTANTS } from '../core/constants.js';
+
 export class DevTestPanel {
   constructor() {
     this.__modules = {};
@@ -114,7 +116,7 @@ export class DevTestPanel {
           log('EquipmentReward.debugGenerateForRound unavailable');
           return;
         }
-        [5, 10, 15, 20].forEach(r => {
+        ROUND_CONSTANTS.MINION_ROUNDS.forEach(r => {
           const types = ER.debugGenerateForRound(r, true) || [];
           log(`Round ${r}: ${types.join(', ')}`);
         });

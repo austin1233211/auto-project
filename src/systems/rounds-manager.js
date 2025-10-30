@@ -11,9 +11,10 @@ import { EquipmentReward } from '../components/equipment-reward.js';
 import { ArtifactSystem } from '../core/artifacts.js';
 import { ArtifactEffects } from '../core/artifact-effects.js';
 import { debugTools } from '../components/debug-tools.js';
-import { PLAYER_CONSTANTS } from '../core/constants.js';
+import { PLAYER_CONSTANTS, ROUND_CONSTANTS } from '../core/constants.js';
 import { logger } from '../utils/logger.js';
 import { sanitizeHTML } from '../utils/sanitize.js';
+import { throttleAnimationFrame } from '../utils/performance.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -39,6 +40,9 @@ export class RoundsManager {
     this.isArtifactSelectionActive = false;
     this.isProcessingRoundResults = false;
     this.isQuitting = false;
+    
+    this.throttledSyncGoldUI = throttleAnimationFrame(this._syncGoldUIImmediate.bind(this));
+    
     this.setupTimer();
   }
 
@@ -119,19 +123,19 @@ export class RoundsManager {
         return;
       }
       
-      if ([5, 10, 15, 20].includes(this.currentRound)) {
+      if (ROUND_CONSTANTS.MINION_ROUNDS.includes(this.currentRound)) {
         this.startMinionRound();
         return;
       }
       
-      if ([3, 8, 13].includes(this.currentRound)) {
+      if (ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound)) {
         if (!this.isArtifactSelectionActive) {
           this.startArtifactRound();
         }
         return;
       }
       
-      this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+      this.isSpecialRound = ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound);
       this.currentMatches = this.generateMatches();
       this.currentMatchIndex = 0;
       this.userBattleCompleted = false;
@@ -271,8 +275,8 @@ export class RoundsManager {
       this.combat.clearTimers();
     }
     
-    if ([5, 10, 15, 20].includes(this.currentRound)) {
-      this.handleSpecialRoundResult(result);
+    if (ROUND_CONSTANTS.MINION_ROUNDS.includes(this.currentRound)) {
+      this.handleSpecialRoundResult();
       return;
     }
     
@@ -298,7 +302,7 @@ export class RoundsManager {
         player1.wins++;
         player1.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player1.hero);
-        this.economy.awardMoney(player1, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        this.economy.awardMoney(player1, true, 0, processedHero.stats.goldBonus || 0);
         
         const artifactGold = ArtifactEffects.processVictoryEffects(player1, player2, this.players);
         if (artifactGold > 0) {
@@ -322,7 +326,7 @@ export class RoundsManager {
         player2.wins++;
         player2.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player2.hero);
-        this.economy.awardMoney(player2, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        this.economy.awardMoney(player2, true, 0, processedHero.stats.goldBonus || 0);
         
         const artifactGold = ArtifactEffects.processVictoryEffects(player2, player1, this.players);
         if (artifactGold > 0) {
@@ -349,7 +353,7 @@ export class RoundsManager {
       this.userBattleCompleted = true;
       this.currentMatchIndex++;
       
-      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+      if (ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound) && !this.artifactSelectionShown) {
         logger.debug(`User battle completed on artifact round ${this.currentRound}, showing artifact selection`);
         this.artifactSelectionShown = true;
         setTimeout(() => {
@@ -387,7 +391,7 @@ export class RoundsManager {
     const completedMatches = this.currentMatches.filter(match => match.completed).length;
     const totalMatches = this.currentMatches.length;
     
-    if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
+    if (ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound) && this.artifactSelectionShown) {
       logger.debug(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
       this.isProcessingRoundResults = false;
       return;
@@ -667,7 +671,7 @@ export class RoundsManager {
 
 
   initRoundsShop() {
-    if ([3, 8, 13].includes(this.currentRound)) {
+    if (ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound)) {
       return;
     }
     
@@ -701,7 +705,7 @@ export class RoundsManager {
   }
 
   showRoundsShop() {
-    if ([3, 8, 13].includes(this.currentRound)) {
+    if (ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound)) {
       return;
     }
     
@@ -732,6 +736,10 @@ export class RoundsManager {
   }
 
   syncGoldUI() {
+    this.throttledSyncGoldUI();
+  }
+
+  _syncGoldUIImmediate() {
     const userPlayer = this.players.find(p => p.name === 'You');
     if (userPlayer) {
       this.updatePlayersList();
@@ -791,18 +799,18 @@ export class RoundsManager {
     this.syncGoldUI();
     
     // Setup for the next round
-    if ([5, 10, 15, 20].includes(this.currentRound)) {
+    if (ROUND_CONSTANTS.MINION_ROUNDS.includes(this.currentRound)) {
       this.startMinionRound();
       return;
     }
     
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+    if (ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound) && !this.artifactSelectionShown) {
       this.artifactSelectionShown = true;
       this.startArtifactRound();
       return;
     }
     
-    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+    this.isSpecialRound = ROUND_CONSTANTS.ARTIFACT_ROUNDS.includes(this.currentRound);
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.userBattleCompleted = false;
