@@ -2,9 +2,10 @@ import { ArtifactSystem } from '../core/artifacts.js';
 import { sanitizeHTML } from '../utils/sanitize.js';
 
 export class ArtifactsShop {
-  constructor(container, roundNumber) {
+  constructor(container, roundNumber, players = null) {
     this.container = container;
     this.roundNumber = roundNumber;
+    this.players = players;
     this.artifactSystem = new ArtifactSystem();
     this.currentArtifacts = [];
     this.hasRerolled = false;
@@ -142,8 +143,8 @@ export class ArtifactsShop {
     const playerListContainer = overlay.querySelector('#parasite-player-list');
     const cancelButton = overlay.querySelector('#parasite-cancel');
 
-    if (window.currentPlayers && Array.isArray(window.currentPlayers)) {
-      const otherPlayers = window.currentPlayers.filter(p => p.name !== 'You');
+    if (this.players && Array.isArray(this.players)) {
+      const otherPlayers = this.players.filter(p => p.name !== 'You');
       
       playerListContainer.innerHTML = otherPlayers.map(player => `
         <div class="parasite-player-option" data-player-id="${player.id}">

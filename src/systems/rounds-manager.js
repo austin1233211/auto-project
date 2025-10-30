@@ -14,6 +14,8 @@ import { debugTools } from '../components/debug-tools.js';
 import { PLAYER_CONSTANTS } from '../core/constants.js';
 import { logger } from '../utils/logger.js';
 import { sanitizeHTML } from '../utils/sanitize.js';
+import { ARTIFACT_ROUNDS, MINION_ROUNDS, isArtifactRound, isMinionRound } from '../constants/rounds.js';
+import { globalUIScheduler } from '../utils/ui-scheduler.js';
 
 export class RoundsManager {
   constructor(container, playerHealth = null, heroStatsCard = null) {
@@ -39,6 +41,7 @@ export class RoundsManager {
     this.isArtifactSelectionActive = false;
     this.isProcessingRoundResults = false;
     this.isQuitting = false;
+    this.playerNodesCache = new Map();
     this.setupTimer();
   }
 
@@ -119,19 +122,19 @@ export class RoundsManager {
         return;
       }
       
-      if ([5, 10, 15, 20].includes(this.currentRound)) {
+      if (isMinionRound(this.currentRound)) {
         this.startMinionRound();
         return;
       }
       
-      if ([3, 8, 13].includes(this.currentRound)) {
+      if (isArtifactRound(this.currentRound)) {
         if (!this.isArtifactSelectionActive) {
           this.startArtifactRound();
         }
         return;
       }
       
-      this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+      this.isSpecialRound = isArtifactRound(this.currentRound);
       this.currentMatches = this.generateMatches();
       this.currentMatchIndex = 0;
       this.userBattleCompleted = false;
@@ -271,7 +274,7 @@ export class RoundsManager {
       this.combat.clearTimers();
     }
     
-    if ([5, 10, 15, 20].includes(this.currentRound)) {
+    if (isMinionRound(this.currentRound)) {
       this.handleSpecialRoundResult(result);
       return;
     }
@@ -349,7 +352,7 @@ export class RoundsManager {
       this.userBattleCompleted = true;
       this.currentMatchIndex++;
       
-      if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+      if (isArtifactRound(this.currentRound) && !this.artifactSelectionShown) {
         logger.debug(`User battle completed on artifact round ${this.currentRound}, showing artifact selection`);
         this.artifactSelectionShown = true;
         setTimeout(() => {
@@ -387,7 +390,7 @@ export class RoundsManager {
     const completedMatches = this.currentMatches.filter(match => match.completed).length;
     const totalMatches = this.currentMatches.length;
     
-    if ([3, 8, 13].includes(this.currentRound) && this.artifactSelectionShown) {
+    if (isArtifactRound(this.currentRound) && this.artifactSelectionShown) {
       logger.debug(`Artifact selection is active for round ${this.currentRound}, skipping round completion`);
       this.isProcessingRoundResults = false;
       return;
@@ -534,7 +537,7 @@ export class RoundsManager {
       const healthPercentage = (currentHealth / maxHealth) * 100;
       
       return `
-        <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}">
+        <div class="player-card ${player.isEliminated ? 'eliminated' : ''} ${player.isGhost ? 'ghost' : ''} ${this.activePlayers.includes(player) ? 'active' : ''}" data-player-id="${player.id}">
           <div class="player-info">
             <div class="player-name">${sanitizeHTML(player.name)}</div>
             <div class="player-hero">${player.hero.avatar} ${sanitizeHTML(player.hero.name)}</div>
@@ -542,7 +545,7 @@ export class RoundsManager {
           <div class="player-health">
             <div class="health-bar">
               <div class="health-fill" style="width: ${healthPercentage}%"></div>
-              <span class="health-text">${currentHealth}/${maxHealth}</span>
+              <span class="health-text hp">${currentHealth}/${maxHealth}</span>
             </div>
           </div>
           <div class="player-stats">
@@ -571,9 +574,50 @@ export class RoundsManager {
 
   updatePlayersList() {
     const playersList = this.container.querySelector('#players-list');
-    if (playersList) {
+    if (!playersList) return;
+    
+    if (this.playerNodesCache.size === 0) {
       playersList.innerHTML = this.renderPlayersList();
+      this.players.forEach(player => {
+        const node = playersList.querySelector(`[data-player-id="${player.id}"]`);
+        if (node) {
+          this.playerNodesCache.set(player.id, {
+            node,
+            hp: node.querySelector('.hp'),
+            wins: node.querySelector('.wins'),
+            losses: node.querySelector('.losses'),
+            gold: node.querySelector('.gold')
+          });
+        }
+      });
+      return;
     }
+    
+    this.players.forEach(player => {
+      const cached = this.playerNodesCache.get(player.id);
+      if (!cached) return;
+      
+      const currentHp = player.playerHealth?.currentHealth || 0;
+      const hpText = `HP: ${currentHp}`;
+      if (cached.hp && cached.hp.textContent !== hpText) {
+        cached.hp.textContent = hpText;
+      }
+      
+      const winsText = `Wins: ${player.wins}`;
+      if (cached.wins && cached.wins.textContent !== winsText) {
+        cached.wins.textContent = winsText;
+      }
+      
+      const lossesText = `Losses: ${player.losses}`;
+      if (cached.losses && cached.losses.textContent !== lossesText) {
+        cached.losses.textContent = lossesText;
+      }
+      
+      const goldText = `💰 ${player.gold || 0}`;
+      if (cached.gold && cached.gold.textContent !== goldText) {
+        cached.gold.textContent = goldText;
+      }
+    });
   }
 
   attachEventListeners() {
@@ -667,7 +711,7 @@ export class RoundsManager {
 
 
   initRoundsShop() {
-    if ([3, 8, 13].includes(this.currentRound)) {
+    if (isArtifactRound(this.currentRound)) {
       return;
     }
     
@@ -701,7 +745,7 @@ export class RoundsManager {
   }
 
   showRoundsShop() {
-    if ([3, 8, 13].includes(this.currentRound)) {
+    if (isArtifactRound(this.currentRound)) {
       return;
     }
     
@@ -734,13 +778,42 @@ export class RoundsManager {
   syncGoldUI() {
     const userPlayer = this.players.find(p => p.name === 'You');
     if (userPlayer) {
-      this.updatePlayersList();
-      
-      if (this.combat) {
-        this.combat.updateMoneyDisplay(userPlayer.gold);
-      }
-      
-      this.updateRoundsShopMoney();
+      globalUIScheduler.scheduleUpdate('gold-ui', () => {
+        this.updatePlayersList();
+        
+        if (this.combat) {
+          this.combat.updateMoneyDisplay(userPlayer.gold);
+        }
+        
+        this.updateRoundsShopMoney();
+      });
+    }
+  }
+
+  awardGold(player, amount, reason = '') {
+    if (amount <= 0) return;
+    player.gold += amount;
+    if (player.name === 'You') {
+      this.syncGoldUI();
+    }
+  }
+
+  spendGold(player, amount, reason = '') {
+    if (amount <= 0) return false;
+    if (player.gold < amount) return false;
+    player.gold -= amount;
+    if (player.name === 'You') {
+      this.syncGoldUI();
+    }
+    return true;
+  }
+
+  refreshHeroUI() {
+    const userPlayer = this.players.find(p => p.name === 'You');
+    if (userPlayer && this.heroStatsCard) {
+      globalUIScheduler.scheduleUpdate('hero-ui', () => {
+        this.heroStatsCard.updateHero(userPlayer.hero);
+      });
     }
   }
 
@@ -790,19 +863,18 @@ export class RoundsManager {
     
     this.syncGoldUI();
     
-    // Setup for the next round
-    if ([5, 10, 15, 20].includes(this.currentRound)) {
+    if (isMinionRound(this.currentRound)) {
       this.startMinionRound();
       return;
     }
     
-    if ([3, 8, 13].includes(this.currentRound) && !this.artifactSelectionShown) {
+    if (isArtifactRound(this.currentRound) && !this.artifactSelectionShown) {
       this.artifactSelectionShown = true;
       this.startArtifactRound();
       return;
     }
     
-    this.isSpecialRound = [3, 8, 13].includes(this.currentRound);
+    this.isSpecialRound = isArtifactRound(this.currentRound);
     this.currentMatches = this.generateMatches();
     this.currentMatchIndex = 0;
     this.userBattleCompleted = false;
@@ -854,8 +926,6 @@ export class RoundsManager {
     this.isArtifactSelectionActive = true;
     this.updateRoundDisplay();
     
-    window.currentPlayers = this.players;
-    
     const combatContainer = this.container.querySelector('#battle-area');
     if (combatContainer) {
       if (this.combat) {
@@ -866,7 +936,7 @@ export class RoundsManager {
       combatContainer.innerHTML = '';
       
       setTimeout(() => {
-        const artifactsShop = new ArtifactsShop(combatContainer, this.currentRound);
+        const artifactsShop = new ArtifactsShop(combatContainer, this.currentRound, this.players);
         
         artifactsShop.setOnArtifactSelected((artifact) => {
           this.handleArtifactSelection(artifact);
@@ -992,5 +1062,32 @@ export class RoundsManager {
     if (userPlayer && this.heroStatsCard) {
       this.heroStatsCard.updateHero(userPlayer.hero);
     }
+  }
+
+  dispose() {
+    if (this.combat) {
+      this.combat.clearTimers();
+      this.combat = null;
+    }
+    
+    if (this.timer) {
+      this.timer.stopTimer();
+      this.timer = null;
+    }
+    
+    if (this.roundsShop) {
+      if (typeof this.roundsShop.dispose === 'function') {
+        this.roundsShop.dispose();
+      }
+      this.roundsShop = null;
+    }
+    
+    globalUIScheduler.clear();
+    this.playerNodesCache.clear();
+    
+    this.players = [];
+    this.activePlayers = [];
+    this.ghostPlayers = [];
+    this.currentMatches = [];
   }
 }
