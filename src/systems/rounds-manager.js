@@ -276,7 +276,7 @@ export class RoundsManager {
     }
     
     if (ROUND_CONSTANTS.MINION_ROUNDS.includes(this.currentRound)) {
-      this.handleSpecialRoundResult(result);
+      this.handleSpecialRoundResult();
       return;
     }
     
@@ -302,7 +302,7 @@ export class RoundsManager {
         player1.wins++;
         player1.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player1.hero);
-        this.economy.awardMoney(player1, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        this.economy.awardMoney(player1, true, 0, processedHero.stats.goldBonus || 0);
         
         const artifactGold = ArtifactEffects.processVictoryEffects(player1, player2, this.players);
         if (artifactGold > 0) {
@@ -326,7 +326,7 @@ export class RoundsManager {
         player2.wins++;
         player2.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player2.hero);
-        this.economy.awardMoney(player2, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        this.economy.awardMoney(player2, true, 0, processedHero.stats.goldBonus || 0);
         
         const artifactGold = ArtifactEffects.processVictoryEffects(player2, player1, this.players);
         if (artifactGold > 0) {
@@ -862,6 +862,7 @@ export class RoundsManager {
     this.isArtifactSelectionActive = true;
     this.updateRoundDisplay();
     
+    // @ts-ignore - currentPlayers is used by ArtifactsShop for parasite targeting
     window.currentPlayers = this.players;
     
     const combatContainer = this.container.querySelector('#battle-area');
