@@ -274,11 +274,6 @@ export class RoundsManager {
       this.combat.clearTimers();
     }
     
-    if (isMinionRound(this.currentRound)) {
-      this.handleSpecialRoundResult(result);
-      return;
-    }
-    
     this.processBattleResult(player1, player2, result);
   }
 
@@ -301,7 +296,8 @@ export class RoundsManager {
         player1.wins++;
         player1.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player1.hero);
-        this.economy.awardMoney(player1, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        const goldBonus = (processedHero.effectiveStats && typeof processedHero.effectiveStats.goldBonus === 'number') ? processedHero.effectiveStats.goldBonus : 0;
+        this.economy.awardMoney(player1, true, 0, goldBonus);
         
         const artifactGold = ArtifactEffects.processVictoryEffects(player1, player2, this.players);
         if (artifactGold > 0) {
@@ -325,7 +321,8 @@ export class RoundsManager {
         player2.wins++;
         player2.playerHealth.processRoundResult('victory');
         const processedHero = StatsCalculator.processHeroStats(player2.hero);
-        this.economy.awardMoney(player2, true, 0, processedHero.effectiveStats.goldBonus || 0);
+        const goldBonus = (processedHero.effectiveStats && typeof processedHero.effectiveStats.goldBonus === 'number') ? processedHero.effectiveStats.goldBonus : 0;
+        this.economy.awardMoney(player2, true, 0, goldBonus);
         
         const artifactGold = ArtifactEffects.processVictoryEffects(player2, player1, this.players);
         if (artifactGold > 0) {
@@ -1076,8 +1073,10 @@ export class RoundsManager {
     }
     
     if (this.roundsShop) {
-      if (typeof this.roundsShop.dispose === 'function') {
-        this.roundsShop.dispose();
+      if (typeof this.roundsShop['dispose'] === 'function') {
+        this.roundsShop['dispose']();
+      } else if (typeof this.roundsShop.hide === 'function') {
+        this.roundsShop.hide();
       }
       this.roundsShop = null;
     }

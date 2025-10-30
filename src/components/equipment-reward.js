@@ -6,6 +6,7 @@ export class EquipmentReward {
     this.onEquipmentSelected = null;
     this.selectedEquipment = null;
     this.playerWon = true;
+    this.context = null;
   }
 
   init(playerWon = true, currentRound = 1) {
