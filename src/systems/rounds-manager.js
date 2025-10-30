@@ -684,7 +684,7 @@ export class RoundsManager {
       this.roundsShop.setOnGoldChange((newGold) => {
         if (userPlayer) {
           userPlayer.gold = newGold;
-          this.updatePlayersList();
+          this.syncGoldUI();
           this.updatePlayerHero();
         }
       });
