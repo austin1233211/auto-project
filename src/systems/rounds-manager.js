@@ -862,7 +862,6 @@ export class RoundsManager {
     this.isArtifactSelectionActive = true;
     this.updateRoundDisplay();
     
-    // @ts-ignore - currentPlayers is used by ArtifactsShop for parasite targeting
     window.currentPlayers = this.players;
     
     const combatContainer = this.container.querySelector('#battle-area');
