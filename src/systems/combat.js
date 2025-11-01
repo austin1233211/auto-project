@@ -348,7 +348,7 @@ export class Combat {
       if (!this.isGameOver) {
         this.abilitySystem.processPassiveTick(this.playerHero, this.enemyHero);
         this.abilitySystem.processPassiveTick(this.enemyHero, this.playerHero);
-        this.updateHealthBars();
+        this.updateHealthAndManaBars();
       }
     }, 1000);
     

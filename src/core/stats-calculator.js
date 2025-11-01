@@ -187,23 +187,13 @@ export class StatsCalculator {
       }
     }
     
-    let effectiveSpeed = this.calculateEffectiveSpeed(modifiedStats.speed);
-    
-    if (hero.statusEffects) {
-      for (const effect of hero.statusEffects) {
-        if (effect.type === 'attack_speed' && effect.ticksRemaining > 0) {
-          effectiveSpeed *= (1 + effect.bonus);
-        }
-      }
-    }
-    
     return {
       ...hero,
       effectiveStats: {
         ...modifiedStats,
         attack: this.calculateEffectiveAttack(modifiedStats.attack),
         armor: this.calculateEffectiveArmor(modifiedStats.armor),
-        speed: effectiveSpeed
+        speed: this.calculateEffectiveSpeed(modifiedStats.speed)
       }
     };
   }
