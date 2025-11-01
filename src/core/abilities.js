@@ -74,6 +74,28 @@ export class AbilitySystem {
     const passiveName = hero.abilities.passive.name;
     
     switch (passiveName) {
+      case 'Eagle Eye':
+        if (Math.random() < 0.15) {
+          this.combat.addToLog(`🎯 ${hero.name}'s Eagle Eye grants a precision strike!`);
+          return { criticalHit: true };
+        }
+        break;
+      case 'Shadow Step':
+        if (Math.random() < 0.1) {
+          this.applyDodgeEffect(hero, 1.0, 1);
+        }
+        break;
+    }
+    
+    return null;
+  }
+
+  processPassiveTick(hero, target) {
+    if (!hero.abilities || !hero.abilities.passive) return;
+    
+    const passiveName = hero.abilities.passive.name;
+    
+    switch (passiveName) {
       case 'Warrior Training':
         if (hero.currentHealth / hero.stats.health < 0.5) {
           if (!hero.statusEffects) hero.statusEffects = [];
@@ -86,17 +108,6 @@ export class AbilitySystem {
       case 'Arcane Mastery':
         hero.currentMana = Math.min(hero.maxMana, hero.currentMana + 5);
         break;
-      case 'Eagle Eye':
-        if (Math.random() < 0.15) {
-          this.combat.addToLog(`🎯 ${hero.name}'s Eagle Eye grants a precision strike!`);
-          return { criticalHit: true };
-        }
-        break;
-      case 'Shadow Step':
-        if (Math.random() < 0.1) {
-          this.applyDodgeEffect(hero, 1.0, 1);
-        }
-        break;
       case 'Divine Blessing':
         if (hero.currentHealth / hero.stats.health < 0.3) {
           const healAmount = Math.round(hero.stats.health * 0.05);
@@ -104,10 +115,15 @@ export class AbilitySystem {
         }
         break;
       case 'Dark Aura':
+        if (target && target.currentHealth > 0) {
+          const drainAmount = Math.round(target.stats.health * 0.01);
+          target.currentHealth = Math.max(0, target.currentHealth - drainAmount);
+          if (drainAmount > 0) {
+            this.combat.addToLog(`💀 ${hero.name}'s Dark Aura drains ${drainAmount} health from ${target.name}!`);
+          }
+        }
         break;
     }
-    
-    return null;
   }
 
   executeFireball(caster, target) {
@@ -703,12 +719,7 @@ export class AbilitySystem {
               const hpDamage = Math.round(target.stats.health * (ability.value / 100));
               target.currentHealth = Math.max(0, target.currentHealth - hpDamage);
               
-              if (!target.statusEffects) target.statusEffects = [];
-              target.statusEffects.push({
-                type: 'stun',
-                duration: 500,
-                startTime: now
-              });
+              this.applyStunEffect(target, 1);
               
               hero.bladeDanceLastUse = now;
               this.combat.addToLog(`${hero.name}'s ${ability.name} stuns and deals ${hpDamage} HP damage!`);

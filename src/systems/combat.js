@@ -227,6 +227,69 @@ export class Combat {
     return Math.max(250, interval / this.speedMultiplier);
   }
 
+  /**
+   * Check if a hero is currently stunned
+   * @param {CombatHero} hero - The hero to check
+   * @returns {boolean} True if the hero is stunned
+   */
+  isStunned(hero) {
+    if (!hero.statusEffects) return false;
+    return hero.statusEffects.some(effect => 
+      effect.type === 'stun' && effect.ticksRemaining > 0
+    );
+  }
+
+  /**
+   * Get current attacks per second for a hero, accounting for status effects
+   * @param {CombatHero} hero - The hero to calculate speed for
+   * @returns {number} Current attacks per second
+   */
+  getCurrentAttacksPerSecond(hero) {
+    let speed = hero.effectiveStats.speed;
+    
+    // Apply attack speed status effects
+    if (hero.statusEffects) {
+      for (const effect of hero.statusEffects) {
+        if (effect.type === 'attack_speed' && effect.ticksRemaining > 0) {
+          speed *= (1 + effect.bonus);
+        }
+      }
+    }
+    
+    return speed;
+  }
+
+  /**
+   * Attempt to execute ultimate if conditions are met
+   * @param {CombatHero} caster - The hero casting the ultimate
+   * @param {CombatHero} target - The target hero
+   * @returns {boolean} True if ultimate was executed
+   */
+  maybeExecuteUltimate(caster, target) {
+    const now = Date.now();
+    
+    if (!caster.ultimateCooldownUntil) {
+      caster.ultimateCooldownUntil = 0;
+    }
+    
+    if (caster.currentMana >= caster.maxMana && 
+        !this.isStunned(caster) && 
+        now >= caster.ultimateCooldownUntil) {
+      
+      const ultimateAbility = caster.abilities.ultimate;
+      const abilityResult = this.abilitySystem.executeAbility(caster, target, ultimateAbility.name);
+      caster.currentMana = 0;
+      caster.ultimateCooldownUntil = now + 400;
+      
+      this.abilitySystem.triggerAbilities(caster, target, 'on_ultimate');
+      this.updateHealthBars();
+      
+      return true;
+    }
+    
+    return false;
+  }
+
   startManaRegeneration() {
     this.gameLoop.register('player_mana', () => {
       if (!this.isGameOver && this.playerHero.currentMana < this.playerHero.maxMana) {
@@ -236,6 +299,10 @@ export class Combat {
         const totalRegen = Math.max(0, COMBAT_CONSTANTS.BASE_MANA_REGEN_PER_SEC + (this.playerHero.effectiveStats.manaRegeneration || 0) + debuffs);
         const regenAmount = Math.ceil(totalRegen * (COMBAT_CONSTANTS.MANA_REGEN_INTERVAL / 1000));
         this.playerHero.currentMana = Math.min(this.playerHero.maxMana, this.playerHero.currentMana + regenAmount);
+        
+        if (this.playerHero.currentMana >= this.playerHero.maxMana) {
+          this.maybeExecuteUltimate(this.playerHero, this.enemyHero);
+        }
       }
     }, COMBAT_CONSTANTS.MANA_REGEN_INTERVAL);
     
@@ -247,6 +314,10 @@ export class Combat {
         const totalRegen = Math.max(0, COMBAT_CONSTANTS.BASE_MANA_REGEN_PER_SEC + (this.enemyHero.effectiveStats.manaRegeneration || 0) + debuffs);
         const regenAmount = Math.ceil(totalRegen * (COMBAT_CONSTANTS.MANA_REGEN_INTERVAL / 1000));
         this.enemyHero.currentMana = Math.min(this.enemyHero.maxMana, this.enemyHero.currentMana + regenAmount);
+        
+        if (this.enemyHero.currentMana >= this.enemyHero.maxMana) {
+          this.maybeExecuteUltimate(this.enemyHero, this.playerHero);
+        }
       }
     }, COMBAT_CONSTANTS.MANA_REGEN_INTERVAL);
     
@@ -269,6 +340,14 @@ export class Combat {
         this.abilitySystem.triggerAbilities(this.playerHero, this.enemyHero, 'low_hp_check');
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'low_hp_check');
         
+        this.updateHealthBars();
+      }
+    }, 1000);
+    
+    this.gameLoop.register('passive_tick', () => {
+      if (!this.isGameOver) {
+        this.abilitySystem.processPassiveTick(this.playerHero, this.enemyHero);
+        this.abilitySystem.processPassiveTick(this.enemyHero, this.playerHero);
         this.updateHealthBars();
       }
     }, 1000);
@@ -350,28 +429,32 @@ export class Combat {
     
     this.addToLog(`${this.playerHero.name} (${Math.round(this.playerHero.effectiveStats.speed)} SPD) vs ${this.enemyHero.name} (${Math.round(this.enemyHero.effectiveStats.speed)} SPD)`);
     this.addToLog(`Battle begins! Both heroes attack simultaneously based on their speed.`);
-    
-    const playerAttackInterval = this.calculateAttackInterval(this.playerHero.effectiveStats.speed);
-    const enemyAttackInterval = this.calculateAttackInterval(this.enemyHero.effectiveStats.speed);
-    
     this.addToLog(`${this.playerHero.name} attacks ${this.playerHero.effectiveStats.speed.toFixed(2)} times/sec | ${this.enemyHero.name} attacks ${this.enemyHero.effectiveStats.speed.toFixed(2)} times/sec`);
     
     this.gameLoop.register('player_attack', () => {
       if (!this.isGameOver) {
-        this.playerAttackAccumulator += this.gameLoop.tickRate;
-        if (this.playerAttackAccumulator >= playerAttackInterval) {
-          this.executeAttack(this.playerHero, this.enemyHero);
-          this.playerAttackAccumulator = 0;
+        if (!this.isStunned(this.playerHero)) {
+          const currentSpeed = this.getCurrentAttacksPerSecond(this.playerHero);
+          this.playerAttackAccumulator += this.gameLoop.tickRate * currentSpeed;
+          
+          if (this.playerAttackAccumulator >= 1000) {
+            this.executeAttack(this.playerHero, this.enemyHero);
+            this.playerAttackAccumulator -= 1000;
+          }
         }
       }
     }, this.gameLoop.tickRate);
     
     this.gameLoop.register('enemy_attack', () => {
       if (!this.isGameOver) {
-        this.enemyAttackAccumulator += this.gameLoop.tickRate;
-        if (this.enemyAttackAccumulator >= enemyAttackInterval) {
-          this.executeAttack(this.enemyHero, this.playerHero);
-          this.enemyAttackAccumulator = 0;
+        if (!this.isStunned(this.enemyHero)) {
+          const currentSpeed = this.getCurrentAttacksPerSecond(this.enemyHero);
+          this.enemyAttackAccumulator += this.gameLoop.tickRate * currentSpeed;
+          
+          if (this.enemyAttackAccumulator >= 1000) {
+            this.executeAttack(this.enemyHero, this.playerHero);
+            this.enemyAttackAccumulator -= 1000;
+          }
         }
       }
     }, this.gameLoop.tickRate);
@@ -394,6 +477,11 @@ export class Combat {
         return;
       }
 
+      // Check if attacker is stunned
+      if (this.isStunned(attacker)) {
+        return;
+      }
+
       let damage;
       let wasCrit = false;
 
@@ -401,14 +489,11 @@ export class Combat {
 
     const passiveResult = this.abilitySystem.processPassiveAbility(attacker, target);
     
-    if (attacker.currentMana >= attacker.maxMana) {
-      const ultimateAbility = attacker.abilities.ultimate;
-      const abilityResult = this.abilitySystem.executeAbility(attacker, target, ultimateAbility.name);
-      damage = abilityResult.damage;
-      attacker.currentMana = 0;
-      
-      this.abilitySystem.triggerAbilities(attacker, target, 'on_ultimate');
-    } else {
+    if (this.maybeExecuteUltimate(attacker, target)) {
+      return;
+    }
+    
+    {
       let finalDamage = this.calculateDamage(attacker.effectiveStats.attack, target, 'physical', attacker);
 
       if (attacker.equipmentState && attacker.equipmentState.forceNoEvasion) {
