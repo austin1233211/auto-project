@@ -277,7 +277,7 @@ export class Combat {
         now >= caster.ultimateCooldownUntil) {
       
       const ultimateAbility = caster.abilities.ultimate;
-      const abilityResult = this.abilitySystem.executeAbility(caster, target, ultimateAbility.name);
+      this.abilitySystem.executeAbility(caster, target, ultimateAbility.name);
       caster.currentMana = 0;
       caster.ultimateCooldownUntil = now + 400;
       
