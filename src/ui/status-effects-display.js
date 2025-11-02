@@ -27,15 +27,19 @@ export class StatusEffectsDisplay {
    * Should be called after combat UI is rendered
    */
   attachToDOM() {
-    const playerCard = document.querySelector('.player-hero-card, .hero-card:first-child');
-    const enemyCard = document.querySelector('.enemy-hero-card, .hero-card:last-child');
+    const playerCard = document.querySelector('.hero-battle-card.player');
+    const enemyCard = document.querySelector('.hero-battle-card.enemy');
 
     if (playerCard && this.playerContainer) {
-      playerCard.parentNode.insertBefore(this.playerContainer, playerCard.nextSibling);
+      playerCard.insertAdjacentElement('beforeend', this.playerContainer);
+    } else if (!playerCard) {
+      console.warn('StatusEffectsDisplay: player card not found');
     }
 
     if (enemyCard && this.enemyContainer) {
-      enemyCard.parentNode.insertBefore(this.enemyContainer, enemyCard.nextSibling);
+      enemyCard.insertAdjacentElement('beforeend', this.enemyContainer);
+    } else if (!enemyCard) {
+      console.warn('StatusEffectsDisplay: enemy card not found');
     }
   }
 
