@@ -182,13 +182,11 @@ export class StatusEffectsDisplay {
    */
   renderStatusEffect(effect) {
     const activeClass = effect.isActive ? 'active' : 'inactive';
+    const tooltip = `${effect.name}: ${effect.value}`;
     return `
-      <div class="status-effect ${activeClass}" data-effect-type="${effect.type}">
+      <div class="status-effect ${activeClass}" data-effect-type="${effect.type}" title="${tooltip}">
         <span class="status-effect-emoji">${effect.emoji}</span>
-        <div class="status-effect-info">
-          <span class="status-effect-name">${effect.name}</span>
-          <span class="status-effect-value">${effect.value}</span>
-        </div>
+        <span class="status-effect-value">${effect.value}</span>
       </div>
     `;
   }
