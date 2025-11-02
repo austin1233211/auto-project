@@ -17,7 +17,7 @@ import { sanitizeHTML } from '../utils/sanitize.js';
 import { throttleAnimationFrame } from '../utils/performance.js';
 
 export class RoundsManager {
-  constructor(container, playerHealth = null, heroStatsCard = null) {
+  constructor(container, playerHealth = null, heroStatsCard = null, heroInventoryWidget = null) {
     this.container = container;
     this.players = [];
     this.currentRound = 1;
@@ -29,6 +29,7 @@ export class RoundsManager {
     this.currentMatchIndex = 0;
     this.playerHealth = playerHealth;
     this.heroStatsCard = heroStatsCard;
+    this.heroInventoryWidget = heroInventoryWidget;
     this.timer = new Timer();
     this.economy = new Economy();
     this.roundsShop = null;
@@ -267,6 +268,9 @@ export class RoundsManager {
     
     if (this.heroStatsCard && player1.name === "You") {
       this.heroStatsCard.updateHero(player1.hero);
+    }
+    if (this.heroInventoryWidget && player1.name === "You") {
+      this.heroInventoryWidget.updateHero(player1.hero);
     }
   }
 
@@ -999,6 +1003,9 @@ export class RoundsManager {
     const userPlayer = this.players.find(p => p.name === "You");
     if (userPlayer && this.heroStatsCard) {
       this.heroStatsCard.updateHero(userPlayer.hero);
+    }
+    if (userPlayer && this.heroInventoryWidget) {
+      this.heroInventoryWidget.updateHero(userPlayer.hero);
     }
   }
 }
