@@ -36,7 +36,7 @@ app.get('/health', (req, res) => {
 
 const clientRoot = path.resolve(__dirname, '..');
 app.use(express.static(clientRoot));
-try { logger.info('[startup] Serving static from', clientRoot); } catch(_) {}
+try { logger.info('[startup] Serving static from', clientRoot); } catch(_) { /* ignore logger errors */ }
 try { 
   const allowed = [
     'http://localhost:8080',
@@ -46,7 +46,7 @@ try {
     process.env.DEPLOY_ORIGIN
   ].filter(Boolean);
   logger.info('[startup] Allowed origins:', allowed);
-} catch(_) {}
+} catch(_) { /* ignore logger errors */ }
 app.get('*', (req, res) => {
   res.sendFile(path.join(clientRoot, 'index.html'));
 });
@@ -871,8 +871,8 @@ function startRound(roomId) {
   room.currentMatches.forEach(m => {
     const p1 = findById(room, m.player1Id);
     const p2 = findById(room, m.player2Id);
-    const s1 = Array.from(room.players.entries()).find(([sid, p]) => p.id === p1.id);
-    const s2 = Array.from(room.players.entries()).find(([sid, p]) => p.id === p2.id);
+    const s1 = Array.from(room.players.entries()).find(([, p]) => p.id === p1.id);
+    const s2 = Array.from(room.players.entries()).find(([, p]) => p.id === p2.id);
     if (p1 && p2) {
       if (!p1.isGhost && s1) {
         io.to(s1[0]).emit('matchAssign', { matchId: m.matchId, me: { id: p1.id, heroId: p1.heroId }, opponent: { id: p2.id, heroId: p2.heroId }, myGold: p1.gold });
@@ -1034,7 +1034,7 @@ function leaveRoom(socket) {
 }
 
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3001;
-try { logger.info('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch(_) {}
+try { logger.info('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch(_) { /* ignore logger errors */ }
 if (!server.listening) {
   server.listen(PORT, () => {
     logger.info(`Multiplayer server listening on ${PORT}`);
