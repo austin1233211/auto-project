@@ -149,7 +149,7 @@ export class RoundsManager {
         this.startSimultaneousMatches();
       });
     } catch (error) {
-      console.error('RoundsManager.startRound error:', error);
+      logger.error('RoundsManager.startRound error:', error);
     }
   }
 
@@ -905,7 +905,7 @@ export class RoundsManager {
 
   handleArtifactSelection(artifact) {
     if (!this.isArtifactSelectionActive) {
-      console.warn('handleArtifactSelection called but artifact selection not active');
+      logger.warn('handleArtifactSelection called but artifact selection not active');
       return;
     }
     

@@ -6,6 +6,8 @@
  *   this.events.add(element, 'click', handler);
  *   this.events.cleanup(); // Remove all tracked listeners
  */
+import { logger } from './logger.js';
+
 export class EventCollector {
   constructor() {
     this.listeners = [];
@@ -20,7 +22,7 @@ export class EventCollector {
    */
   add(element, event, handler, options = {}) {
     if (!element) {
-      console.warn('[EventCollector] Attempted to add listener to null element');
+      logger.warn('[EventCollector] Attempted to add listener to null element');
       return;
     }
 

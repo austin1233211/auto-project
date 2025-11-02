@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.js';
+
 /**
  * Unified game loop for combat system.
  * Consolidates multiple timers into a single setInterval for better performance and cleanup.
@@ -75,7 +77,7 @@ export class GameLoop {
           data.callback();
           data.lastTick = this.tickCount;
         } catch (error) {
-          console.error(`GameLoop: Error in callback ${id}:`, error);
+          logger.error(`GameLoop: Error in callback ${id}:`, error);
         }
       }
     }
