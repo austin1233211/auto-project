@@ -8,6 +8,7 @@ import { debugTools } from '../components/debug-tools.js';
 import { GameLoop } from './game-loop.js';
 import { throttleAnimationFrame, DirtyFlag } from '../utils/performance.js';
 import { COMBAT_CONSTANTS } from '../core/constants.js';
+import { StatusEffectsDisplay } from '../ui/status-effects-display.js';
 
 /**
  * @typedef {import('../core/stats-calculator.js').Hero} Hero
@@ -71,6 +72,7 @@ export class Combat {
     }
 
     this.heroStatsCard = heroStatsCard;
+    this.statusEffectsDisplay = new StatusEffectsDisplay();
     
     this.throttledUpdateHealthBars = throttleAnimationFrame(this._updateHealthBarsImmediate.bind(this));
     this.throttledUpdateManaBars = throttleAnimationFrame(this._updateManaBarsImmediate.bind(this));
@@ -203,6 +205,10 @@ export class Combat {
     `;
 
     this.attachEventListeners();
+    
+    this.statusEffectsDisplay.init();
+    this.statusEffectsDisplay.attachToDOM();
+    this.updateStatusEffects();
   }
 
   attachEventListeners() {
@@ -341,6 +347,7 @@ export class Combat {
         this.abilitySystem.triggerAbilities(this.enemyHero, this.playerHero, 'low_hp_check');
         
         this.updateHealthBars();
+        this.updateStatusEffects();
       }
     }, 1000);
     
@@ -703,6 +710,15 @@ export class Combat {
     this.updateManaBars();
   }
 
+  /**
+   * Update the status effects display for both heroes
+   */
+  updateStatusEffects() {
+    if (this.statusEffectsDisplay && this.playerHero && this.enemyHero) {
+      this.statusEffectsDisplay.update(this.playerHero, this.enemyHero);
+    }
+  }
+
   addToLog(message) {
     this.battleLog.push(message);
     const logEntries = this.container.querySelector('#log-entries') || this.container.querySelector('#battle-log');
@@ -719,6 +735,10 @@ export class Combat {
     debugTools.logDebug(`⚔️ Combat: Battle ending with result: ${result}`);
     this.isGameOver = true;
     this.clearTimers();
+    
+    if (this.statusEffectsDisplay) {
+      this.statusEffectsDisplay.clear();
+    }
     
     if (result === 'victory') {
       this.addToLog(`🎉 Victory! ${this.playerHero.name} wins the battle!`);
