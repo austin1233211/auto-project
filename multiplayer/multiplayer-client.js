@@ -1,4 +1,5 @@
 import { ReconnectionManager } from '../src/utils/reconnection.js';
+import { logger } from '../src/utils/logger.js';
 
 export class MultiplayerClient {
   constructor(url = (typeof window !== 'undefined' ? (window.GAME_SERVER_URL || 'http://localhost:3001') : undefined)) {
@@ -28,15 +29,15 @@ export class MultiplayerClient {
     
     this.reconnectionManager = new ReconnectionManager(this.socket);
     this.reconnectionManager.onReconnectSuccess = (data) => {
-      console.log('[MultiplayerClient] Reconnection successful!', data);
+      logger.info('[MultiplayerClient] Reconnection successful!', data);
       this._emit('reconnected', data);
     };
     this.reconnectionManager.onReconnectFailed = (reason) => {
-      console.warn('[MultiplayerClient] Reconnection failed:', reason);
+      logger.warn('[MultiplayerClient] Reconnection failed:', reason);
       this._emit('reconnectionFailed', reason);
     };
     this.reconnectionManager.onDisconnected = (reason) => {
-      console.log('[MultiplayerClient] Disconnected:', reason);
+      logger.warn('[MultiplayerClient] Disconnected:', reason);
       this._emit('disconnecting', reason);
     };
     

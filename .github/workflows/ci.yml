@@ -36,6 +36,48 @@ jobs:
       run: npm run test:coverage
       if: matrix.node-version == '20.x'
     
+    - name: Check coverage thresholds for core modules
+      if: matrix.node-version == '20.x'
+      run: |
+        echo "Checking coverage thresholds for core modules..."
+        node -e "
+        const fs = require('fs');
+        const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+        
+        const thresholds = {
+          'src/systems/combat.js': { statements: 70, branches: 60, functions: 70, lines: 70 },
+          'src/systems/rounds-manager.js': { statements: 65, branches: 55, functions: 65, lines: 65 },
+          'src/core/ability-effects/effect-registry.js': { statements: 80, branches: 70, functions: 80, lines: 80 },
+          'src/systems/stats-calculator.js': { statements: 75, branches: 65, functions: 75, lines: 75 }
+        };
+        
+        let failed = false;
+        for (const [file, threshold] of Object.entries(thresholds)) {
+          const fileCoverage = coverage[file];
+          if (!fileCoverage) {
+            console.log(\`⚠️  Warning: No coverage data for \${file}\`);
+            continue;
+          }
+          
+          for (const [metric, minValue] of Object.entries(threshold)) {
+            const actual = fileCoverage[metric].pct;
+            if (actual < minValue) {
+              console.log(\`❌ \${file}: \${metric} coverage \${actual}% is below threshold \${minValue}%\`);
+              failed = true;
+            } else {
+              console.log(\`✅ \${file}: \${metric} coverage \${actual}% meets threshold \${minValue}%\`);
+            }
+          }
+        }
+        
+        if (failed) {
+          console.log('\\n❌ Coverage thresholds not met for core modules');
+          process.exit(1);
+        } else {
+          console.log('\\n✅ All core module coverage thresholds met');
+        }
+        "
+    
     - name: Upload coverage to artifacts
       uses: actions/upload-artifact@v4
       if: matrix.node-version == '20.x'
