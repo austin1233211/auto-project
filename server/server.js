@@ -36,7 +36,7 @@ app.get('/health', (req, res) => {
 
 const clientRoot = path.resolve(__dirname, '..');
 app.use(express.static(clientRoot));
-try { logger.info('[startup] Serving static from', clientRoot); } catch(_) {}
+try { logger.info('[startup] Serving static from', clientRoot); } catch { /* ignore logger errors */ }
 try { 
   const allowed = [
     'http://localhost:8080',
@@ -46,7 +46,7 @@ try {
     process.env.DEPLOY_ORIGIN
   ].filter(Boolean);
   logger.info('[startup] Allowed origins:', allowed);
-} catch(_) {}
+} catch { /* ignore logger errors */ }
 app.get('*', (req, res) => {
   res.sendFile(path.join(clientRoot, 'index.html'));
 });
@@ -552,55 +552,6 @@ io.on('connection', (socket) => {
   });
 });
 
-function tryMatch1v1() {
-  logger.debug('[1v1] tryMatch1v1 called. queue length =', waitingQueue1v1.length);
-  while (waitingQueue1v1.length >= 2) {
-    let a = waitingQueue1v1.shift();
-    let b = waitingQueue1v1.shift();
-    if (!a?.connected) a = null;
-    if (!b?.connected) b = null;
-    if (!a || !b) {
-      logger.debug('[1v1] skipped pairing due to disconnected socket(s)');
-      continue;
-    }
-    const roomId = makeRoomId('duo');
-    const room = {
-      mode: '1v1',
-      players: new Map(),
-      currentRound: 1,
-      activePlayers: [],
-      ghostPlayers: [],
-      currentMatches: [],
-      timer: null,
-      phase: 'lobby',
-      duelPhase: 'lobby',
-      countdownTimer: null
-    };
-    rooms.set(roomId, room);
-    [a,b].forEach((s, idx) => {
-      s.join(roomId);
-      s.data.roomId = roomId;
-      room.players.set(s.id, {
-        sid: s.id,
-        id: idx + 1,
-        name: s.data.name,
-        heroId: null,
-        isReady: false,
-        hp: { current: 50, max: 50 },
-        isEliminated: false,
-        isGhost: false,
-        wins: 0,
-        losses: 0,
-        gold: 300,
-        consecutiveWins: 0,
-        consecutiveLosses: 0
-      });
-    });
-    logger.debug('[1v1] Created room', roomId, 'players=', Array.from(room.players.values()).map(p => ({name:p.name, ready:p.isReady, heroId:p.heroId})));
-    broadcastRoomStatus1v1(roomId);
-  }
-}
-
 function broadcastRoomStatus1v1(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
@@ -693,10 +644,6 @@ function createWaitingRoom(socket) {
   
   logger.debug('Created new waiting room:', roomId, 'with first player:', socket.data.name);
   broadcastWaitingRoom(roomId);
-}
-
-function tryCreateTournament() {
-  logger.debug('tryCreateTournament called but no longer needed');
 }
 
 function broadcastWaitingRoom(roomId) {
@@ -871,8 +818,8 @@ function startRound(roomId) {
   room.currentMatches.forEach(m => {
     const p1 = findById(room, m.player1Id);
     const p2 = findById(room, m.player2Id);
-    const s1 = Array.from(room.players.entries()).find(([sid, p]) => p.id === p1.id);
-    const s2 = Array.from(room.players.entries()).find(([sid, p]) => p.id === p2.id);
+    const s1 = Array.from(room.players.entries()).find(([, p]) => p.id === p1.id);
+    const s2 = Array.from(room.players.entries()).find(([, p]) => p.id === p2.id);
     if (p1 && p2) {
       if (!p1.isGhost && s1) {
         io.to(s1[0]).emit('matchAssign', { matchId: m.matchId, me: { id: p1.id, heroId: p1.heroId }, opponent: { id: p2.id, heroId: p2.heroId }, myGold: p1.gold });
@@ -1034,7 +981,7 @@ function leaveRoom(socket) {
 }
 
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3001;
-try { logger.info('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch(_) {}
+try { logger.info('[startup] Will listen on PORT', PORT, '(SERVER_PORT preferred if set)'); } catch { /* ignore logger errors */ }
 if (!server.listening) {
   server.listen(PORT, () => {
     logger.info(`Multiplayer server listening on ${PORT}`);

@@ -443,7 +443,7 @@ export class MultiplayerDuel {
     }
   }
 
-  handleRoundComplete(_payload) {
+  handleRoundComplete() {
   }
 
   handleDuelEnd(payload) {
