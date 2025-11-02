@@ -60,19 +60,53 @@ export class StatusEffectsDisplay {
    * @param {Object} hero - Hero object with statusEffects array
    */
   renderStatusEffects(container, hero) {
-    if (!hero || !hero.statusEffects || hero.statusEffects.length === 0) {
-      container.innerHTML = '<div class="no-status-effects">No active effects</div>';
-      container.style.display = 'none';
+    if (!hero) {
       return;
     }
 
     container.style.display = 'block';
 
-    const effects = this.groupStatusEffects(hero.statusEffects);
+    const commonEffects = [
+      { type: 'frost_stacks', emoji: '🧊', name: 'Frost' },
+      { type: 'poison_stacks', emoji: '☠️', name: 'Poison' },
+      { type: 'shield_stacks', emoji: '🛡️', name: 'Shield' },
+      { type: 'burn', emoji: '🔥', name: 'Burn' },
+      { type: 'bleed', emoji: '🩸', name: 'Bleed' },
+      { type: 'stun', emoji: '💫', name: 'Stun' }
+    ];
+
+    const activeEffectsMap = new Map();
+    if (hero.statusEffects && hero.statusEffects.length > 0) {
+      for (const effect of hero.statusEffects) {
+        activeEffectsMap.set(effect.type, effect);
+      }
+    }
+
+    const effectsHTML = commonEffects.map(effectDef => {
+      const activeEffect = activeEffectsMap.get(effectDef.type);
+      const isActive = !!activeEffect;
+      
+      let value = '0';
+      if (isActive) {
+        if (activeEffect.stacks !== undefined) {
+          value = Math.floor(activeEffect.stacks || 0).toString();
+        } else if (activeEffect.ticksRemaining !== undefined) {
+          value = (activeEffect.ticksRemaining || 0).toString();
+        }
+      }
+
+      return this.renderStatusEffect({
+        emoji: effectDef.emoji,
+        name: effectDef.name,
+        value: value,
+        type: effectDef.type,
+        isActive: isActive
+      });
+    }).join('');
     
     container.innerHTML = `
       <div class="status-effects-list">
-        ${effects.map(effect => this.renderStatusEffect(effect)).join('')}
+        ${effectsHTML}
       </div>
     `;
   }
@@ -143,8 +177,9 @@ export class StatusEffectsDisplay {
    * @returns {string} HTML string for the effect
    */
   renderStatusEffect(effect) {
+    const activeClass = effect.isActive ? 'active' : 'inactive';
     return `
-      <div class="status-effect" data-effect-type="${effect.type}">
+      <div class="status-effect ${activeClass}" data-effect-type="${effect.type}">
         <span class="status-effect-emoji">${effect.emoji}</span>
         <div class="status-effect-info">
           <span class="status-effect-name">${effect.name}</span>
