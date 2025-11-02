@@ -3,6 +3,7 @@
  * Maps effect names to their corresponding effect classes.
  */
 
+import { logger } from '../../utils/logger.js';
 import { AbilityCooldownEffect } from './effects/ability-cooldown.js';
 import { ArmorBoostEffect } from './effects/armor-boost.js';
 import { ArmorPierceChanceEffect } from './effects/armor-pierce-chance.js';
@@ -406,7 +407,7 @@ export function createEffect(ability) {
   const EffectClass = EffectRegistry[ability.effect];
   
   if (!EffectClass) {
-    console.warn(`Unknown effect type: ${ability.effect}`);
+    logger.warn(`Unknown effect type: ${ability.effect}`);
     return null;
   }
   

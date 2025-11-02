@@ -4,6 +4,7 @@ import { HeroStatsCard } from '../src/ui/hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { Timer } from '../src/systems/timer.js';
 import { sanitizeHTML } from '../src/utils/sanitize.js';
+import { EventCollector } from '../src/utils/event-collector.js';
 
 export class MultiplayerTournament {
   constructor(container, onExitToMenu) {
@@ -19,6 +20,7 @@ export class MultiplayerTournament {
     this.displayedHeroes = [];
     this.timer = new Timer();
     this.timerActive = false;
+    this.events = new EventCollector();
   }
 
   setupTimer() {
@@ -135,22 +137,23 @@ export class MultiplayerTournament {
   }
 
   reattachHeroCardListeners() {
-    this.container.removeEventListener('click', this.heroClickHandler);
-    this.heroClickHandler = (e) => {
-      const card = e.target.closest('.hero-card');
-      const rerollBtn = e.target.closest('.reroll-btn');
-      if (rerollBtn) {
-        e.stopPropagation();
-        const idx = parseInt(rerollBtn.dataset.displayIndex);
-        this.rerollHero(idx);
-        return;
-      }
-      if (card) {
-        const heroId = card.dataset.heroId;
-        this.selectHero(heroId);
-      }
-    };
-    this.container.addEventListener('click', this.heroClickHandler);
+    if (!this.heroClickHandler) {
+      this.heroClickHandler = (e) => {
+        const card = e.target.closest('.hero-card');
+        const rerollBtn = e.target.closest('.reroll-btn');
+        if (rerollBtn) {
+          e.stopPropagation();
+          const idx = parseInt(rerollBtn.dataset.displayIndex);
+          this.rerollHero(idx);
+          return;
+        }
+        if (card) {
+          const heroId = card.dataset.heroId;
+          this.selectHero(heroId);
+        }
+      };
+      this.events.add(this.container, 'click', this.heroClickHandler);
+    }
   }
 
   renderHeroDetails(hero) {
@@ -218,6 +221,7 @@ export class MultiplayerTournament {
   }
 
   renderLobby() {
+    this.events.cleanup();
     this.displayedHeroes = this.getRandomHeroes(3);
     this.container.innerHTML = `
       <div class="hero-selection-container">
@@ -261,7 +265,7 @@ export class MultiplayerTournament {
     const applyBtn = this.container.querySelector('#mt-apply-name');
     const nameInput = this.container.querySelector('#mt-name');
     if (applyBtn && nameInput) {
-      applyBtn.addEventListener('click', () => {
+      this.events.add(applyBtn, 'click', () => {
         this.player.name = nameInput.value || this.player.name;
         this.client.updateName({ name: this.player.name });
       });
@@ -269,7 +273,7 @@ export class MultiplayerTournament {
     
     const quitLobbyBtn = this.container.querySelector('#mt-quit-lobby');
     if (quitLobbyBtn) {
-      quitLobbyBtn.addEventListener('click', () => {
+      this.events.add(quitLobbyBtn, 'click', () => {
         if (confirm('Are you sure you want to quit? You will leave the tournament lobby.')) {
           this.client.disconnect();
           if (this.onExitToMenu) this.onExitToMenu();
@@ -280,7 +284,7 @@ export class MultiplayerTournament {
     this.reattachHeroCardListeners();
     const readyBtn = this.container.querySelector('#mt-ready');
     if (readyBtn) {
-      readyBtn.addEventListener('click', () => {
+      this.events.add(readyBtn, 'click', () => {
         this.client.setReady();
         readyBtn.disabled = true;
         readyBtn.textContent = 'Ready ✓';
@@ -307,6 +311,7 @@ export class MultiplayerTournament {
   }
  
   renderWaitingRoom() {
+    this.events.cleanup();
     this.currentPhase = 'waiting';
     this.container.innerHTML = `
       <div class="waiting-room-container">
@@ -330,7 +335,7 @@ export class MultiplayerTournament {
     
     const quitWaitingBtn = this.container.querySelector('#mt-quit-waiting');
     if (quitWaitingBtn) {
-      quitWaitingBtn.addEventListener('click', () => {
+      this.events.add(quitWaitingBtn, 'click', () => {
         if (confirm('Are you sure you want to quit? You will leave the waiting room.')) {
           this.client.disconnect();
           if (this.onExitToMenu) this.onExitToMenu();
@@ -384,6 +389,7 @@ export class MultiplayerTournament {
   }
 
   renderTournamentScaffold() {
+    this.events.cleanup();
     this.container.innerHTML = `
       <div class="rounds-container">
         <div class="tournament-main">
@@ -409,7 +415,7 @@ export class MultiplayerTournament {
     `;
     const exitBtn = this.container.querySelector('#mt-exit');
     if (exitBtn) {
-      exitBtn.addEventListener('click', () => {
+      this.events.add(exitBtn, 'click', () => {
         this.client.leaveRoom();
         if (this.onExitToMenu) this.onExitToMenu();
       });
@@ -417,7 +423,7 @@ export class MultiplayerTournament {
     
     const quitBtn = this.container.querySelector('#mt-quit');
     if (quitBtn) {
-      quitBtn.addEventListener('click', () => {
+      this.events.add(quitBtn, 'click', () => {
         if (confirm('Are you sure you want to quit? You will be disconnected from the tournament.')) {
           this.client.disconnect();
           if (this.onExitToMenu) this.onExitToMenu();
@@ -523,5 +529,16 @@ export class MultiplayerTournament {
         if (this.onExitToMenu) this.onExitToMenu();
       }, 3000);
     }
+  }
+
+  cleanup() {
+    this.events.cleanup();
+    this.timer.stopTimer();
+    this.timerActive = false;
+    if (this.combat) {
+      this.combat.clearTimers();
+      this.combat = null;
+    }
+    this.client.disconnect();
   }
 }

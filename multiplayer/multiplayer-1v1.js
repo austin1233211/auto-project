@@ -4,6 +4,7 @@ import { HeroStatsCard } from '../src/ui/hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { sanitizeHTML } from '../src/utils/sanitize.js';
 import { logger } from '../src/utils/logger.js';
+import { EventCollector } from '../src/utils/event-collector.js';
 
 export class MultiplayerDuel {
   constructor(container, onExitToMenu) {
@@ -18,6 +19,7 @@ export class MultiplayerDuel {
     this.players = [];
     this.requestedReady = false;
     this.selectionLocked = false;
+    this.events = new EventCollector();
   }
 
   init() {
@@ -44,6 +46,7 @@ export class MultiplayerDuel {
   }
 
   renderLobby() {
+    this.events.cleanup();
     this.container.innerHTML = `
       <div class="hero-selection-container">
         <h1 class="hero-selection-title">Multiplayer 1v1</h1>
@@ -94,7 +97,7 @@ export class MultiplayerDuel {
     const applyBtn = this.container.querySelector('#duel-apply-name');
     const nameInput = this.container.querySelector('#duel-name');
     if (applyBtn && nameInput) {
-      applyBtn.addEventListener('click', () => {
+      this.events.add(applyBtn, 'click', () => {
         this.player.name = nameInput.value || this.player.name;
         this.client.updateName({ name: this.player.name });
       });
@@ -102,33 +105,38 @@ export class MultiplayerDuel {
     
     const quitLobbyBtn = this.container.querySelector('#duel-quit-lobby');
     if (quitLobbyBtn) {
-      quitLobbyBtn.addEventListener('click', () => {
+      this.events.add(quitLobbyBtn, 'click', () => {
         if (confirm('Are you sure you want to quit? You will leave the lobby.')) {
           this.client.disconnect();
           if (this.onExitToMenu) this.onExitToMenu();
         }
       });
     }
-    this.container.addEventListener('click', (e) => {
-      if (this.selectionLocked) {
-        e.stopPropagation();
-        return;
-      }
-      const rerollBtn = e.target.closest('.reroll-btn');
-      if (rerollBtn) {
-        const idx = parseInt(rerollBtn.dataset.displayIndex);
-        this.rerollHero(idx);
-        return;
-      }
-      const card = e.target.closest('.hero-card');
-      if (card) {
-        const heroId = card.dataset.heroId;
-        this.selectHero(heroId);
-      }
-    });
+    
+    if (!this.heroClickHandler) {
+      this.heroClickHandler = (e) => {
+        if (this.selectionLocked) {
+          e.stopPropagation();
+          return;
+        }
+        const rerollBtn = e.target.closest('.reroll-btn');
+        if (rerollBtn) {
+          const idx = parseInt(rerollBtn.dataset.displayIndex);
+          this.rerollHero(idx);
+          return;
+        }
+        const card = e.target.closest('.hero-card');
+        if (card) {
+          const heroId = card.dataset.heroId;
+          this.selectHero(heroId);
+        }
+      };
+      this.events.add(this.container, 'click', this.heroClickHandler);
+    }
+    
     const readyBtn = this.container.querySelector('#duel-ready');
     if (readyBtn) {
-      readyBtn.addEventListener('click', () => {
+      this.events.add(readyBtn, 'click', () => {
         this.requestedReady = true;
         this.selectionLocked = true;
         this.client.setReady();
@@ -258,7 +266,7 @@ export class MultiplayerDuel {
     this.container.appendChild(modal);
     
     const confirmBtn = modal.querySelector('#confirm-rules-btn');
-    confirmBtn.addEventListener('click', () => {
+    this.events.add(confirmBtn, 'click', () => {
       this.client.confirmRules();
       modal.remove();
     });
@@ -295,6 +303,7 @@ export class MultiplayerDuel {
   }
 
   renderDuelScaffold() {
+    this.events.cleanup();
     this.container.innerHTML = `
       <div class="rounds-container">
         <div class="tournament-main">
@@ -319,7 +328,7 @@ export class MultiplayerDuel {
     `;
     const exitBtn = this.container.querySelector('#duel-exit');
     if (exitBtn) {
-      exitBtn.addEventListener('click', () => {
+      this.events.add(exitBtn, 'click', () => {
         this.client.leaveRoom();
         if (this.onExitToMenu) this.onExitToMenu();
       });
@@ -327,7 +336,7 @@ export class MultiplayerDuel {
     
     const quitBtn = this.container.querySelector('#duel-quit');
     if (quitBtn) {
-      quitBtn.addEventListener('click', () => {
+      this.events.add(quitBtn, 'click', () => {
         if (confirm('Are you sure you want to quit? You will be disconnected from the game.')) {
           this.client.disconnect();
           if (this.onExitToMenu) this.onExitToMenu();
@@ -499,5 +508,14 @@ export class MultiplayerDuel {
     if (overlay) {
       overlay.style.display = 'none';
     }
+  }
+
+  cleanup() {
+    this.events.cleanup();
+    if (this.combat) {
+      this.combat.clearTimers();
+      this.combat = null;
+    }
+    this.client.disconnect();
   }
 }

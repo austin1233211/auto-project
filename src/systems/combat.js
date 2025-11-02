@@ -9,6 +9,7 @@ import { GameLoop } from './game-loop.js';
 import { throttleAnimationFrame, DirtyFlag } from '../utils/performance.js';
 import { COMBAT_CONSTANTS } from '../core/constants.js';
 import { StatusEffectsDisplay } from '../ui/status-effects-display.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * @typedef {import('../core/stats-calculator.js').Hero} Hero
@@ -90,7 +91,7 @@ export class Combat {
   init(playerHero, playerMoney = 0, options = {}) {
     try {
       if (!playerHero || !playerHero.stats) {
-        console.error('Combat.init: Invalid playerHero', playerHero);
+        logger.error('Combat.init: Invalid playerHero', playerHero);
         throw new Error('Invalid player hero data');
       }
 
@@ -106,7 +107,7 @@ export class Combat {
       this.enemyHero = this.selectRandomEnemy();
       
       if (!this.enemyHero) {
-        console.error('Combat.init: Failed to select enemy');
+        logger.error('Combat.init: Failed to select enemy');
         throw new Error('Failed to select enemy hero');
       }
       
@@ -125,7 +126,7 @@ export class Combat {
         this.startBattle();
       }
     } catch (error) {
-      console.error('Combat.init error:', error);
+      logger.error('Combat.init error:', error);
       throw error;
     }
   }
@@ -480,7 +481,7 @@ export class Combat {
 
     try {
       if (!attacker || !target) {
-        console.error('Combat.executeAttack: Invalid attacker or target', { attacker, target });
+        logger.error('Combat.executeAttack: Invalid attacker or target', { attacker, target });
         return;
       }
 
@@ -589,7 +590,7 @@ export class Combat {
         return;
       }
     } catch (error) {
-      console.error('Combat.executeAttack error:', error);
+      logger.error('Combat.executeAttack error:', error);
       this.addToLog(`⚠️ Error during attack: ${error.message}`);
     }
   }
