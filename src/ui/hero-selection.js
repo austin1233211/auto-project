@@ -1,5 +1,6 @@
 import { heroes } from '../core/heroes.js';
 import { Timer } from '../systems/timer.js';
+import { EventCollector } from '../utils/event-collector.js';
 
 export class HeroSelection {
   constructor(container) {
@@ -9,6 +10,7 @@ export class HeroSelection {
     this.displayedHeroes = [];
     this.timer = new Timer();
     this.timerActive = false;
+    this.events = new EventCollector();
     this.setupTimer();
     this.init();
   }
@@ -20,6 +22,7 @@ export class HeroSelection {
   }
 
   render() {
+    this.events.cleanup();
     this.displayedHeroes = this.getRandomHeroes(3);
     
     this.container.innerHTML = `
@@ -106,7 +109,7 @@ export class HeroSelection {
     this.reattachHeroCardListeners();
 
     const tournamentBtn = this.container.querySelector('#start-tournament-btn');
-    tournamentBtn.addEventListener('click', () => {
+    this.events.add(tournamentBtn, 'click', () => {
       if (this.selectedHero) {
         this.timer.stopTimer();
         this.timerActive = false;
@@ -193,21 +196,22 @@ export class HeroSelection {
   }
 
   reattachHeroCardListeners() {
-    this.container.removeEventListener('click', this.heroClickHandler);
-    this.heroClickHandler = (e) => {
-      const heroCard = e.target.closest('.hero-card');
-      const rerollBtn = e.target.closest('.reroll-btn');
-      
-      if (rerollBtn) {
-        e.stopPropagation();
-        const displayIndex = parseInt(rerollBtn.dataset.displayIndex);
-        this.rerollHero(displayIndex);
-      } else if (heroCard) {
-        const heroId = heroCard.dataset.heroId;
-        this.selectHero(heroId);
-      }
-    };
-    this.container.addEventListener('click', this.heroClickHandler);
+    if (!this.heroClickHandler) {
+      this.heroClickHandler = (e) => {
+        const heroCard = e.target.closest('.hero-card');
+        const rerollBtn = e.target.closest('.reroll-btn');
+        
+        if (rerollBtn) {
+          e.stopPropagation();
+          const displayIndex = parseInt(rerollBtn.dataset.displayIndex);
+          this.rerollHero(displayIndex);
+        } else if (heroCard) {
+          const heroId = heroCard.dataset.heroId;
+          this.selectHero(heroId);
+        }
+      };
+      this.events.add(this.container, 'click', this.heroClickHandler);
+    }
   }
 
   setupTimer() {
@@ -255,6 +259,12 @@ export class HeroSelection {
         }
       }, 3000);
     }
+    this.timerActive = false;
+  }
+
+  cleanup() {
+    this.events.cleanup();
+    this.timer.stopTimer();
     this.timerActive = false;
   }
 }

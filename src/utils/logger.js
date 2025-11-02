@@ -5,9 +5,13 @@
 
 class Logger {
   constructor() {
-    this.debugEnabled = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1' ||
-                       localStorage.getItem('debugMode') === 'true';
+    if (typeof window !== 'undefined' && window.location) {
+      this.debugEnabled = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         (typeof localStorage !== 'undefined' && localStorage.getItem('debugMode') === 'true');
+    } else {
+      this.debugEnabled = false;
+    }
   }
 
   /**
@@ -16,10 +20,12 @@ class Logger {
    */
   setDebugEnabled(enabled) {
     this.debugEnabled = enabled;
-    if (enabled) {
-      localStorage.setItem('debugMode', 'true');
-    } else {
-      localStorage.removeItem('debugMode');
+    if (typeof localStorage !== 'undefined') {
+      if (enabled) {
+        localStorage.setItem('debugMode', 'true');
+      } else {
+        localStorage.removeItem('debugMode');
+      }
     }
   }
 

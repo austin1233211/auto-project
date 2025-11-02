@@ -2,6 +2,7 @@ import { heroes } from '../src/core/heroes.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { sanitizeHTML } from '../src/utils/sanitize.js';
 import { logger } from '../src/utils/logger.js';
+import { EventCollector } from '../src/utils/event-collector.js';
 
 export class MultiplayerLobby {
   constructor(container, onStartBattle) {
@@ -12,6 +13,7 @@ export class MultiplayerLobby {
     this.onStartBattle = onStartBattle;
     this.displayedHeroes = [];
     this.readySent = false;
+    this.events = new EventCollector();
   }
 
   init() {
@@ -134,6 +136,7 @@ export class MultiplayerLobby {
 
 
   render() {
+    this.events.cleanup();
     this.container.innerHTML = `
       <div class="hero-selection-container">
         <h1 class="hero-selection-title">Choose Your Gladiator</h1>
@@ -172,53 +175,57 @@ export class MultiplayerLobby {
   }
 
   attachEvents() {
-    this.container.addEventListener('click', (e) => {
-      const reroll = e.target.closest('.reroll-btn');
-      if (reroll) {
-        e.stopPropagation();
-        if (this.readySent) return;
-        const card = reroll.closest('.hero-card');
+    if (!this.lobbyClickHandler) {
+      this.lobbyClickHandler = (e) => {
+        const reroll = e.target.closest('.reroll-btn');
+        if (reroll) {
+          e.stopPropagation();
+          if (this.readySent) return;
+          const card = reroll.closest('.hero-card');
+          if (card) {
+            const index = parseInt(card.dataset.index, 10);
+            this.rerollHero(index);
+          }
+          return;
+        }
+        const rejoinBtn = e.target.closest('#mt-rejoin');
+        if (rejoinBtn) {
+          if (!this.client.isConnected) this.client.connect();
+          this.client.requestMatch({ name: this.player.name });
+          this.updateConnStatus();
+          return;
+        }
+        const card = e.target.closest('.hero-card');
         if (card) {
-          const index = parseInt(card.dataset.index, 10);
-          this.rerollHero(index);
-        }
-        return;
-      }
-      const rejoinBtn = e.target.closest('#mt-rejoin');
-      if (rejoinBtn) {
-        if (!this.client.isConnected) this.client.connect();
-        this.client.requestMatch({ name: this.player.name });
-        this.updateConnStatus();
-        return;
-      }
-      const card = e.target.closest('.hero-card');
-      if (card) {
-        if (this.readySent) return;
-        const prev = this.container.querySelector('.hero-card.selected');
-        if (prev) prev.classList.remove('selected');
-        card.classList.add('selected');
+          if (this.readySent) return;
+          const prev = this.container.querySelector('.hero-card.selected');
+          if (prev) prev.classList.remove('selected');
+          card.classList.add('selected');
 
-        const heroId = card.dataset.heroId;
-        this.selectedHero = this.displayedHeroes.find(h => h.id === heroId);
-        this.client.selectHero(this.selectedHero);
+          const heroId = card.dataset.heroId;
+          this.selectedHero = this.displayedHeroes.find(h => h.id === heroId);
+          this.client.selectHero(this.selectedHero);
 
-        const details = this.container.querySelector('.hero-details');
-        if (details && this.selectedHero) {
-          details.classList.remove('empty');
-          details.innerHTML = this.renderHeroDetails(this.selectedHero);
-        }
+          const details = this.container.querySelector('.hero-details');
+          if (details && this.selectedHero) {
+            details.classList.remove('empty');
+            details.innerHTML = this.renderHeroDetails(this.selectedHero);
+          }
 
-        const readyBtn = this.container.querySelector('#mt-ready');
-        if (readyBtn) {
-          readyBtn.disabled = false;
-          readyBtn.classList.add('enabled');
+          const readyBtn = this.container.querySelector('#mt-ready');
+          if (readyBtn) {
+            readyBtn.disabled = false;
+            readyBtn.classList.add('enabled');
+          }
         }
-      }
-    });
+      };
+      this.events.add(this.container, 'click', this.lobbyClickHandler);
+    }
+    
     const readyBtn = this.container.querySelector('#mt-ready');
     if (readyBtn) {
       let readySent = false;
-      readyBtn.addEventListener('click', () => {
+      this.events.add(readyBtn, 'click', () => {
         if (readySent) return;
         readySent = true;
         this.readySent = true;
@@ -269,6 +276,11 @@ export class MultiplayerLobby {
       return;
     }
     el.textContent = pairedState === 'paired' ? 'Connected · In room with opponent' : 'Connected · Pairing…';
+  }
+
+  cleanup() {
+    this.events.cleanup();
+    this.client.disconnect();
   }
 
 }
