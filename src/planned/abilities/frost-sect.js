@@ -6,18 +6,18 @@ export const FROST_SECT_ABILITIES = {
     { name: 'Unseen Frost', effect: 'evade_frost', value: 4, emoji: '👻', description: 'Applies 4 stacks of frost with each evasion' },
     { name: 'Burst Frost', effect: 'crit_frost', value: 5, emoji: '💥', description: 'With each crit, apply 5 stacks of frost to opponent' },
     { name: 'Blood of the Frozen', effect: 'hp_loss_frost', value: 0.3, emoji: '🩸', description: 'Every 1.5 seconds apply frost stacks equal to 0.3% of HP lost, minimum 3 to opponent' },
-    { name: 'Freezing Healing', effect: 'heal_frost_chance', value: 35, emoji: '💚', description: '35% chance to apply 5 stacks of frost to opponent when you restore HP' },
+    { name: 'Freezing Healing', effect: 'heal_frost_chance', value: 35, amount: 5, emoji: '💚', description: '35% chance to apply 5 stacks of frost to opponent when you restore HP' },
     { name: 'Arcane Frost', effect: 'ultimate_frost', value: 20, emoji: '🔮', description: 'Each ultimate you cast applies 20 stacks of frost' },
-    { name: 'Frost Shield', effect: 'shield_frost_chance', value: 30, emoji: '🛡️', description: 'Each time when a shield stack is gained, 30% chance to inflict 4 stacks of frost on opponent' },
-    { name: 'Toxic Frost', effect: 'frost_poison_chance', value: 30, emoji: '☠️', description: 'Each time when frost is applied, 30% chance to apply 4 stacks of poison' },
+    { name: 'Frost Shield', effect: 'shield_frost_chance', value: 30, amount: 4, emoji: '🛡️', description: 'Each time when a shield stack is gained, 30% chance to inflict 4 stacks of frost on opponent' },
+    { name: 'Toxic Frost', effect: 'frost_poison_chance', value: 30, amount: 4, emoji: '☠️', description: 'Each time when frost is applied, 30% chance to apply 4 stacks of poison' },
     { name: 'Glacial Armor', effect: 'frost_damage_reduction', value: 12, emoji: '🧊', description: 'Reduce damage taken by 1% for every 10 frost stacks on opponent' },
     { name: 'Winter\'s Grasp', effect: 'frost_slow_aura', value: 8, emoji: '🌨️', description: 'Nearby enemies move 8% slower for each frost stack they have' },
     { name: 'Permafrost', effect: 'frost_stack_bonus', value: 2, emoji: '🏔️', description: 'All frost applications gain +2 additional stacks' },
     { name: 'Icy Veins', effect: 'frost_mana_boost', value: 15, emoji: '💙', description: 'Gain 15% more mana when applying frost stacks' }
   ],
   2: [
-    { name: 'Bone Chill', effect: 'frost_damage_chance', value: 30, emoji: '💀', description: '30% chance to deal 30 magic damage when inflicting frost stacks on opponent' },
-    { name: 'Ice Enchantment', effect: 'damage_frost_chance', value: 33, emoji: '🧊', description: 'When taking damage, 33% chance to apply 12 frost stacks to opponent' },
+    { name: 'Bone Chill', effect: 'frost_damage_chance', value: 30, amount: 30, emoji: '💀', description: '30% chance to deal 30 magic damage when inflicting frost stacks on opponent' },
+    { name: 'Ice Enchantment', effect: 'damage_frost_chance', value: 33, amount: 12, emoji: '🧊', description: 'When taking damage, 33% chance to apply 12 frost stacks to opponent' },
     { name: 'Cold Snap', effect: 'battle_start_frost', value: 80, emoji: '❄️', description: 'Applies 80 frost stacks to opponent on round start' }
   ],
   3: [

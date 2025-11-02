@@ -101,12 +101,23 @@ export class AbilitiesShop extends ItemShop {
       
       const existing = existingAbilitiesMap.get(key);
       
-      const maxStacks = (newAbility.tier === 1 || newAbility.tier === 2) ? 5 : 1;
+      let maxStacks;
+      if (newAbility.tier === 3 || this.isNonStackableEffect(newAbility.effect)) {
+        maxStacks = 1;
+      } else {
+        maxStacks = 5;
+      }
       
       if (existing) {
         if (existing.stacks < maxStacks) {
           existing.stacks = (existing.stacks || 1) + 1;
-          existing.value = existing.baseValue * existing.stacks;
+          
+          if (existing.baseAmount !== undefined) {
+            existing.amount = existing.baseAmount * existing.stacks;
+          } else {
+            existing.value = existing.baseValue * existing.stacks;
+          }
+          
           existing.description = this.getStackedDescription(existing);
         }
       } else {
@@ -116,6 +127,11 @@ export class AbilitiesShop extends ItemShop {
           maxStacks: maxStacks,
           baseValue: newAbility.value
         };
+        
+        if (newAbility.amount !== undefined) {
+          abilityToAdd.baseAmount = newAbility.amount;
+        }
+        
         modifiedHero.purchasedAbilities.push(abilityToAdd);
         existingAbilitiesMap.set(key, abilityToAdd);
       }
@@ -125,11 +141,33 @@ export class AbilitiesShop extends ItemShop {
   }
   
   getStackedDescription(ability) {
+    if (ability.baseAmount !== undefined) {
+      const parts = ability.description.match(/^(.+?)(\d+)(.+)$/);
+      if (parts) {
+        return `${parts[1]}${ability.amount}${parts[3]}`;
+      }
+      return ability.description;
+    }
+    
     if (!ability.description.includes(' by ')) {
       return ability.description;
     }
     const baseDesc = ability.description.split(' by ')[0];
     return `${baseDesc} by ${ability.value}`;
+  }
+  
+  isNonStackableEffect(effect) {
+    const nonStackableEffects = [
+      'armor_pierce_chance',
+      'block_chance',
+      'ignore_enemy_evade',
+      'frost_resistance',
+      'shield_resistance',
+      'opponent_crit_resist',
+      'opponent_heal_resist',
+      'poison_resistance'
+    ];
+    return nonStackableEffects.includes(effect);
   }
   
   purchaseItem(slotIndex) {
@@ -138,7 +176,13 @@ export class AbilitiesShop extends ItemShop {
     
     const ability = slot.item;
     const key = `${ability.name}-${ability.effect}`;
-    const maxStacks = (ability.tier === 1 || ability.tier === 2) ? 5 : 1;
+    
+    let maxStacks;
+    if (ability.tier === 3 || this.isNonStackableEffect(ability.effect)) {
+      maxStacks = 1;
+    } else {
+      maxStacks = 5;
+    }
     
     if (this.player && this.player.hero && this.player.hero.purchasedAbilities) {
       const existing = this.player.hero.purchasedAbilities.find(
@@ -194,7 +238,13 @@ export class AbilitiesShop extends ItemShop {
 
     const ability = slot.item;
     const key = `${ability.name}-${ability.effect}`;
-    const maxStacks = (ability.tier === 1 || ability.tier === 2) ? 5 : 1;
+    
+    let maxStacks;
+    if (ability.tier === 3 || this.isNonStackableEffect(ability.effect)) {
+      maxStacks = 1;
+    } else {
+      maxStacks = 5;
+    }
     
     let currentStacks = 0;
     let isMaxed = false;
