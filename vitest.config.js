@@ -14,8 +14,7 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**'
     ],
     environmentMatchGlobs: [
-      ['tests/dom/**', 'jsdom'],
-      ['tests/systems/**', 'jsdom']
+      ['tests/dom/**', 'jsdom']
     ],
     coverage: {
       provider: 'v8',
