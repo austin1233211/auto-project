@@ -89,8 +89,16 @@ export class AbilitiesShop extends ItemShop {
       existingAbilitiesMap.set(key, ability);
     });
     
+    const processedKeys = new Set();
+    
     this.purchasedItems.forEach(newAbility => {
       const key = `${newAbility.name}-${newAbility.effect}`;
+      
+      if (processedKeys.has(key)) {
+        return;
+      }
+      processedKeys.add(key);
+      
       const existing = existingAbilitiesMap.get(key);
       
       const maxStacks = (newAbility.tier === 1 || newAbility.tier === 2) ? 5 : 1;
@@ -117,6 +125,9 @@ export class AbilitiesShop extends ItemShop {
   }
   
   getStackedDescription(ability) {
+    if (!ability.description.includes(' by ')) {
+      return ability.description;
+    }
     const baseDesc = ability.description.split(' by ')[0];
     return `${baseDesc} by ${ability.value}`;
   }
