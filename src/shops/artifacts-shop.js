@@ -1,5 +1,6 @@
 import { ArtifactSystem } from '../core/artifacts.js';
 import { sanitizeHTML } from '../utils/sanitize.js';
+import { logger } from '../utils/logger.js';
 
 export class ArtifactsShop {
   constructor(container, roundNumber) {
@@ -89,7 +90,7 @@ export class ArtifactsShop {
 
   selectArtifact(index) {
     if (isNaN(index) || index < 0 || index >= this.currentArtifacts.length) {
-      console.warn(`Invalid artifact index: ${index}`);
+      logger.warn(`Invalid artifact index: ${index}`);
       return;
     }
     

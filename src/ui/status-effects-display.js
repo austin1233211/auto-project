@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.js';
+
 /**
  * Status Effects Display Component
  * Shows active status effects (frost, poison, shield, burn, bleed, etc.) for each hero during combat
@@ -33,13 +35,13 @@ export class StatusEffectsDisplay {
     if (playerCard && this.playerContainer) {
       playerCard.insertAdjacentElement('beforeend', this.playerContainer);
     } else if (!playerCard) {
-      console.warn('StatusEffectsDisplay: player card not found');
+      logger.warn('StatusEffectsDisplay: player card not found');
     }
 
     if (enemyCard && this.enemyContainer) {
       enemyCard.insertAdjacentElement('beforeend', this.enemyContainer);
     } else if (!enemyCard) {
-      console.warn('StatusEffectsDisplay: enemy card not found');
+      logger.warn('StatusEffectsDisplay: enemy card not found');
     }
   }
 
