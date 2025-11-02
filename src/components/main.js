@@ -11,7 +11,6 @@ import { HeroSelection } from '../ui/hero-selection.js';
 import { PlayerHealth } from '../ui/player-health.js';
 import { RoundsManager } from '../systems/rounds-manager.js';
 import { HeroStatsCard } from '../ui/hero-stats-card.js';
-import { HeroInventoryWidget } from '../ui/hero-inventory-widget.js';
 import { MultiplayerDuel } from '../../multiplayer/multiplayer-1v1.js';
 import { MultiplayerTournament } from '../../multiplayer/multiplayer-tournament.js';
 import { logger } from '../utils/logger.js';
@@ -25,7 +24,6 @@ class AutoGladiators {
     this.selectedMode = null;
     this.playerHealth = new PlayerHealth();
     this.heroStatsCard = new HeroStatsCard();
-    this.heroInventoryWidget = new HeroInventoryWidget();
     this.init();
   }
 
@@ -35,7 +33,6 @@ class AutoGladiators {
     this.initPlayerHealth();
     this.initRounds();
     this.initHeroStatsCard();
-    this.initHeroInventoryWidget();
     this.multiplayerLobbyInitialized = false;
   }
 
@@ -106,7 +103,7 @@ class AutoGladiators {
 
   initRounds() {
     const roundsContainer = document.getElementById('rounds-screen');
-    this.rounds = new RoundsManager(roundsContainer, this.playerHealth, this.heroStatsCard, this.heroInventoryWidget);
+    this.rounds = new RoundsManager(roundsContainer, this.playerHealth, this.heroStatsCard);
     
     this.rounds.setOnTournamentEnd((result) => {
       if (result === 'back') {
@@ -127,10 +124,6 @@ class AutoGladiators {
 
   initHeroStatsCard() {
     this.heroStatsCard.init();
-  }
-
-  initHeroInventoryWidget() {
-    this.heroInventoryWidget.init();
   }
 
   initMultiplayerLobby() {
@@ -160,7 +153,6 @@ class AutoGladiators {
     this.switchScreen('rounds-screen');
     this.rounds.init(this.selectedHero);
     this.heroStatsCard.updateHero(this.selectedHero);
-    this.heroInventoryWidget.updateHero(this.selectedHero);
   }
 
   switchScreen(screenId) {
