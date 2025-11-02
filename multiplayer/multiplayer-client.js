@@ -1,8 +1,18 @@
 import { ReconnectionManager } from '../src/utils/reconnection.js';
+import { logger } from '../src/utils/logger.js';
+
+/**
+ * Helper to safely access window with proper typing
+ * @returns {any}
+ */
+function getWindow() {
+  return typeof window !== 'undefined' ? window : undefined;
+}
 
 export class MultiplayerClient {
-  constructor(url = (typeof window !== 'undefined' ? (window.GAME_SERVER_URL || 'http://localhost:3001') : undefined)) {
-    this.url = url;
+  constructor(url) {
+    const w = getWindow();
+    this.url = url || (w?.GAME_SERVER_URL || 'http://localhost:3001');
     this.socket = null;
     this.handlers = {};
     this._autoRequestMatch = false;
@@ -16,7 +26,9 @@ export class MultiplayerClient {
 
   connect() {
     if (this.socket) return;
-    this.url = this.url || (typeof window !== 'undefined' ? (window.GAME_SERVER_URL || 'http://localhost:3001') : undefined);
+    
+    const w = getWindow();
+    this.url = this.url || (w?.GAME_SERVER_URL || 'http://localhost:3001');
     
     const socketOptions = { 
       transports: ['websocket', 'polling'],
@@ -24,19 +36,25 @@ export class MultiplayerClient {
       rememberUpgrade: false
     };
     
-    this.socket = window.io(this.url, socketOptions);
+    const ioFn = w?.io;
+    if (!ioFn) {
+      logger.error('[MultiplayerClient] window.io missing; ensure socket.io client script is loaded');
+      return;
+    }
+    
+    this.socket = ioFn(this.url, socketOptions);
     
     this.reconnectionManager = new ReconnectionManager(this.socket);
     this.reconnectionManager.onReconnectSuccess = (data) => {
-      console.log('[MultiplayerClient] Reconnection successful!', data);
+      logger.info('[MultiplayerClient] Reconnection successful!', data);
       this._emit('reconnected', data);
     };
     this.reconnectionManager.onReconnectFailed = (reason) => {
-      console.warn('[MultiplayerClient] Reconnection failed:', reason);
+      logger.warn('[MultiplayerClient] Reconnection failed:', reason);
       this._emit('reconnectionFailed', reason);
     };
     this.reconnectionManager.onDisconnected = (reason) => {
-      console.log('[MultiplayerClient] Disconnected:', reason);
+      logger.warn('[MultiplayerClient] Disconnected:', reason);
       this._emit('disconnecting', reason);
     };
     

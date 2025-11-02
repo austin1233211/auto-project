@@ -3,6 +3,7 @@ import { Combat } from '../src/systems/combat.js';
 import { HeroStatsCard } from '../src/ui/hero-stats-card.js';
 import { MultiplayerClient } from './multiplayer-client.js';
 import { sanitizeHTML } from '../src/utils/sanitize.js';
+import { logger } from '../src/utils/logger.js';
 
 export class MultiplayerDuel {
   constructor(container, onExitToMenu) {
@@ -30,7 +31,7 @@ export class MultiplayerDuel {
     this.client.on('proceedToRules', (data) => this.showRules(data));
     this.client.on('startingCountdown', (data) => this.showStartingCountdown(data));
     this.client.on('gameStarting', (data) => {
-      console.log('[1v1] Game starting!', data);
+      logger.debug('[1v1] Game starting!', data);
     });
     this.client.on('roundState', (state) => this.updateRoundState(state));
     this.client.on('matchAssign', (match) => this.handleMatchAssign(match));
@@ -193,15 +194,15 @@ export class MultiplayerDuel {
     `).join('');
     if (status?.phase === 'waiting_for_ready') {
       if (this.selectedHero) {
-        console.log('[1v1 client] re-emitting selectHero', this.selectedHero?.id || this.selectedHero);
+        logger.debug('[1v1 client] re-emitting selectHero', this.selectedHero?.id || this.selectedHero);
         this.client.selectHero(this.selectedHero);
         const readyBtn = this.container.querySelector('#duel-ready');
         if (readyBtn && !this.selectionLocked) readyBtn.disabled = false;
       } else {
-        console.log('[1v1 client] no selectedHero yet when waiting_for_ready');
+        logger.debug('[1v1 client] no selectedHero yet when waiting_for_ready');
       }
       if (this.requestedReady) {
-        console.log('[1v1 client] re-emitting playerReady');
+        logger.debug('[1v1 client] re-emitting playerReady');
         this.client.setReady();
         this.selectionLocked = true;
         const rerollBtns = this.container.querySelectorAll('.reroll-btn');
@@ -213,7 +214,7 @@ export class MultiplayerDuel {
   showRules(data) {
     const existing = this.container.querySelector('.rules-modal');
     if (existing) {
-      console.log('[1v1] Rules modal already exists, skipping duplicate');
+      logger.debug('[1v1] Rules modal already exists, skipping duplicate');
       return;
     }
     
@@ -372,7 +373,7 @@ export class MultiplayerDuel {
             this.combat.selectRandomEnemy = () => ({ ...oppHero });
             this.combat.init(myHero, me.gold || 0, { autoStart: false });
             this.heroStatsCard.updateHero(myHero);
-            console.log('[1v1] Created Combat UI during buffer phase');
+            logger.debug('[1v1] Created Combat UI during buffer phase');
           }
         }
       }
@@ -420,7 +421,7 @@ export class MultiplayerDuel {
       });
       this.combat.selectRandomEnemy = () => ({ ...oppHero });
       this.combat.startBattle();
-      console.log('[1v1] Starting battle with existing Combat instance');
+      logger.debug('[1v1] Starting battle with existing Combat instance');
     } else {
       this.combat = new Combat(combatContainer, this.heroStatsCard);
       this.combat.setOnBattleEnd((result) => {
@@ -429,7 +430,7 @@ export class MultiplayerDuel {
       });
       this.combat.selectRandomEnemy = () => ({ ...oppHero });
       this.combat.init(myHero, match.myGold || 0);
-      console.log('[1v1] Created new Combat instance (fallback)');
+      logger.debug('[1v1] Created new Combat instance (fallback)');
     }
   }
 
@@ -444,12 +445,12 @@ export class MultiplayerDuel {
   }
   
   handleDisconnecting(reason) {
-    console.log('[1v1] Disconnected:', reason);
+    logger.warn('[1v1] Disconnected:', reason);
     this.showReconnectingOverlay();
   }
   
   handleReconnected(data) {
-    console.log('[1v1] Reconnected successfully!', data);
+    logger.info('[1v1] Reconnected successfully!', data);
     this.hideReconnectingOverlay();
     
     if (data.roomState) {
@@ -470,7 +471,7 @@ export class MultiplayerDuel {
   }
   
   handleReconnectionFailed(reason) {
-    console.warn('[1v1] Reconnection failed:', reason);
+    logger.warn('[1v1] Reconnection failed:', reason);
     this.hideReconnectingOverlay();
     alert(`Failed to reconnect: ${reason}\nReturning to menu...`);
     if (this.onExitToMenu) this.onExitToMenu();
