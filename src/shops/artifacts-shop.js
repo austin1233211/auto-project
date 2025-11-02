@@ -81,13 +81,18 @@ export class ArtifactsShop {
 
     selectButtons.forEach(button => {
       button.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
+        const index = parseInt(e.currentTarget.dataset.index);
         this.selectArtifact(index);
       });
     });
   }
 
   selectArtifact(index) {
+    if (isNaN(index) || index < 0 || index >= this.currentArtifacts.length) {
+      console.warn(`Invalid artifact index: ${index}`);
+      return;
+    }
+    
     this.selectedArtifact = this.currentArtifacts[index];
     
     this.container.querySelectorAll('.artifact-slot').forEach((slot, i) => {
