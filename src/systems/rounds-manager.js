@@ -41,6 +41,7 @@ export class RoundsManager {
     this.isArtifactSelectionActive = false;
     this.isProcessingRoundResults = false;
     this.isQuitting = false;
+    this.eventListeners = [];
     
     this.throttledSyncGoldUI = throttleAnimationFrame(this._syncGoldUIImmediate.bind(this));
     
@@ -601,26 +602,34 @@ export class RoundsManager {
   }
 
   attachEventListeners() {
+    this.removeEventListeners();
+    
     const backBtn = this.container.querySelector('#back-to-selection');
     const shopToggleBtn = this.container.querySelector('#rounds-shop-toggle');
     const quitBtn = this.container.querySelector('#quit-tournament');
     
-    backBtn.addEventListener('click', () => {
-      if (this.onTournamentEnd) {
-        this.onTournamentEnd('back');
-      }
-    });
+    if (backBtn) {
+      const backHandler = () => {
+        if (this.onTournamentEnd) {
+          this.onTournamentEnd('back');
+        }
+      };
+      backBtn.addEventListener('click', backHandler);
+      this.eventListeners.push({ element: backBtn, event: 'click', handler: backHandler });
+    }
 
     if (shopToggleBtn) {
-      shopToggleBtn.addEventListener('click', () => {
+      const shopToggleHandler = () => {
         if (this.roundsShop) {
           this.roundsShop.toggle();
         }
-      });
+      };
+      shopToggleBtn.addEventListener('click', shopToggleHandler);
+      this.eventListeners.push({ element: shopToggleBtn, event: 'click', handler: shopToggleHandler });
     }
 
     if (quitBtn) {
-      quitBtn.addEventListener('click', () => {
+      const quitHandler = () => {
         if (confirm('Are you sure you want to quit? Progress will be lost.')) {
           this.isQuitting = true;
           this.timer.stopTimer();
@@ -635,8 +644,19 @@ export class RoundsManager {
             this.onTournamentEnd('quit');
           }
         }
-      });
+      };
+      quitBtn.addEventListener('click', quitHandler);
+      this.eventListeners.push({ element: quitBtn, event: 'click', handler: quitHandler });
     }
+  }
+
+  removeEventListeners() {
+    this.eventListeners.forEach(({ element, event, handler }) => {
+      if (element) {
+        element.removeEventListener(event, handler);
+      }
+    });
+    this.eventListeners = [];
   }
 
   setupTimer() {
