@@ -83,17 +83,212 @@ export class AbilitiesShop extends ItemShop {
       modifiedHero.purchasedAbilities = [...modifiedHero.purchasedAbilities];
     }
     
-    const existingAbilityIds = new Set(modifiedHero.purchasedAbilities.map(a => `${a.name}-${a.effect}-${a.value}`));
-    const newAbilities = this.purchasedItems.filter(ability => {
-      const abilityId = `${ability.name}-${ability.effect}-${ability.value}`;
-      return !existingAbilityIds.has(abilityId);
+    const existingAbilitiesMap = new Map();
+    modifiedHero.purchasedAbilities.forEach(ability => {
+      const key = `${ability.name}-${ability.effect}`;
+      existingAbilitiesMap.set(key, ability);
     });
     
-    newAbilities.forEach(ability => {
-      modifiedHero.purchasedAbilities.push(ability);
+    const processedKeys = new Set();
+    
+    this.purchasedItems.forEach(newAbility => {
+      const key = `${newAbility.name}-${newAbility.effect}`;
+      
+      if (processedKeys.has(key)) {
+        return;
+      }
+      processedKeys.add(key);
+      
+      const existing = existingAbilitiesMap.get(key);
+      
+      let maxStacks;
+      if (newAbility.tier === 3 || this.isNonStackableEffect(newAbility.effect)) {
+        maxStacks = 1;
+      } else {
+        maxStacks = 5;
+      }
+      
+      if (existing) {
+        if (existing.stacks < maxStacks) {
+          existing.stacks = (existing.stacks || 1) + 1;
+          
+          if (existing.baseAmount !== undefined) {
+            existing.amount = existing.baseAmount * existing.stacks;
+          } else {
+            existing.value = existing.baseValue * existing.stacks;
+          }
+          
+          existing.description = this.getStackedDescription(existing);
+        }
+      } else {
+        const abilityToAdd = {
+          ...newAbility,
+          stacks: 1,
+          maxStacks: maxStacks,
+          baseValue: newAbility.value
+        };
+        
+        if (newAbility.amount !== undefined) {
+          abilityToAdd.baseAmount = newAbility.amount;
+        }
+        
+        modifiedHero.purchasedAbilities.push(abilityToAdd);
+        existingAbilitiesMap.set(key, abilityToAdd);
+      }
     });
 
     return modifiedHero;
+  }
+  
+  getStackedDescription(ability) {
+    if (ability.baseAmount !== undefined) {
+      const parts = ability.description.match(/^(.+?)(\d+)(.+)$/);
+      if (parts) {
+        return `${parts[1]}${ability.amount}${parts[3]}`;
+      }
+      return ability.description;
+    }
+    
+    if (!ability.description.includes(' by ')) {
+      return ability.description;
+    }
+    const baseDesc = ability.description.split(' by ')[0];
+    return `${baseDesc} by ${ability.value}`;
+  }
+  
+  isNonStackableEffect(effect) {
+    const nonStackableEffects = [
+      'armor_pierce_chance',
+      'block_chance',
+      'ignore_enemy_evade',
+      'frost_resistance',
+      'shield_resistance',
+      'opponent_crit_resist',
+      'opponent_heal_resist',
+      'poison_resistance'
+    ];
+    return nonStackableEffects.includes(effect);
+  }
+  
+  purchaseItem(slotIndex) {
+    const slot = this.itemSlots[slotIndex];
+    if (!slot.item) return;
+    
+    const ability = slot.item;
+    const key = `${ability.name}-${ability.effect}`;
+    
+    let maxStacks;
+    if (ability.tier === 3 || this.isNonStackableEffect(ability.effect)) {
+      maxStacks = 1;
+    } else {
+      maxStacks = 5;
+    }
+    
+    if (this.player && this.player.hero && this.player.hero.purchasedAbilities) {
+      const existing = this.player.hero.purchasedAbilities.find(
+        a => `${a.name}-${a.effect}` === key
+      );
+      
+      if (existing) {
+        const currentStacks = existing.stacks || 1;
+        if (currentStacks >= maxStacks) {
+          return;
+        }
+      }
+    }
+    
+    super.purchaseItem(slotIndex);
+  }
+  
+  renderPurchasedItems() {
+    if (!this.player || !this.player.hero || !this.player.hero.purchasedAbilities) {
+      return super.renderPurchasedItems();
+    }
+    
+    const abilities = this.player.hero.purchasedAbilities;
+    if (abilities.length === 0) {
+      return '<p class="no-items">No abilities purchased yet</p>';
+    }
+    
+    return abilities.map(ability => {
+      const stackDisplay = ability.stacks > 1 ? ` x${ability.stacks}` : '';
+      const totalValue = ability.value;
+      const valueDisplay = ability.stacks > 1 ? ` (+${totalValue} total)` : '';
+      
+      return `
+        <div class="purchased-item">
+          <span class="item-emoji">${ability.emoji}</span>
+          <span class="item-name">${ability.name}${stackDisplay}</span>
+          <span class="item-effect">${ability.description}${valueDisplay}</span>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  renderItemSlot(slotIndex) {
+    const slot = this.itemSlots[slotIndex];
+    
+    if (!slot.item) {
+      return `
+        <div class="item-slot empty">
+          <div class="item-placeholder">Sold Out</div>
+        </div>
+      `;
+    }
+
+    const ability = slot.item;
+    const key = `${ability.name}-${ability.effect}`;
+    
+    let maxStacks;
+    if (ability.tier === 3 || this.isNonStackableEffect(ability.effect)) {
+      maxStacks = 1;
+    } else {
+      maxStacks = 5;
+    }
+    
+    let currentStacks = 0;
+    let isMaxed = false;
+    
+    if (this.player && this.player.hero && this.player.hero.purchasedAbilities) {
+      const existing = this.player.hero.purchasedAbilities.find(
+        a => `${a.name}-${a.effect}` === key
+      );
+      if (existing) {
+        currentStacks = existing.stacks || 1;
+        isMaxed = currentStacks >= maxStacks;
+      }
+    }
+    
+    const canAfford = this.playerGold >= ability.cost;
+    const canPurchase = canAfford && !isMaxed;
+    const tierClass = `tier-${ability.tier}`;
+    
+    let buttonText = 'Buy';
+    if (isMaxed) {
+      buttonText = maxStacks === 1 ? 'Owned' : 'Maxed (5/5)';
+    } else if (!canAfford) {
+      buttonText = 'Too Expensive';
+    }
+    
+    const stackDisplay = currentStacks > 0 ? ` <span class="stack-count">x${currentStacks}</span>` : '';
+    const stackInfo = maxStacks > 1 ? ` <span class="stack-info">(${currentStacks}/${maxStacks})</span>` : '';
+    
+    return `
+      <div class="item-slot ${tierClass}">
+        <div class="item-tier-badge">T${ability.tier}</div>
+        <div class="item-header">
+          <span class="item-emoji">${ability.emoji}</span>
+          <span class="item-cost">💰${ability.cost}</span>
+        </div>
+        <div class="item-name">${ability.name}${stackDisplay}</div>
+        <div class="item-description">${ability.description}${stackInfo}</div>
+        <div class="item-actions">
+          <button class="action-button primary purchase-btn" data-slot="${slotIndex}" ${!canPurchase ? 'disabled' : ''}>
+            ${buttonText}
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   updateItemSlot(slotIndex, item) {

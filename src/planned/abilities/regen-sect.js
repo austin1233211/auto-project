@@ -7,16 +7,16 @@ export const REGEN_SECT_ABILITIES = {
     { name: 'Burst Regeneration', effect: 'crit_heal', value: 10, emoji: '💥', description: 'With each crit restore 10 HP' },
     { name: 'Body of Regen', effect: 'health_regen_percent', value: 1, emoji: '❤️', description: 'Every 1.2 seconds restore 1% HP' },
     { name: 'Ultimate Restoration', effect: 'ultimate_heal', value: 100, emoji: '✨', description: 'Each cast of your ultimate restores 100 HP' },
-    { name: 'Poisonous Medicine', effect: 'heal_poison_chance', value: 35, emoji: '☠️', description: '35% chance to apply 4 stacks of poison to opponent when you restore HP' },
-    { name: 'Freezing Healing', effect: 'heal_frost_chance', value: 35, emoji: '❄️', description: '35% chance to apply 5 stacks of frost to opponent when you restore HP' },
-    { name: 'Healing Shield', effect: 'heal_shield_chance', value: 35, emoji: '🛡️', description: '35% chance to gain 4 stacks of shield to self when you restore HP' },
+    { name: 'Poisonous Medicine', effect: 'heal_poison_chance', value: 35, amount: 4, emoji: '☠️', description: '35% chance to apply 4 stacks of poison to opponent when you restore HP' },
+    { name: 'Freezing Healing', effect: 'heal_frost_chance', value: 35, amount: 5, emoji: '❄️', description: '35% chance to apply 5 stacks of frost to opponent when you restore HP' },
+    { name: 'Healing Shield', effect: 'heal_shield_chance', value: 35, amount: 4, emoji: '🛡️', description: '35% chance to gain 4 stacks of shield to self when you restore HP' },
     { name: 'Regenerative Aura', effect: 'aura_heal_nearby', value: 5, emoji: '🌟', description: 'Nearby allies regenerate 5 HP per second' },
     { name: 'Vampiric Recovery', effect: 'damage_to_heal', value: 15, emoji: '🩸', description: '15% of damage dealt is converted to healing' },
     { name: 'Meditation', effect: 'mana_to_heal', value: 2, emoji: '🧘', description: 'Convert 2 mana per second into 8 HP' },
     { name: 'Phoenix Blood', effect: 'low_hp_regen_boost', value: 25, emoji: '🔥', description: 'Healing effects are 25% stronger when below 30% HP' }
   ],
   2: [
-    { name: 'Shadow Rays', effect: 'heal_damage_chance', value: 25, emoji: '🌑', description: '25% chance to deal 100 damage when you restore HP' },
+    { name: 'Shadow Rays', effect: 'heal_damage_chance', value: 25, amount: 100, emoji: '🌑', description: '25% chance to deal 100 damage when you restore HP' },
     { name: 'Holy Light Detonation', effect: 'heal_threshold_damage', value: 400, emoji: '💡', description: 'When you restore 400 HP total, deal 100 damage to opponent (every 400 HP restored)' },
     { name: 'Power of Earth', effect: 'enhanced_regen', value: 35, emoji: '🌍', description: 'Every 0.8 seconds restore 35 HP' }
   ],
