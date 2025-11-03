@@ -312,6 +312,10 @@ export class RoundsManager {
         if (artifactGold > 0) {
           player1.gold += artifactGold;
         }
+        
+        if (player1.name === 'You') {
+          this.syncGoldUI();
+        }
       }
       if (!player2.isGhost) {
         const oldHealth = player2.playerHealth.currentHealth;
@@ -322,6 +326,10 @@ export class RoundsManager {
         const artifactGold = ArtifactEffects.processDefeatEffects(player2, hpLost);
         if (artifactGold > 0) {
           player2.gold += artifactGold;
+        }
+        
+        if (player2.name === 'You') {
+          this.syncGoldUI();
         }
       }
     } else {
@@ -336,6 +344,10 @@ export class RoundsManager {
         if (artifactGold > 0) {
           player2.gold += artifactGold;
         }
+        
+        if (player2.name === 'You') {
+          this.syncGoldUI();
+        }
       }
       if (!player1.isGhost) {
         const oldHealth = player1.playerHealth.currentHealth;
@@ -346,6 +358,10 @@ export class RoundsManager {
         const artifactGold = ArtifactEffects.processDefeatEffects(player1, hpLost);
         if (artifactGold > 0) {
           player1.gold += artifactGold;
+        }
+        
+        if (player1.name === 'You') {
+          this.syncGoldUI();
         }
       }
     }
