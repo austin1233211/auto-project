@@ -1,18 +1,18 @@
-import { ABILITY_CONFIG } from './ability-system/config.js';
-import * as BurnEffect from './ability-system/effects/burn.js';
-import * as PoisonEffect from './ability-system/effects/poison.js';
-import * as StunEffect from './ability-system/effects/stun.js';
-import * as DamageReductionEffect from './ability-system/effects/damage-reduction.js';
-import * as AttackSpeedEffect from './ability-system/effects/attack-speed.js';
-import * as AbsorptionEffect from './ability-system/effects/absorption.js';
-import * as DodgeEffect from './ability-system/effects/dodge.js';
-import * as StealthEffect from './ability-system/effects/stealth.js';
-import * as PoisonBladeEffect from './ability-system/effects/poison-blade.js';
-import * as ImmunityEffect from './ability-system/effects/immunity.js';
-import * as SkeletonEffect from './ability-system/effects/skeleton.js';
-import * as FrostEffect from './ability-system/effects/frost.js';
-import * as ShieldEffect from './ability-system/effects/shield.js';
-import { processStatusEffects as processEffects } from './ability-system/effects/processor.js';
+import { ABILITY_CONFIG } from '../legacy/ability-system/config.js';
+import * as BurnEffect from '../legacy/ability-system/effects/burn.js';
+import * as PoisonEffect from '../legacy/ability-system/effects/poison.js';
+import * as StunEffect from '../legacy/ability-system/effects/stun.js';
+import * as DamageReductionEffect from '../legacy/ability-system/effects/damage-reduction.js';
+import * as AttackSpeedEffect from '../legacy/ability-system/effects/attack-speed.js';
+import * as AbsorptionEffect from '../legacy/ability-system/effects/absorption.js';
+import * as DodgeEffect from '../legacy/ability-system/effects/dodge.js';
+import * as StealthEffect from '../legacy/ability-system/effects/stealth.js';
+import * as PoisonBladeEffect from '../legacy/ability-system/effects/poison-blade.js';
+import * as ImmunityEffect from '../legacy/ability-system/effects/immunity.js';
+import * as SkeletonEffect from '../legacy/ability-system/effects/skeleton.js';
+import * as FrostEffect from '../legacy/ability-system/effects/frost.js';
+import * as ShieldEffect from '../legacy/ability-system/effects/shield.js';
+import { processStatusEffects as processEffects } from '../legacy/ability-system/effects/processor.js';
 
 export class AbilitySystem {
   constructor(combat) {
