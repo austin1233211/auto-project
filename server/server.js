@@ -654,8 +654,17 @@ function broadcastWaitingRoom(roomId) {
     return;
   }
   const playerCount = room.players.size;
+  
+  let currentPhase = 'waiting';
+  let secondsRemaining = null;
+  
+  if (room.startCountdownTimer && room.startCountdownEndsAt) {
+    currentPhase = 'countdown';
+    secondsRemaining = Math.max(0, Math.ceil((room.startCountdownEndsAt - Date.now()) / 1000));
+  }
+  
   const payload = {
-    phase: 'waiting',
+    phase: currentPhase,
     playerCount: playerCount,
     maxPlayers: 8,
     players: Array.from(room.players.values()).map(p => ({
@@ -663,11 +672,17 @@ function broadcastWaitingRoom(roomId) {
       name: p.name
     }))
   };
+  
+  if (secondsRemaining !== null) {
+    payload.secondsRemaining = secondsRemaining;
+  }
+  
   logger.debug('Broadcasting waitingRoomUpdate with payload:', payload);
   io.to(roomId).emit('waitingRoomUpdate', payload);
   
   if (playerCount === 8 && !room.startCountdownTimer) {
     logger.debug('Starting countdown timer for 8 players');
+    room.startCountdownEndsAt = Date.now() + 10000;
     room.startCountdownTimer = setTimeout(() => {
       room.phase = 'lobby';
       broadcastLobby(roomId);
