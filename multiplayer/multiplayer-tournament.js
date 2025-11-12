@@ -5,6 +5,7 @@ import { MultiplayerClient } from './multiplayer-client.js';
 import { Timer } from '../src/systems/timer.js';
 import { sanitizeHTML } from '../src/utils/sanitize.js';
 import { EventCollector } from '../src/utils/event-collector.js';
+import { logger } from '../src/utils/logger.js';
 
 export class MultiplayerTournament {
   constructor(container, onExitToMenu) {
@@ -293,6 +294,10 @@ export class MultiplayerTournament {
   }
 
   updateLobby(payload) {
+    if (payload?.phase === 'lobby' && this.currentPhase !== 'lobby') {
+      this.startHeroSelection();
+    }
+    
     this.players = payload.players || [];
     const div = this.container.querySelector('#mt-players');
     if (div) {
@@ -371,6 +376,8 @@ export class MultiplayerTournament {
   }
 
   startHeroSelection() {
+    if (this.currentPhase === 'lobby') return;
+    this.currentPhase = 'lobby';
     this.renderLobby();
     this.attachLobbyEvents();
     this.startSelectionTimer();
@@ -528,6 +535,56 @@ export class MultiplayerTournament {
       setTimeout(() => {
         if (this.onExitToMenu) this.onExitToMenu();
       }, 3000);
+    }
+  }
+
+  handleReconnected(data) {
+    if (!data || !data.roomState) return;
+    
+    const roomState = data.roomState;
+    const phase = roomState.phase;
+    
+    if (phase === 'waiting') {
+      this.renderWaitingRoom();
+      if (roomState.players) {
+        this.updateWaitingRoom({
+          phase: 'waiting',
+          playerCount: roomState.players.length,
+          maxPlayers: 8,
+          players: roomState.players
+        });
+      }
+    } else if (phase === 'lobby') {
+      this.startHeroSelection();
+      if (roomState.players) {
+        this.updateLobby({
+          phase: 'lobby',
+          players: roomState.players
+        });
+      }
+    } else if (phase === 'buffer' || phase === 'round') {
+      this.renderTournamentScaffold();
+      if (roomState.players) {
+        this.updateRoundState({
+          phase: phase,
+          roundNumber: roomState.currentRound || 1,
+          activeCount: roomState.activePlayers?.length || 0,
+          ghostCount: roomState.ghostPlayers?.length || 0,
+          time: 0,
+          players: roomState.players
+        });
+      }
+    }
+  }
+
+  handleDisconnecting(reason) {
+    logger.info('[Tournament] Disconnecting:', reason);
+  }
+
+  handleReconnectionFailed(reason) {
+    logger.warn('[Tournament] Reconnection failed:', reason);
+    if (this.onExitToMenu) {
+      this.onExitToMenu();
     }
   }
 
